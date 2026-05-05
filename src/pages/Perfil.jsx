@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, MapPin, Bell, Plus, Trash2, Gift, Star, BellRing } from 'lucide-react';
+import { User, MapPin, Bell, Plus, Trash2, Gift, Star, BellRing, CalendarDays, CheckCircle2, BarChart2 } from 'lucide-react';
 import PushNotificationButton from '@/components/ui/PushNotificationButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,7 @@ import { base44 } from '@/api/base44Client';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useAuth } from '@/lib/AuthContext';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Perfil() {
@@ -65,7 +65,7 @@ export default function Perfil() {
         const created = await base44.entities.CustomerProfile.create({ ...form, user_email: user.email, loyalty_points: 0 });
         setProfile(created);
       }
-      toast.success(t.success, { icon: '🍓' });
+      toast.success(t.success);
     } catch (err) {
       toast.error(t.error);
     } finally {
@@ -113,10 +113,13 @@ export default function Perfil() {
             <div>
               <h1 className="font-poppins font-bold text-2xl text-foreground">{profile?.display_name || user.full_name}</h1>
               <p className="text-muted-foreground text-sm">{user.email}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs bg-strawberry/10 text-strawberry px-2 py-0.5 rounded-full">
-                  🍓 {profile?.loyalty_points || 0} {t.loyaltyPoints}
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <span className="text-xs bg-strawberry/10 text-strawberry px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <Star className="w-3 h-3 fill-strawberry" /> {profile?.loyalty_points || 0} {t.loyaltyPoints}
                 </span>
+                <Link to="/dashboard" className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-full flex items-center gap-1 hover:opacity-80 transition-opacity">
+                  <BarChart2 className="w-3 h-3" /> {language === 'es' ? 'Ver Dashboard' : 'View Dashboard'}
+                </Link>
               </div>
             </div>
           </div>
@@ -142,7 +145,7 @@ export default function Perfil() {
                   <Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} type="tel" className="rounded-xl" />
                 </div>
                 <div className="space-y-1">
-                  <Label>{language === 'es' ? 'Cumpleaños 🎂' : 'Birthday 🎂'}</Label>
+                  <Label className="flex items-center gap-1">{language === 'es' ? 'Cumpleaños' : 'Birthday'} <CalendarDays className="w-3 h-3 text-muted-foreground" /></Label>
                   <Input value={form.birthday} onChange={e => setForm(p => ({ ...p, birthday: e.target.value }))} type="date" className="rounded-xl" />
                   <p className="text-xs text-muted-foreground">{language === 'es' ? 'Sorpresa especial en tu cumpleaños' : 'Special surprise on your birthday'}</p>
                 </div>
@@ -173,7 +176,7 @@ export default function Perfil() {
                         <div className="flex-1">
                           {addr.label && <p className="font-medium text-sm">{addr.label}</p>}
                           <p className="text-sm text-muted-foreground">{addr.address}</p>
-                          {addr.is_default && <span className="text-xs text-strawberry">✓ {language === 'es' ? 'Principal' : 'Default'}</span>}
+                          {addr.is_default && <span className="text-xs text-strawberry flex items-center gap-0.5"><CheckCircle2 className="w-3 h-3" /> {language === 'es' ? 'Principal' : 'Default'}</span>}
                         </div>
                         <button onClick={() => handleRemoveAddress(i)} className="text-destructive hover:text-destructive/80">
                           <Trash2 className="w-4 h-4" />

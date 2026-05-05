@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import { motion } from 'framer-motion';
-import { Package, TrendingUp, Users, MessageCircle, Settings, Loader2, Star, BarChart2, DollarSign, Download, ShoppingBag } from 'lucide-react';
+import { Package, TrendingUp, Users, MessageCircle, Settings, Loader2, Star, BarChart2, DollarSign, Download, ShoppingBag, Phone, Mail } from 'lucide-react';
 import AdminAnalytics from './AdminAnalytics';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,7 +46,7 @@ function KanbanColumn({ status, orders, onUpdateStatus }) {
             </div>
             <p className="text-xs font-medium">{order.customer_name}</p>
             <p className="text-xs text-muted-foreground truncate">{order.customer_address}</p>
-            <p className="text-xs text-muted-foreground mt-1">📱 {order.customer_phone}</p>
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><Phone className="w-3 h-3" /> {order.customer_phone}</p>
             <p className="text-xs text-muted-foreground">{order.items?.length} items · {order.payment_method}</p>
             {order.notes && <p className="text-xs italic text-muted-foreground mt-1">"{order.notes}"</p>}
             {status !== 'delivered' && status !== 'cancelled' && (
@@ -256,7 +256,7 @@ export default function Admin() {
                 onCheckedChange={async (val) => {
                   setSettingsForm(p => ({ ...p, is_open: val }));
                   if (settings) await base44.entities.StoreSettings.update(settings.id, { is_open: val });
-                  toast.success(val ? '✅ Tienda Abierta' : '❌ Tienda Cerrada');
+                  toast.success(val ? 'Tienda Abierta' : 'Tienda Cerrada');
                 }}
               />
               <span className={`text-sm font-medium ${settingsForm.is_open ? 'text-green-600' : 'text-red-600'}`}>
@@ -370,7 +370,7 @@ export default function Admin() {
                   const convoMessages = chatMessages.filter(m => m.user_email === email).sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
                   return (
                     <div key={email} className="bg-card rounded-2xl border border-border p-4">
-                      <p className="font-semibold text-sm mb-3">📧 {email}</p>
+                      <p className="font-semibold text-sm mb-3 flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-muted-foreground" /> {email}</p>
                       <div className="space-y-2 max-h-48 overflow-y-auto mb-3">
                         {convoMessages.map(msg => (
                           <div key={msg.id} className={`flex ${msg.is_admin ? 'justify-end' : 'justify-start'}`}>

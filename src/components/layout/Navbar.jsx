@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Heart, User, Bell, Menu, X, Sun, Moon, Bot } from 'lucide-react';
+import { ShoppingCart, Heart, User, Menu, X, Sun, Moon, Bot, BarChart2 } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useCart } from '@/lib/CartContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -9,6 +9,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import PushNotificationButton from '@/components/ui/PushNotificationButton';
+import NotificationDrawer from '@/components/layout/NotificationDrawer';
 
 export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
   const { t, language, toggleLanguage } = useLanguage();
@@ -17,21 +18,11 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  useEffect(() => {
-    if (user) {
-      base44.entities.Notification.filter({ user_email: user.email, is_read: false })
-        .then(notifs => setUnreadCount(notifs.length))
-        .catch(() => {});
-    }
-  }, [user, location]);
 
   const navLinks = [
     { to: '/menu', label: t.menu },
@@ -39,6 +30,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
     { to: '/favoritos', label: t.favorites },
     { to: '/chat', label: t.chat },
     { to: '/referral', label: language === 'es' ? 'Referir' : 'Refer' },
+    { to: '/dashboard', label: language === 'es' ? 'Mi Stats' : 'My Stats' },
   ];
 
   if (user?.role === 'admin') {
@@ -61,7 +53,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
           <Link to="/" className="flex items-center gap-2 group">
             <div className="relative">
               <span className="text-2xl font-poppins font-black text-strawberry group-hover:scale-105 transition-transform inline-block">
-                🍓 Fresitas
+                Fresitas
               </span>
               <span className="text-2xl font-poppins font-black text-chocolate"> G&F</span>
             </div>
@@ -114,19 +106,8 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
               </Button>
             </a>
 
-            {/* Notifications */}
-            {user && (
-              <Link to="/perfil">
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="h-4 w-4" />
-                  {unreadCount > 0 && (
-                    <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-xs bg-strawberry text-white border-0">
-                      {unreadCount}
-                    </Badge>
-                  )}
-                </Button>
-              </Link>
-            )}
+            {/* Notifications Drawer */}
+            {user && <NotificationDrawer />}
 
             {/* Cart */}
             <Link to="/cart">

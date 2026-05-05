@@ -14,6 +14,12 @@
     "customer_address": {
       "type": "string"
     },
+    "delivery_lat": {
+      "type": "number"
+    },
+    "delivery_lng": {
+      "type": "number"
+    },
     "items": {
       "type": "array",
       "items": {
@@ -79,6 +85,22 @@
         "tarjeta"
       ]
     },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "paid",
+        "failed",
+        "refunded"
+      ],
+      "default": "pending"
+    },
+    "payment_intent_id": {
+      "type": "string"
+    },
+    "card_last4": {
+      "type": "string"
+    },
     "delivery_time_preference": {
       "type": "string"
     },
@@ -92,6 +114,9 @@
       "type": "string"
     },
     "promo_code": {
+      "type": "string"
+    },
+    "subscription_id": {
       "type": "string"
     },
     "loyalty_points_earned": {

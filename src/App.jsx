@@ -27,6 +27,7 @@ import UserDashboard from './pages/UserDashboard';
 import OwnerPanel from './pages/OwnerPanel';
 import ManagerPanel from './pages/ManagerPanel';
 import Suscripciones from './pages/Suscripciones';
+import Logistica from './pages/Logistica';
 
 // Layout
 import Navbar from './components/layout/Navbar';
@@ -95,6 +96,7 @@ const AuthenticatedApp = () => {
         <Route path="/owner" element={<OwnerPanel />} />
         <Route path="/manager" element={<ManagerPanel />} />
         <Route path="/suscripciones" element={<Suscripciones />} />
+        <Route path="/logistica" element={<Logistica />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <WhatsAppButton phone={whatsappNumber} />

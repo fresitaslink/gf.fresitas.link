@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 
 import { motion } from 'framer-motion';
-import { Package, TrendingUp, Users, MessageCircle, Settings, Loader2, Star, BarChart2, DollarSign, Download, ShoppingBag, Phone, Mail, Crown, ExternalLink } from 'lucide-react';
+import { Package, TrendingUp, Users, MessageCircle, Settings, Loader2, Star, BarChart2, DollarSign, Download, ShoppingBag, Phone, Mail, Crown, ExternalLink, Navigation, Map } from 'lucide-react';
 import AdminAnalytics from './AdminAnalytics';
+import BusinessIntelligence from '@/components/admin/BusinessIntelligence';
+import OrdersMap from '@/components/admin/OrdersMap';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -254,7 +256,10 @@ export default function Admin() {
                 </a>
               )}
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <a href="/logistica" className="inline-flex items-center gap-1.5 text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 rounded-full px-3 py-1.5 hover:opacity-80">
+                <Navigation className="w-3 h-3" /> Logística Repartidores
+              </a>
               <span className="text-sm text-muted-foreground">Tienda:</span>
               <Switch
                 checked={settingsForm.is_open}
@@ -291,11 +296,12 @@ export default function Admin() {
           <Tabs defaultValue="orders">
             <TabsList className="w-full rounded-xl mb-6 bg-muted flex-wrap h-auto">
               <TabsTrigger value="orders" className="flex-1 rounded-lg text-xs">Pedidos</TabsTrigger>
+              <TabsTrigger value="mapa" className="flex-1 rounded-lg text-xs">🗺 Mapa</TabsTrigger>
               <TabsTrigger value="products" className="flex-1 rounded-lg text-xs">Productos</TabsTrigger>
               <TabsTrigger value="reviews" className="flex-1 rounded-lg text-xs">Reseñas</TabsTrigger>
               <TabsTrigger value="chat" className="flex-1 rounded-lg text-xs">Chat</TabsTrigger>
               <TabsTrigger value="settings" className="flex-1 rounded-lg text-xs">Config</TabsTrigger>
-              <TabsTrigger value="analytics" className="flex-1 rounded-lg text-xs">Analytics</TabsTrigger>
+              <TabsTrigger value="bi" className="flex-1 rounded-lg text-xs">📊 BI</TabsTrigger>
               <TabsTrigger value="export" className="flex-1 rounded-lg text-xs">Exportar</TabsTrigger>
             </TabsList>
 
@@ -307,6 +313,18 @@ export default function Admin() {
                     <KanbanColumn key={status} status={status} orders={orders} onUpdateStatus={handleUpdateOrderStatus} />
                   ))}
                 </div>
+              </div>
+            </TabsContent>
+
+            {/* Map Tab */}
+            <TabsContent value="mapa">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Map className="w-5 h-5 text-strawberry" />
+                  <h3 className="font-poppins font-bold text-lg">Mapa de Pedidos Activos</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">Los pedidos con coordenadas GPS del cliente aparecen en el mapa. El tamaño del círculo indica concentración.</p>
+                <OrdersMap orders={orders.filter(o => ['pending','confirmed','preparing','on_the_way'].includes(o.status))} />
               </div>
             </TabsContent>
 
@@ -444,9 +462,9 @@ export default function Admin() {
                 </Button>
               </div>
             </TabsContent>
-            {/* Analytics */}
-            <TabsContent value="analytics">
-              <AdminAnalytics />
+            {/* Business Intelligence */}
+            <TabsContent value="bi">
+              <BusinessIntelligence />
             </TabsContent>
 
             {/* CSV Export */}

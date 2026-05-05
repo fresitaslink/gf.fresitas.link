@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, MapPin, Clock, CreditCard, FileText, Loader2 } from 'lucide-react';
+import { Check, MapPin, Clock, CreditCard, FileText, Loader2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +13,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import DeliveryMap from '@/components/checkout/DeliveryMap';
+import StripePayment from '@/components/checkout/StripePayment';
 
 const STEPS = ['delivery', 'customize', 'payment', 'confirm'];
 
@@ -28,6 +29,8 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [subscription, setSubscription] = useState(null);
+  const [stripePaymentData, setStripePaymentData] = useState(null);
   const [settings, setSettings] = useState({ delivery_fee: 30, free_delivery_min: 200, whatsapp_number: '525512345678' });
 
   const [form, setForm] = useState({
@@ -42,7 +45,10 @@ export default function Checkout() {
   useEffect(() => {
     base44.entities.StoreSettings.list().then(s => { if (s[0]) setSettings(s[0]); });
     if (user) {
-      base44.entities.CustomerProfile.filter({ user_email: user.email }).then(profiles => {
+      Promise.all([
+        base44.entities.CustomerProfile.filter({ user_email: user.email }),
+        base44.entities.Subscription.filter({ user_email: user.email }),
+      ]).then(([profiles, subs]) => {
         if (profiles[0]) {
           setProfile(profiles[0]);
           setForm(prev => ({
@@ -52,6 +58,8 @@ export default function Checkout() {
             customer_address: profiles[0].addresses?.find(a => a.is_default)?.address || '',
           }));
         }
+        const activeSub = subs.find(s => s.status === 'active');
+        if (activeSub) setSubscription(activeSub);
       });
     }
   }, [user]);
@@ -61,7 +69,10 @@ export default function Checkout() {
     return null;
   }
 
-  const total = cartTotal || subtotal + (subtotal >= settings.free_delivery_min ? 0 : settings.delivery_fee) - discount;
+  // Apply subscription discount if active
+  const subDiscount = subscription ? subtotal * (subscription.discount_percent || 10) / 100 : 0;
+  const totalDiscount = discount + subDiscount;
+  const total = cartTotal ? cartTotal - subDiscount : subtotal + (subtotal >= settings.free_delivery_min ? 0 : settings.delivery_fee) - totalDiscount;
   const actualDeliveryFee = subtotal >= settings.free_delivery_min ? 0 : (deliveryFee || settings.delivery_fee);
 
   const handlePlaceOrder = async () => {
@@ -83,16 +94,22 @@ export default function Checkout() {
         customer_name: form.customer_name,
         customer_phone: form.customer_phone,
         customer_address: form.customer_address,
+        delivery_lat: form.delivery_lat || null,
+        delivery_lng: form.delivery_lng || null,
         items: orderItems,
         subtotal,
         delivery_fee: actualDeliveryFee,
-        discount,
+        discount: totalDiscount,
         total,
         status: 'pending',
         payment_method: form.payment_method,
+        payment_status: stripePaymentData ? 'paid' : 'pending',
+        payment_intent_id: stripePaymentData?.payment_intent_id || '',
+        card_last4: stripePaymentData?.last4 || '',
         delivery_time_preference: form.delivery_time_preference,
         notes: form.notes,
         promo_code: promo?.code || '',
+        subscription_id: subscription?.id || '',
         tracking_code: trackingCode,
         loyalty_points_earned: Math.floor(total),
       });
@@ -155,6 +172,8 @@ export default function Checkout() {
     { value: 'transferencia', icon: '🏦', label: t.transferencia },
     { value: 'tarjeta', icon: '💳', label: t.tarjeta },
   ];
+
+  const canPlaceOrder = step < 3 || form.payment_method !== 'tarjeta' || stripePaymentData;
 
   const stepLabels = [t.deliveryInfo, t.customize, t.payment, t.confirm];
 
@@ -303,11 +322,19 @@ export default function Checkout() {
             {step === 2 && (
               <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
                 <h2 className="font-poppins font-bold text-xl">{t.payment}</h2>
+                {subscription && (
+                  <div className="flex items-center gap-2 bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-xl p-3 text-sm">
+                    <Zap className="w-4 h-4 text-green-600 flex-shrink-0" />
+                    <span className="text-green-800 dark:text-green-300">
+                      Suscripción {subscription.plan?.toUpperCase()} activa — {subscription.discount_percent}% descuento aplicado 🎉
+                    </span>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 gap-3">
                   {paymentMethods.map(pm => (
                     <button
                       key={pm.value}
-                      onClick={() => setForm(p => ({ ...p, payment_method: pm.value }))}
+                      onClick={() => { setForm(p => ({ ...p, payment_method: pm.value })); setStripePaymentData(null); }}
                       className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${form.payment_method === pm.value ? 'border-strawberry bg-strawberry/5' : 'border-border hover:border-strawberry/40'}`}
                     >
                       <span className="text-3xl">{pm.icon}</span>
@@ -316,6 +343,23 @@ export default function Checkout() {
                     </button>
                   ))}
                 </div>
+                {form.payment_method === 'tarjeta' && !stripePaymentData && (
+                  <div className="border border-border rounded-2xl p-4 mt-2">
+                    <StripePayment
+                      total={total}
+                      onPaymentSuccess={(data) => { setStripePaymentData(data); toast.success('¡Pago con tarjeta autorizado! ✅'); }}
+                      onPaymentError={(err) => toast.error(err)}
+                    />
+                  </div>
+                )}
+                {form.payment_method === 'tarjeta' && stripePaymentData && (
+                  <div className="flex items-center gap-2 bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-xl p-3 text-sm">
+                    <Check className="w-4 h-4 text-green-600" />
+                    <span className="text-green-800 dark:text-green-300">
+                      Tarjeta ••••{stripePaymentData.last4} autorizada. Procede a confirmar el pedido.
+                    </span>
+                  </div>
+                )}
               </motion.div>
             )}
 
@@ -339,7 +383,8 @@ export default function Checkout() {
                 <div className="border-t border-border pt-3 space-y-2 text-sm">
                   <div className="flex justify-between"><span className="text-muted-foreground">{t.subtotal}</span><span>${subtotal.toFixed(2)}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">{t.deliveryFee}</span><span>{actualDeliveryFee === 0 ? t.free : `$${actualDeliveryFee}`}</span></div>
-                  {discount > 0 && <div className="flex justify-between text-green-600"><span>{t.discount}</span><span>-${discount.toFixed(2)}</span></div>}
+                  {discount > 0 && <div className="flex justify-between text-green-600"><span>{t.discount} (promo)</span><span>-${discount.toFixed(2)}</span></div>}
+                  {subDiscount > 0 && <div className="flex justify-between text-green-600"><span>Descuento suscripción ({subscription?.discount_percent}%)</span><span>-${subDiscount.toFixed(2)}</span></div>}
                   <div className="flex justify-between font-bold text-base border-t pt-2"><span>{t.total}</span><span className="text-strawberry">${total.toFixed(2)}</span></div>
                 </div>
                 <div className="bg-muted rounded-xl p-3 text-sm space-y-1">
@@ -375,11 +420,11 @@ export default function Checkout() {
           ) : (
             <Button
               onClick={handlePlaceOrder}
-              disabled={loading}
+              disabled={loading || (form.payment_method === 'tarjeta' && !stripePaymentData)}
               className="flex-1 bg-strawberry hover:bg-strawberry/90 text-white rounded-xl py-3 font-semibold"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : '🍓 '}
-              {t.placeOrder}
+              {form.payment_method === 'tarjeta' && !stripePaymentData ? 'Autoriza el pago primero' : t.placeOrder}
             </Button>
           )}
         </div>

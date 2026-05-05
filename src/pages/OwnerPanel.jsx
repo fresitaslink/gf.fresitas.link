@@ -283,10 +283,11 @@ export default function OwnerPanel() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="user">Comprador</SelectItem>
-                        <SelectItem value="manager">Manager</SelectItem>
-                        <SelectItem value="owner">Owner</SelectItem>
-                      </SelectContent>
+                          <SelectItem value="user">Comprador</SelectItem>
+                          <SelectItem value="manager">Manager</SelectItem>
+                          <SelectItem value="delivery">Repartidor</SelectItem>
+                          <SelectItem value="owner">Owner</SelectItem>
+                        </SelectContent>
                     </Select>
                     <Button onClick={handleInviteUser} disabled={inviteLoading} className="bg-strawberry text-white hover:bg-strawberry/90 rounded-xl">
                       {inviteLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
@@ -317,14 +318,16 @@ export default function OwnerPanel() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="user">Comprador</SelectItem>
-                            <SelectItem value="manager">Manager</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="owner">Owner</SelectItem>
+                          <SelectItem value="user">Comprador</SelectItem>
+                          <SelectItem value="manager">Manager</SelectItem>
+                          <SelectItem value="delivery">Repartidor 🚗</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="owner">Owner</SelectItem>
                           </SelectContent>
                         </Select>
                         {(u.role === 'owner' || u.role === 'admin') && <Crown className="w-4 h-4 text-gold flex-shrink-0" />}
                         {u.role === 'manager' && <Shield className="w-4 h-4 text-purple-500 flex-shrink-0" />}
+                        {u.role === 'delivery' && <span className="text-sm flex-shrink-0">🚗</span>}
                       </div>
                     ))}
                   </div>

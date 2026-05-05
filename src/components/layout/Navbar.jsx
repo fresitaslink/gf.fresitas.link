@@ -37,6 +37,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
   if (user?.role === 'admin') navLinks.push({ to: '/admin', label: t.admin });
   if (user?.role === 'manager') navLinks.push({ to: '/manager', label: 'Manager' });
   if (user?.role === 'owner') navLinks.push({ to: '/owner', label: 'Owner' });
+  if (['admin', 'owner', 'manager', 'delivery'].includes(user?.role)) navLinks.push({ to: '/logistica', label: '🚗 Logística' });
 
   return (
     <motion.nav
@@ -129,6 +130,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
                   <User className="h-4 w-4" />
                   {user.role === 'owner' && <Crown className="absolute -top-1 -right-1 w-3 h-3 text-gold" />}
                   {user.role === 'manager' && <Shield className="absolute -top-1 -right-1 w-3 h-3 text-purple-500" />}
+                  {user.role === 'delivery' && <span className="absolute -top-1 -right-1 text-xs">🚗</span>}
                 </Button>
               </Link>
             ) : (

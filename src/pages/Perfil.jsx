@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, MapPin, Bell, Plus, Trash2, Gift, Star, BellRing, CalendarDays, CheckCircle2, BarChart2, Crown, Shield, Zap } from 'lucide-react';
+import { User, MapPin, Bell, Plus, Trash2, Gift, Star, BellRing, CalendarDays, CheckCircle2, BarChart2, Crown, Shield, Zap, Award } from 'lucide-react';
+import { LoyaltyLevelCard, BadgesGrid } from '@/components/loyalty/LoyaltyLevel';
 import PushNotificationButton from '@/components/ui/PushNotificationButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -140,6 +141,7 @@ export default function Perfil() {
           <Tabs defaultValue="profile">
             <TabsList className="w-full rounded-xl mb-6 bg-muted flex-wrap h-auto">
               <TabsTrigger value="profile" className="flex-1 rounded-lg text-xs">{t.editProfile}</TabsTrigger>
+              <TabsTrigger value="nivel" className="flex-1 rounded-lg text-xs">Mi Nivel 🏆</TabsTrigger>
               <TabsTrigger value="addresses" className="flex-1 rounded-lg text-xs">{t.savedAddresses}</TabsTrigger>
               <TabsTrigger value="loyalty" className="flex-1 rounded-lg text-xs">{t.loyaltyPoints}</TabsTrigger>
               <TabsTrigger value="notifications" className="flex-1 rounded-lg text-xs">{t.notifications}</TabsTrigger>
@@ -175,6 +177,14 @@ export default function Perfil() {
                 <Button variant="outline" className="w-full rounded-xl border-destructive text-destructive" onClick={() => base44.auth.logout()}>
                   {t.logout}
                 </Button>
+              </div>
+            </TabsContent>
+
+            {/* Nivel Tab */}
+            <TabsContent value="nivel">
+              <div className="space-y-4">
+                <LoyaltyLevelCard points={profile?.loyalty_points || 0} totalOrders={profile?.total_orders || 0} />
+                <BadgesGrid totalOrders={profile?.total_orders || 0} points={profile?.loyalty_points || 0} />
               </div>
             </TabsContent>
 

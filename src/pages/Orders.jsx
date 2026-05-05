@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { showPushNotification } from '@/components/ui/PushNotificationButton';
 
 const STATUS_STEPS = ['pending', 'confirmed', 'preparing', 'on_the_way', 'delivered'];
 
@@ -66,6 +67,20 @@ export default function Orders() {
     base44.entities.Order.filter({ user_email: user.email }, '-created_date')
       .then(setOrders)
       .finally(() => setLoading(false));
+
+    // Real-time order status notifications
+    const unsubscribeOrders = base44.entities.Order.subscribe((event) => {
+      if (event.type === 'update' && event.data?.user_email === user.email) {
+        setOrders(prev => prev.map(o => o.id === event.id ? event.data : o));
+        const statusMsg = { confirmed: '✅ Confirmado', preparing: '👨‍🍳 En preparación', on_the_way: '🚗 ¡En camino!', delivered: '🏠 ¡Entregado!' };
+        const msg = statusMsg[event.data?.status];
+        if (msg) {
+          toast.success(`Pedido ${msg}`, { duration: 5000 });
+          showPushNotification('🍓 Fresitas G&F', `Tu pedido está: ${msg}`, '/orders');
+        }
+      }
+    });
+    return () => unsubscribeOrders();
   }, [user]);
 
   const handleReorder = async (order) => {

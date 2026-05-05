@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Heart, User, Bell, Menu, X, Sun, Moon, Languages } from 'lucide-react';
+import { ShoppingCart, Heart, User, Bell, Menu, X, Sun, Moon, Bot } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useCart } from '@/lib/CartContext';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import PushNotificationButton from '@/components/ui/PushNotificationButton';
 
 export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
   const { t, language, toggleLanguage } = useLanguage();
@@ -37,6 +38,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
     { to: '/orders', label: t.orders },
     { to: '/favoritos', label: t.favorites },
     { to: '/chat', label: t.chat },
+    { to: '/referral', label: language === 'es' ? '🎁 Referir' : '🎁 Refer' },
   ];
 
   if (user?.role === 'admin') {
@@ -90,6 +92,11 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
               {storeOpen ? t.open : t.closed}
             </div>
 
+            {/* Push Notifications - desktop only */}
+            <div className="hidden lg:block">
+              <PushNotificationButton />
+            </div>
+
             {/* Language Toggle */}
             <Button variant="ghost" size="sm" onClick={toggleLanguage} className="text-xs font-bold px-2">
               {language === 'es' ? 'EN' : 'ES'}
@@ -99,6 +106,13 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
             <Button variant="ghost" size="icon" onClick={toggleDarkMode}>
               {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
+
+            {/* Willfy AI */}
+            <a href="https://app.base44.com/agents/willfy" target="_blank" rel="noopener noreferrer" title="Habla con Willfy">
+              <Button variant="ghost" size="icon" className="text-purple-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20">
+                <Bot className="h-4 w-4" />
+              </Button>
+            </a>
 
             {/* Notifications */}
             {user && (

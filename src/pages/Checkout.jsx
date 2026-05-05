@@ -12,6 +12,7 @@ import { useCart } from '@/lib/CartContext';
 import { useAuth } from '@/lib/AuthContext';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
+import DeliveryMap from '@/components/checkout/DeliveryMap';
 
 const STEPS = ['delivery', 'customize', 'payment', 'confirm'];
 
@@ -127,6 +128,16 @@ export default function Checkout() {
 
       clearCart();
       setOrderPlaced({ ...order, trackingCode });
+
+      // Send email notification
+      base44.functions.invoke('sendOrderEmail', { order_id: order.id, event_type: 'new_order' }).catch(() => {});
+
+      // Handle referral if present
+      const urlParams = new URLSearchParams(window.location.search);
+      const refEmail = urlParams.get('email');
+      if (refEmail && user?.email && refEmail !== user.email) {
+        base44.functions.invoke('handleReferral', { referrer_email: refEmail, new_user_email: user.email, order_id: order.id }).catch(() => {});
+      }
 
       // Confetti!
       confetti({ particleCount: 150, spread: 80, colors: ['#E8294A', '#5C2D0E', '#FDE8EC', '#FFD700'], origin: { y: 0.6 } });
@@ -245,6 +256,12 @@ export default function Checkout() {
                   )}
                   <Input value={form.customer_address} onChange={e => setForm(p => ({ ...p, customer_address: e.target.value }))} className="rounded-xl" placeholder={language === 'es' ? 'Calle, número, colonia...' : 'Street, number, area...'} />
                 </div>
+                {/* Delivery Map */}
+                <DeliveryMap
+                  onLocationSelect={(latlng) => {
+                    setForm(p => ({ ...p, delivery_lat: latlng[0], delivery_lng: latlng[1] }));
+                  }}
+                />
               </motion.div>
             )}
 

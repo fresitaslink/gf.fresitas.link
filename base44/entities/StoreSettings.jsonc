@@ -27,6 +27,10 @@
     "whatsapp_number": {
       "type": "string"
     },
+    "admin_email": {
+      "type": "string",
+      "description": "Owner/admin email for notifications"
+    },
     "instagram_url": {
       "type": "string"
     },

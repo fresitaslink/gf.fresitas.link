@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Package, TrendingUp, Users, MessageCircle, Settings, Plus, ToggleLeft, ToggleRight, Loader2, Star, CheckCircle } from 'lucide-react';
+import { Package, TrendingUp, Users, MessageCircle, Settings, Plus, ToggleLeft, ToggleRight, Loader2, Star, CheckCircle, BarChart2 } from 'lucide-react';
+import AdminAnalytics from './AdminAnalytics';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -101,6 +102,7 @@ export default function Admin() {
     announcement_en: '',
     whatsapp_number: '',
     closed_message_es: '',
+    admin_email: '',
   });
 
   useEffect(() => {
@@ -126,6 +128,7 @@ export default function Admin() {
           announcement_en: settingsList[0].announcement_en || '',
           whatsapp_number: settingsList[0].whatsapp_number || '',
           closed_message_es: settingsList[0].closed_message_es || '',
+          admin_email: settingsList[0].admin_email || '',
         });
       }
     }).finally(() => setLoading(false));
@@ -142,6 +145,8 @@ export default function Admin() {
     await base44.entities.Order.update(orderId, { status: newStatus });
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
     toast.success(`Pedido → ${STATUS_LABELS[newStatus]}`);
+    // Send email notification to customer
+    base44.functions.invoke('sendOrderEmail', { order_id: orderId, event_type: 'status_update' }).catch(() => {});
   };
 
   const handleToggleProduct = async (product) => {
@@ -243,6 +248,7 @@ export default function Admin() {
               <TabsTrigger value="reviews" className="flex-1 rounded-lg text-xs">Reseñas</TabsTrigger>
               <TabsTrigger value="chat" className="flex-1 rounded-lg text-xs">Chat</TabsTrigger>
               <TabsTrigger value="settings" className="flex-1 rounded-lg text-xs">Config</TabsTrigger>
+              <TabsTrigger value="analytics" className="flex-1 rounded-lg text-xs">Analytics</TabsTrigger>
             </TabsList>
 
             {/* Orders Kanban */}
@@ -367,6 +373,10 @@ export default function Admin() {
                     <Label>WhatsApp</Label>
                     <Input value={settingsForm.whatsapp_number} onChange={e => setSettingsForm(p => ({ ...p, whatsapp_number: e.target.value }))} placeholder="525512345678" className="rounded-xl" />
                   </div>
+                  <div className="space-y-1">
+                    <Label>Email del Admin (notificaciones)</Label>
+                    <Input value={settingsForm.admin_email || ''} onChange={e => setSettingsForm(p => ({ ...p, admin_email: e.target.value }))} placeholder="tu@email.com" type="email" className="rounded-xl" />
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <Label>Anuncio (Español)</Label>
@@ -385,6 +395,10 @@ export default function Admin() {
                   Guardar Configuración
                 </Button>
               </div>
+            </TabsContent>
+            {/* Analytics */}
+            <TabsContent value="analytics">
+              <AdminAnalytics />
             </TabsContent>
           </Tabs>
         </motion.div>

@@ -29,11 +29,12 @@ function PostCard({ post, language, featured = false }) {
       className={`group bg-card rounded-3xl border border-border overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${featured ? 'md:col-span-2' : ''}`}
     >
       <Link to={`/blog/${post.slug || post.id}`}>
-        <div className={`relative overflow-hidden bg-cream ${featured ? 'h-64 md:h-80' : 'h-48'}`}>
+        <div className={`relative overflow-hidden bg-cream aspect-video ${featured ? 'md:aspect-[2/1]' : ''}`}>
           {post.cover_image ? (
             <img
               src={post.cover_image}
               alt={title}
+              loading="lazy"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (

@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { LanguageProvider } from '@/lib/LanguageContext';
 import { CartProvider } from '@/lib/CartContext';
+import { StoreProvider, useStore } from '@/lib/StoreContext';
 import { Toaster as Sonner } from 'sonner';
 import { base44 } from '@/api/base44Client';
 
@@ -38,6 +39,7 @@ import WillfyButton from './components/layout/WillfyButton';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isOpen } = useStore();
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('fresitas_dark') === 'true');
   useEffect(() => {
     if (darkMode) {
@@ -70,7 +72,7 @@ const AuthenticatedApp = () => {
 
   return (
     <>
-      <Navbar darkMode={darkMode} toggleDarkMode={() => setDarkMode(d => !d)} />
+      <Navbar darkMode={darkMode} toggleDarkMode={() => setDarkMode(d => !d)} storeOpen={isOpen} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/menu" element={<Menu />} />
@@ -101,17 +103,19 @@ const AuthenticatedApp = () => {
 function App() {
   return (
     <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <LanguageProvider>
-          <CartProvider>
-            <Router>
-              <AuthenticatedApp />
-            </Router>
-            <Toaster />
-            <Sonner richColors position="top-center" />
-          </CartProvider>
-        </LanguageProvider>
-      </QueryClientProvider>
+      <StoreProvider>
+        <QueryClientProvider client={queryClientInstance}>
+          <LanguageProvider>
+            <CartProvider>
+              <Router>
+                <AuthenticatedApp />
+              </Router>
+              <Toaster />
+              <Sonner richColors position="top-center" />
+            </CartProvider>
+          </LanguageProvider>
+        </QueryClientProvider>
+      </StoreProvider>
     </AuthProvider>
   );
 }

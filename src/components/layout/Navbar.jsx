@@ -104,11 +104,11 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
             </Button>
 
             {/* Willfy AI */}
-            <a href="https://app.base44.com/agents/willfy" target="_blank" rel="noopener noreferrer" title="Habla con Willfy">
+            <Link to="/chat" title="Chat con Willfy">
               <Button variant="ghost" size="icon" className="text-purple-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20">
                 <Bot className="h-4 w-4" />
               </Button>
-            </a>
+            </Link>
 
             {/* Notifications Drawer */}
             {user && <NotificationDrawer />}

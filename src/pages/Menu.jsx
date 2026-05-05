@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -24,10 +25,11 @@ const CATEGORY_ICONS = {
 export default function Menu() {
   const { t, language } = useLanguage();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [search, setSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
+  const [search, setSearch] = useState(searchParams.get('q') || '');
   const [sortBy, setSortBy] = useState('popular');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [favorites, setFavorites] = useState([]);
@@ -35,13 +37,19 @@ export default function Menu() {
   useEffect(() => {
     base44.entities.Product.list().then(prods => {
       setProducts(prods);
+      // If producto slug specified, open modal
+      const prodSlug = searchParams.get('producto');
+      if (prodSlug) {
+        const found = prods.find(p => p.slug === prodSlug);
+        if (found) setSelectedProduct(found);
+      }
     }).finally(() => setLoading(false));
 
     if (user) {
       base44.entities.Favorite.filter({ user_email: user.email })
         .then(favs => setFavorites(favs.map(f => f.product_id)));
     }
-  }, [user]);
+  }, [user, searchParams]);
 
   const categories = useMemo(() => {
     const cats = ['all', ...new Set(products.map(p => p.category).filter(Boolean))];

@@ -28,6 +28,8 @@ import OwnerPanel from './pages/OwnerPanel';
 import ManagerPanel from './pages/ManagerPanel';
 import Suscripciones from './pages/Suscripciones';
 import Logistica from './pages/Logistica';
+import Blog from './pages/Blog';
+import BlogPostDetail from './pages/BlogPostDetail';
 
 // Layout
 import Navbar from './components/layout/Navbar';
@@ -85,6 +87,8 @@ const AuthenticatedApp = () => {
         <Route path="/manager" element={<ManagerPanel />} />
         <Route path="/suscripciones" element={<Suscripciones />} />
         <Route path="/logistica" element={<Logistica />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:slug" element={<BlogPostDetail />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <WillfyButton />

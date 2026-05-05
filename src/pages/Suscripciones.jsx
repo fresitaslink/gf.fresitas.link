@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Check, ShoppingBag, CalendarDays, RefreshCw, Star, Loader2, Plus, Minus, Trash2 } from 'lucide-react';
+import { Zap, Check, ShoppingBag, CalendarDays, RefreshCw, Star, Loader2, Plus, Minus, Trash2, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,7 +19,7 @@ const PLANS = [
     discount: 10,
     color: 'border-blue-300 bg-blue-50 dark:bg-blue-900/10',
     badge: 'bg-blue-100 text-blue-700',
-    icon: '🍓',
+    icon: 'basic',
     perks: ['10% descuento en cada pedido', 'Entrega programada', 'Acceso prioritario a nuevos productos'],
   },
   {
@@ -28,7 +28,7 @@ const PLANS = [
     discount: 15,
     color: 'border-purple-300 bg-purple-50 dark:bg-purple-900/10',
     badge: 'bg-purple-100 text-purple-700',
-    icon: '🍓✨',
+    icon: 'premium',
     perks: ['15% descuento', 'Entrega express gratis', 'Productos exclusivos', 'Chat prioritario'],
     popular: true,
   },
@@ -38,7 +38,7 @@ const PLANS = [
     discount: 20,
     color: 'border-amber-300 bg-amber-50 dark:bg-amber-900/10',
     badge: 'bg-amber-100 text-amber-700',
-    icon: '👑',
+    icon: 'vip',
     perks: ['20% descuento', 'Entrega gratis siempre', 'Caja sorpresa mensual', 'Acceso VIP total', 'Puntos 2x'],
   },
 ];
@@ -139,7 +139,7 @@ export default function Suscripciones() {
       } else {
         const created = await base44.entities.Subscription.create(data);
         setSubscription(created);
-        toast.success('¡Suscripción activada! 🎉');
+        toast.success('¡Suscripción activada!');
         // Notification
         await base44.entities.Notification.create({
           user_email: user.email,
@@ -183,7 +183,9 @@ export default function Suscripciones() {
             <div className={`rounded-3xl border-2 p-6 mb-6 ${plan.color}`}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <span className="text-3xl">{plan.icon}</span>
+                  <div className="w-10 h-10 rounded-xl bg-white/50 flex items-center justify-center flex-shrink-0">
+                    {plan.icon === 'vip' ? <Crown className="w-5 h-5 text-amber-600" /> : plan.icon === 'premium' ? <Star className="w-5 h-5 text-purple-600" /> : <ShoppingBag className="w-5 h-5 text-blue-600" />}
+                  </div>
                   <div>
                     <h2 className="font-poppins font-black text-2xl">Plan {plan.name}</h2>
                     <Badge className={plan.badge}>{plan.discount}% descuento</Badge>
@@ -249,12 +251,14 @@ export default function Suscripciones() {
                 >
                   {plan.popular && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <Badge className="bg-strawberry text-white text-xs px-3">⭐ Más Popular</Badge>
+                      <Badge className="bg-strawberry text-white text-xs px-3 gap-1"><Star className="w-3 h-3" /> Más Popular</Badge>
                     </div>
                   )}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{plan.icon}</span>
+                      <div className="w-10 h-10 rounded-xl bg-white/50 flex items-center justify-center flex-shrink-0">
+                        {plan.icon === 'vip' ? <Crown className="w-5 h-5 text-amber-600" /> : plan.icon === 'premium' ? <Star className="w-5 h-5 text-purple-600" /> : <ShoppingBag className="w-5 h-5 text-blue-600" />}
+                      </div>
                       <div>
                         <h3 className="font-poppins font-bold text-lg">{plan.name}</h3>
                         <Badge className={plan.badge}>{plan.discount}% descuento</Badge>
@@ -390,10 +394,10 @@ export default function Suscripciones() {
               <div className={`rounded-3xl border-2 p-6 ${selectedPlan?.color}`}>
                 <h3 className="font-bold text-lg mb-3">Plan {selectedPlan?.name} · {selectedPlan?.discount}% descuento</h3>
                 <div className="space-y-2 text-sm mb-4">
-                  <p>📦 {form.selectedItems.length} producto(s) seleccionados</p>
-                  <p>🔄 Frecuencia: {FREQ_ES[form.frequency]}</p>
-                  <p>📅 Día: {DAYS_ES[form.delivery_day]}</p>
-                  <p>📍 {form.delivery_address}</p>
+                  <div className="flex items-center gap-2"><ShoppingBag className="w-4 h-4 text-muted-foreground" /><span>{form.selectedItems.length} producto(s) seleccionados</span></div>
+                  <div className="flex items-center gap-2"><RefreshCw className="w-4 h-4 text-muted-foreground" /><span>Frecuencia: {FREQ_ES[form.frequency]}</span></div>
+                  <div className="flex items-center gap-2"><CalendarDays className="w-4 h-4 text-muted-foreground" /><span>Día: {DAYS_ES[form.delivery_day]}</span></div>
+                  <div className="flex items-center gap-2"><Zap className="w-4 h-4 text-muted-foreground" /><span>{form.delivery_address}</span></div>
                 </div>
                 <div className="border-t border-border/30 pt-4 space-y-1">
                   <div className="flex justify-between text-sm"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
@@ -402,8 +406,8 @@ export default function Suscripciones() {
                 </div>
               </div>
               <Button onClick={handleSubscribe} disabled={saving} className="w-full bg-strawberry text-white hover:bg-strawberry/90 rounded-xl py-3 font-bold">
-                {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Zap className="w-4 h-4 mr-2" />}
-                {subscription ? 'Actualizar Suscripción' : 'Activar Suscripción'} 🍓
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                  {subscription ? 'Actualizar Suscripción' : 'Activar Suscripción'}
               </Button>
             </div>
           )}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, MapPin, Clock, CreditCard, FileText, Loader2, Zap } from 'lucide-react';
+import { Check, MapPin, Clock, CreditCard, FileText, Loader2, Zap, PartyPopper, MessageCircle, Package, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -136,8 +136,8 @@ export default function Checkout() {
           user_email: user.email,
           title_es: '¡Pedido recibido!',
           title_en: 'Order received!',
-          message_es: `Tu pedido ${trackingCode} está siendo procesado con amor 🍓`,
-          message_en: `Your order ${trackingCode} is being processed with love 🍓`,
+          message_es: `Tu pedido ${trackingCode} está siendo procesado con amor.`,
+          message_en: `Your order ${trackingCode} is being processed with love.`,
           type: 'order_update',
           link: '/orders',
         });
@@ -168,9 +168,9 @@ export default function Checkout() {
   };
 
   const paymentMethods = [
-    { value: 'efectivo', icon: '💵', label: t.efectivo },
-    { value: 'transferencia', icon: '🏦', label: t.transferencia },
-    { value: 'tarjeta', icon: '💳', label: t.tarjeta },
+    { value: 'efectivo', label: t.efectivo },
+    { value: 'transferencia', label: t.transferencia },
+    { value: 'tarjeta', label: t.tarjeta },
   ];
 
   const canPlaceOrder = step < 3 || form.payment_method !== 'tarjeta' || stripePaymentData;
@@ -188,7 +188,9 @@ export default function Checkout() {
           animate={{ scale: 1, opacity: 1 }}
           className="text-center max-w-md"
         >
-          <div className="text-7xl mb-6">🎉</div>
+          <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+            <PartyPopper className="w-10 h-10 text-green-600" />
+          </div>
           <h1 className="font-poppins font-black text-3xl text-foreground mb-3">{t.orderPlaced}</h1>
           <p className="text-muted-foreground mb-4">
             {language === 'es' ? '¡Tu pedido fue recibido con mucho amor!' : 'Your order was received with lots of love!'}
@@ -203,8 +205,8 @@ export default function Checkout() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Button className="w-full bg-green-500 hover:bg-green-600 text-white rounded-xl">
-                📱 {t.whatsappConfirm}
+              <Button className="w-full bg-green-500 hover:bg-green-600 text-white rounded-xl gap-2">
+                <MessageCircle className="w-4 h-4" /> {t.whatsappConfirm}
               </Button>
             </a>
             <Button
@@ -268,7 +270,7 @@ export default function Checkout() {
                           onClick={() => setForm(p => ({ ...p, customer_address: addr.address }))}
                           className={`text-left p-3 rounded-xl border-2 text-sm transition-all ${form.customer_address === addr.address ? 'border-strawberry bg-strawberry/5' : 'border-border hover:border-strawberry/50'}`}
                         >
-                          📍 {addr.label && <span className="font-medium">{addr.label}: </span>}{addr.address}
+                          <MapPin className="w-3 h-3 inline mr-1" />{addr.label && <span className="font-medium">{addr.label}: </span>}{addr.address}
                         </button>
                       ))}
                     </div>
@@ -337,7 +339,9 @@ export default function Checkout() {
                       onClick={() => { setForm(p => ({ ...p, payment_method: pm.value })); setStripePaymentData(null); }}
                       className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${form.payment_method === pm.value ? 'border-strawberry bg-strawberry/5' : 'border-border hover:border-strawberry/40'}`}
                     >
-                      <span className="text-3xl">{pm.icon}</span>
+                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+                        {pm.value === 'tarjeta' ? <CreditCard className="w-5 h-5 text-muted-foreground" /> : pm.value === 'transferencia' ? <FileText className="w-5 h-5 text-muted-foreground" /> : <Package className="w-5 h-5 text-muted-foreground" />}
+                      </div>
                       <span className="font-semibold">{pm.label}</span>
                       {form.payment_method === pm.value && <Check className="ml-auto w-5 h-5 text-strawberry" />}
                     </button>
@@ -388,9 +392,9 @@ export default function Checkout() {
                   <div className="flex justify-between font-bold text-base border-t pt-2"><span>{t.total}</span><span className="text-strawberry">${total.toFixed(2)}</span></div>
                 </div>
                 <div className="bg-muted rounded-xl p-3 text-sm space-y-1">
-                  <p>📍 {form.customer_address}</p>
-                  <p>📱 {form.customer_phone}</p>
-                  <p>💳 {paymentMethods.find(p => p.value === form.payment_method)?.label}</p>
+                  <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" /><span>{form.customer_address}</span></div>
+                  <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" /><span>{form.customer_phone}</span></div>
+                  <div className="flex items-center gap-2"><CreditCard className="w-4 h-4 text-muted-foreground flex-shrink-0" /><span>{paymentMethods.find(p => p.value === form.payment_method)?.label}</span></div>
                 </div>
               </motion.div>
             )}
@@ -423,7 +427,7 @@ export default function Checkout() {
               disabled={loading || (form.payment_method === 'tarjeta' && !stripePaymentData)}
               className="flex-1 bg-strawberry hover:bg-strawberry/90 text-white rounded-xl py-3 font-semibold"
             >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : '🍓 '}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
               {form.payment_method === 'tarjeta' && !stripePaymentData ? 'Autoriza el pago primero' : t.placeOrder}
             </Button>
           )}

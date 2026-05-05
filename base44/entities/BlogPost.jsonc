@@ -1,0 +1,88 @@
+{
+  "name": "BlogPost",
+  "type": "object",
+  "properties": {
+    "title_es": {
+      "type": "string",
+      "description": "Title in Spanish"
+    },
+    "title_en": {
+      "type": "string",
+      "description": "Title in English"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-friendly identifier"
+    },
+    "excerpt_es": {
+      "type": "string",
+      "description": "Short excerpt in Spanish"
+    },
+    "excerpt_en": {
+      "type": "string",
+      "description": "Short excerpt in English"
+    },
+    "content_es": {
+      "type": "string",
+      "description": "Full content in Spanish (markdown supported)"
+    },
+    "content_en": {
+      "type": "string",
+      "description": "Full content in English (markdown supported)"
+    },
+    "cover_image": {
+      "type": "string",
+      "description": "Cover image URL"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "recetas",
+        "tips",
+        "noticias",
+        "temporada",
+        "maridajes"
+      ],
+      "description": "Post category"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "author_avatar": {
+      "type": "string"
+    },
+    "is_published": {
+      "type": "boolean",
+      "default": false
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "read_time_minutes": {
+      "type": "number",
+      "default": 3
+    },
+    "views": {
+      "type": "number",
+      "default": 0
+    },
+    "seo_title": {
+      "type": "string"
+    },
+    "seo_description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title_es",
+    "content_es",
+    "category"
+  ]
+}

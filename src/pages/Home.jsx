@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, ArrowRight, ChevronLeft, ChevronRight, Sparkles, Package, Heart, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { useLanguage } from '@/lib/LanguageContext';
@@ -13,6 +13,7 @@ import SkeletonCard from '@/components/ui/SkeletonCard';
 import RealStats from '@/components/home/RealStats';
 import HowItWorks from '@/components/home/HowItWorks';
 import LoyaltyClubSection from '@/components/home/LoyaltyClubSection';
+import HomeBlogSection from '@/components/home/HomeBlogSection';
 import { toast } from 'sonner';
 
 export default function Home() {
@@ -58,7 +59,7 @@ export default function Home() {
     } else {
       await base44.entities.Favorite.create({ user_email: user.email, product_id: product.id });
       setFavorites(prev => [...prev, product.id]);
-      toast.success(t.addedToFavorites, { icon: '❤️' });
+      toast.success(t.addedToFavorites);
     }
   };
 
@@ -118,8 +119,8 @@ export default function Home() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/menu">
-                <Button className="bg-strawberry hover:bg-strawberry/90 text-white font-semibold px-8 py-4 rounded-full text-lg shadow-lg shadow-strawberry/30 hover:shadow-xl hover:shadow-strawberry/40 transition-all">
-                  {t.orderNow} 🍓
+                <Button className="bg-strawberry hover:bg-strawberry/90 text-white font-semibold px-8 py-4 rounded-full text-lg shadow-lg shadow-strawberry/30 hover:shadow-xl hover:shadow-strawberry/40 transition-all gap-2">
+                  <Sparkles className="w-4 h-4" /> {t.orderNow}
                 </Button>
               </Link>
               <Link to="/menu">
@@ -167,7 +168,7 @@ export default function Home() {
             </div>
           ) : featuredProducts.length === 0 ? (
             <div className="text-center py-12">
-              <div className="text-5xl mb-4">🍓</div>
+              <Package className="w-16 h-16 text-strawberry/30 mx-auto mb-4" />
               <p className="text-muted-foreground">
                 {language === 'es' ? 'Pronto habrá productos destacados' : 'Featured products coming soon'}
               </p>
@@ -215,7 +216,7 @@ export default function Home() {
               viewport={{ once: true }}
               className="text-center mb-10"
             >
-              <span className="text-amber-300 text-sm font-medium uppercase tracking-wider">⭐ {language === 'es' ? 'Solo por tiempo limitado' : 'Limited time only'}</span>
+              <span className="flex items-center justify-center gap-1 text-amber-300 text-sm font-medium uppercase tracking-wider"><Star className="w-4 h-4" /> {language === 'es' ? 'Solo por tiempo limitado' : 'Limited time only'}</span>
               <h2 className="font-poppins font-bold text-3xl sm:text-4xl mt-2">{t.seasonalSpecials}</h2>
             </motion.div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -233,7 +234,9 @@ export default function Home() {
                     {product.image_url ? (
                       <img src={product.image_url} alt={product.name_es} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-5xl">🍓</div>
+                       <div className="w-full h-full flex items-center justify-center bg-strawberry/10">
+                         <Package className="w-12 h-12 text-strawberry/40" />
+                       </div>
                     )}
                   </div>
                   <h3 className="font-poppins font-semibold text-lg">{language === 'es' ? product.name_es : (product.name_en || product.name_es)}</h3>
@@ -328,6 +331,9 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* Blog preview section */}
+      <HomeBlogSection language={language} />
 
       <LoyaltyClubSection />
 

@@ -19,10 +19,10 @@ function luhn(num) {
 
 function detectBrand(num) {
   const n = num.replace(/\D/g, '');
-  if (/^4/.test(n)) return { brand: 'Visa', icon: '💳' };
-  if (/^5[1-5]/.test(n)) return { brand: 'Mastercard', icon: '💳' };
-  if (/^3[47]/.test(n)) return { brand: 'Amex', icon: '💳' };
-  return { brand: '', icon: '💳' };
+  if (/^4/.test(n)) return { brand: 'Visa' };
+  if (/^5[1-5]/.test(n)) return { brand: 'Mastercard' };
+  if (/^3[47]/.test(n)) return { brand: 'Amex' };
+  return { brand: '' };
 }
 
 function formatCardNumber(val) {
@@ -118,7 +118,7 @@ export default function StripePayment({ total, onPaymentSuccess, onPaymentError,
             maxLength={19}
             disabled={disabled || processing}
           />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-lg">{brand.icon}</span>
+          {brand.brand && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">{brand.brand}</span>}
         </div>
         {brand.brand && <p className="text-xs text-muted-foreground">{brand.brand} detectado</p>}
       </div>
@@ -161,7 +161,8 @@ export default function StripePayment({ total, onPaymentSuccess, onPaymentError,
       </Button>
 
       <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
-        <span>🔒 SSL</span>
+        <Lock className="w-3 h-3" />
+        <span>SSL</span>
         <span>•</span>
         <span>Visa</span>
         <span>•</span>

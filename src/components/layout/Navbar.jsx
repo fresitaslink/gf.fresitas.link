@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, User, Menu, X, Sun, Moon, Bot, Crown, Shield, Zap } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, Sun, Moon, Bot, Crown, Shield, Zap, Truck, BookOpen } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useCart } from '@/lib/CartContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -32,12 +32,13 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
     { to: '/chat', label: t.chat },
     { to: '/referral', label: language === 'es' ? 'Referir' : 'Refer' },
     { to: '/dashboard', label: language === 'es' ? 'Mi Stats' : 'My Stats' },
+    { to: '/blog', label: language === 'es' ? 'Blog' : 'Blog' },
   ];
 
   if (user?.role === 'admin') navLinks.push({ to: '/admin', label: t.admin });
   if (user?.role === 'manager') navLinks.push({ to: '/manager', label: 'Manager' });
   if (user?.role === 'owner') navLinks.push({ to: '/owner', label: 'Owner' });
-  if (['admin', 'owner', 'manager', 'delivery'].includes(user?.role)) navLinks.push({ to: '/logistica', label: '🚗 Logística' });
+  if (['admin', 'owner', 'manager', 'delivery'].includes(user?.role)) navLinks.push({ to: '/logistica', label: 'Logística' });
 
   return (
     <motion.nav
@@ -130,7 +131,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
                   <User className="h-4 w-4" />
                   {user.role === 'owner' && <Crown className="absolute -top-1 -right-1 w-3 h-3 text-gold" />}
                   {user.role === 'manager' && <Shield className="absolute -top-1 -right-1 w-3 h-3 text-purple-500" />}
-                  {user.role === 'delivery' && <span className="absolute -top-1 -right-1 text-xs">🚗</span>}
+                  {user.role === 'delivery' && <Truck className="absolute -top-1 -right-1 w-3 h-3 text-blue-500" />}
                 </Button>
               </Link>
             ) : (

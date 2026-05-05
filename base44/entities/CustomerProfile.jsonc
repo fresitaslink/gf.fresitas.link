@@ -11,23 +11,6 @@
     "phone": {
       "type": "string"
     },
-    "addresses": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "label": {
-            "type": "string"
-          },
-          "address": {
-            "type": "string"
-          },
-          "is_default": {
-            "type": "boolean"
-          }
-        }
-      }
-    },
     "avatar_url": {
       "type": "string"
     },
@@ -72,6 +55,23 @@
     "newsletter_subscribed": {
       "type": "boolean",
       "default": true
+    },
+    "addresses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "is_default": {
+            "type": "boolean"
+          }
+        }
+      }
     }
   },
   "required": [

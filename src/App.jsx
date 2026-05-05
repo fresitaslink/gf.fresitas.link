@@ -31,14 +31,11 @@ import Logistica from './pages/Logistica';
 
 // Layout
 import Navbar from './components/layout/Navbar';
-import WhatsAppButton from './components/layout/WhatsAppButton';
+import WillfyButton from './components/layout/WillfyButton';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('fresitas_dark') === 'true');
-  const [storeOpen, setStoreOpen] = useState(true);
-  const [whatsappNumber, setWhatsappNumber] = useState('525512345678');
-
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -47,15 +44,6 @@ const AuthenticatedApp = () => {
     }
     localStorage.setItem('fresitas_dark', darkMode);
   }, [darkMode]);
-
-  useEffect(() => {
-    base44.entities.StoreSettings.list().then(settings => {
-      if (settings[0]) {
-        setStoreOpen(settings[0].is_open !== false);
-        if (settings[0].whatsapp_number) setWhatsappNumber(settings[0].whatsapp_number);
-      }
-    }).catch(() => {});
-  }, []);
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -79,7 +67,7 @@ const AuthenticatedApp = () => {
 
   return (
     <>
-      <Navbar darkMode={darkMode} toggleDarkMode={() => setDarkMode(d => !d)} storeOpen={storeOpen} />
+      <Navbar darkMode={darkMode} toggleDarkMode={() => setDarkMode(d => !d)} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/menu" element={<Menu />} />
@@ -99,7 +87,7 @@ const AuthenticatedApp = () => {
         <Route path="/logistica" element={<Logistica />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
-      <WhatsAppButton phone={whatsappNumber} />
+      <WillfyButton />
     </>
   );
 };

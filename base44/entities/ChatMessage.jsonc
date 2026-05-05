@@ -18,6 +18,25 @@
     },
     "conversation_id": {
       "type": "string"
+    },
+    "sender_name": {
+      "type": "string"
+    },
+    "sender_avatar": {
+      "type": "string"
+    },
+    "sender_role": {
+      "type": "string"
+    },
+    "is_willfy": {
+      "type": "boolean",
+      "default": false
+    },
+    "reactions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   },
   "required": [

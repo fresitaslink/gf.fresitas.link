@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Package, MessageCircle, Star, BarChart2, Tag, Loader2, Phone, Mail, ShoppingBag, TrendingUp, DollarSign, Download } from 'lucide-react';
+import { Shield, Package, MessageCircle, Star, BarChart2, Tag, Loader2, Phone, Mail, ShoppingBag, TrendingUp, DollarSign, Download, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,8 @@ import { useAuth } from '@/lib/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import AdminAnalytics from './AdminAnalytics';
+import ChatBubble from '@/components/chat/ChatBubble';
+import AvatarUpload from '@/components/chat/AvatarUpload';
 
 const STATUS_ORDER = ['pending', 'confirmed', 'preparing', 'on_the_way', 'delivered'];
 const STATUS_LABELS = { pending: 'Pendiente', confirmed: 'Confirmado', preparing: 'Preparando', on_the_way: 'En Camino', delivered: 'Entregado', cancelled: 'Cancelado' };
@@ -87,8 +89,14 @@ export default function ManagerPanel() {
   const handleSendChatReply = async (userEmail) => {
     const msg = chatReplies[userEmail];
     if (!msg?.trim()) return;
-    await base44.entities.ChatMessage.create({ user_email: userEmail, message: msg, is_admin: true });
-    setChatMessages(prev => [...prev, { user_email: userEmail, message: msg, is_admin: true, created_date: new Date().toISOString(), id: Date.now().toString() }]);
+    const created = await base44.entities.ChatMessage.create({
+      user_email: userEmail,
+      message: msg,
+      is_admin: true,
+      sender_name: user.full_name || user.email,
+      sender_role: user.role,
+    });
+    setChatMessages(prev => [...prev, created]);
     setChatReplies(prev => ({ ...prev, [userEmail]: '' }));
   };
 
@@ -269,19 +277,45 @@ export default function ManagerPanel() {
                 <div className="space-y-6">
                   {conversations.map(email => {
                     const msgs = chatMessages.filter(m => m.user_email === email).sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+                    const lastCustomer = msgs.find(m => !m.is_admin && !m.is_willfy);
                     return (
-                      <div key={email} className="bg-card rounded-2xl border border-border p-4">
-                        <p className="font-semibold text-sm mb-3 flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-muted-foreground" /> {email}</p>
-                        <div className="space-y-2 max-h-48 overflow-y-auto mb-3">
+                      <div key={email} className="bg-card rounded-2xl border border-border overflow-hidden">
+                        {/* Conversation header with customer info */}
+                        <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-muted/40">
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-strawberry/20 to-pink-200 flex items-center justify-center flex-shrink-0">
+                            {lastCustomer?.sender_avatar
+                              ? <img src={lastCustomer.sender_avatar} alt={email} className="w-full h-full rounded-full object-cover" />
+                              : <span className="text-sm font-bold text-strawberry">{(lastCustomer?.sender_name || email)[0].toUpperCase()}</span>
+                            }
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm truncate">{lastCustomer?.sender_name || email}</p>
+                            <p className="text-xs text-muted-foreground truncate">{email}</p>
+                          </div>
+                          <span className="text-xs text-muted-foreground">{msgs.length} msgs</span>
+                        </div>
+                        <div className="space-y-3 max-h-64 overflow-y-auto p-4">
                           {msgs.map(msg => (
-                            <div key={msg.id} className={`flex ${msg.is_admin ? 'justify-end' : 'justify-start'}`}>
-                              <div className={`max-w-xs text-xs rounded-xl px-3 py-2 ${msg.is_admin ? 'bg-strawberry text-white' : 'bg-muted'}`}>{msg.message}</div>
-                            </div>
+                            <ChatBubble
+                              key={msg.id}
+                              msg={msg}
+                              isOwn={msg.is_admin && !msg.is_willfy}
+                              viewerRole={user.role}
+                              compact={false}
+                            />
                           ))}
                         </div>
-                        <div className="flex gap-2">
-                          <Input placeholder="Responder..." value={chatReplies[email] || ''} onChange={e => setChatReplies(prev => ({ ...prev, [email]: e.target.value }))} className="rounded-xl text-sm" onKeyDown={e => e.key === 'Enter' && handleSendChatReply(email)} />
-                          <Button size="sm" className="bg-strawberry text-white hover:bg-strawberry/90 rounded-xl" onClick={() => handleSendChatReply(email)}>Enviar</Button>
+                        <div className="flex gap-2 px-4 py-3 border-t border-border">
+                          <Input
+                            placeholder="Responder como equipo Fresitas…"
+                            value={chatReplies[email] || ''}
+                            onChange={e => setChatReplies(prev => ({ ...prev, [email]: e.target.value }))}
+                            className="rounded-xl text-sm"
+                            onKeyDown={e => e.key === 'Enter' && handleSendChatReply(email)}
+                          />
+                          <Button size="sm" className="bg-strawberry text-white hover:bg-strawberry/90 rounded-xl" onClick={() => handleSendChatReply(email)}>
+                            <Send className="w-3.5 h-3.5" />
+                          </Button>
                         </div>
                       </div>
                     );

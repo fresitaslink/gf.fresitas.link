@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, RotateCcw, Star, MessageCircle, Package } from 'lucide-react';
+import { ChevronDown, ChevronUp, RotateCcw, Star, MessageCircle, Package, Clock, CheckCircle, ChefHat, Truck, Home, XCircle, MapPin, Phone, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -23,7 +23,14 @@ const STATUS_COLORS = {
   cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 };
 
-const STATUS_ICONS = { pending: '⏳', confirmed: '✅', preparing: '👨‍🍳', on_the_way: '🚗', delivered: '🏠', cancelled: '❌' };
+const STATUS_SVG_ICONS = {
+  pending: Clock,
+  confirmed: CheckCircle,
+  preparing: ChefHat,
+  on_the_way: Truck,
+  delivered: Home,
+  cancelled: XCircle,
+};
 
 function OrderTracker({ status }) {
   const { t } = useLanguage();
@@ -104,7 +111,9 @@ export default function Orders() {
     return (
       <div className="min-h-screen pt-24 flex flex-col items-center justify-center px-4">
         <div className="text-center">
-          <div className="text-7xl mb-6">📦</div>
+          <div className="w-20 h-20 bg-muted rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <Package className="w-10 h-10 text-muted-foreground" />
+          </div>
           <h2 className="font-poppins font-bold text-2xl text-foreground mb-2">{t.noOrders}</h2>
           <p className="text-muted-foreground mb-8">{t.noOrdersDesc}</p>
           <Button onClick={() => navigate('/menu')} className="bg-strawberry hover:bg-strawberry/90 text-white rounded-full px-8">
@@ -134,7 +143,7 @@ export default function Orders() {
                   className="p-4 flex items-center gap-4 cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => setExpanded(expanded === order.id ? null : order.id)}
                 >
-                  <div className="text-2xl">{STATUS_ICONS[order.status]}</div>
+                  {(() => { const Icon = STATUS_SVG_ICONS[order.status] || Package; return <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center flex-shrink-0"><Icon className="w-5 h-5 text-strawberry" /></div>; })()}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-poppins font-semibold text-sm">#{order.tracking_code}</span>
@@ -172,7 +181,7 @@ export default function Orders() {
                           {order.items?.map((item, i) => (
                             <div key={i} className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-lg bg-cream overflow-hidden flex-shrink-0">
-                                {item.image_url ? <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-lg">🍓</div>}
+                                {item.image_url ? <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-4 h-4 text-strawberry" /></div>}
                               </div>
                               <div className="flex-1 text-sm">
                                 <p className="font-medium">{item.name}</p>
@@ -185,10 +194,10 @@ export default function Orders() {
                         </div>
 
                         {/* Delivery info */}
-                        <div className="bg-muted rounded-xl p-3 text-sm space-y-1">
-                          <p>📍 {order.customer_address}</p>
-                          <p>📱 {order.customer_phone}</p>
-                          {order.notes && <p>📝 {order.notes}</p>}
+                        <div className="bg-muted rounded-xl p-3 text-sm space-y-1.5">
+                          <p className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />{order.customer_address}</p>
+                          <p className="flex items-center gap-2"><Phone className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />{order.customer_phone}</p>
+                          {order.notes && <p className="flex items-center gap-2"><MessageCircle className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />{order.notes}</p>}
                         </div>
 
                         {/* Actions */}

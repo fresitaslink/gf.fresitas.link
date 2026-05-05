@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+
 import { motion } from 'framer-motion';
-import { Package, TrendingUp, Users, MessageCircle, Settings, Plus, ToggleLeft, ToggleRight, Loader2, Star, CheckCircle, BarChart2 } from 'lucide-react';
+import { Package, TrendingUp, Users, MessageCircle, Settings, Loader2, Star, BarChart2, DollarSign, Download, ShoppingBag } from 'lucide-react';
 import AdminAnalytics from './AdminAnalytics';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -186,6 +187,45 @@ export default function Admin() {
     }
   };
 
+  const exportCSV = (rows, filename) => {
+    if (!rows.length) { toast.error('Sin datos para exportar'); return; }
+    const headers = Object.keys(rows[0]);
+    const csv = [headers.join(','), ...rows.map(r => headers.map(h => JSON.stringify(r[h] ?? '')).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${filename} exportado`);
+  };
+
+  const handleExportOrders = () => {
+    const rows = orders.map(o => ({
+      tracking_code: o.tracking_code || '',
+      customer_name: o.customer_name,
+      customer_phone: o.customer_phone,
+      customer_address: o.customer_address,
+      total: o.total,
+      status: o.status,
+      payment_method: o.payment_method,
+      created_date: new Date(o.created_date).toLocaleString('es-MX'),
+      notes: o.notes || '',
+    }));
+    exportCSV(rows, 'pedidos_fresitas.csv');
+  };
+
+  const handleExportCustomers = async () => {
+    const profiles = await base44.entities.CustomerProfile.list('-created_date', 1000);
+    const rows = profiles.map(p => ({
+      email: p.user_email,
+      name: p.display_name || '',
+      phone: p.phone || '',
+      loyalty_points: p.loyalty_points || 0,
+      total_orders: p.total_orders || 0,
+      created_date: new Date(p.created_date).toLocaleString('es-MX'),
+    }));
+    exportCSV(rows, 'clientes_fresitas.csv');
+  };
+
   if (!user || user.role !== 'admin') return null;
 
   const todayOrders = orders.filter(o => new Date(o.created_date).toDateString() === new Date().toDateString());
@@ -228,15 +268,17 @@ export default function Admin() {
           {/* Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {[
-              { label: 'Pedidos Hoy', value: todayOrders.length, icon: '📦', color: 'text-blue-600' },
-              { label: 'Ingresos Hoy', value: `$${todayRevenue.toFixed(0)}`, icon: '💰', color: 'text-green-600' },
-              { label: 'Esta Semana', value: `$${weekRevenue.toFixed(0)}`, icon: '📈', color: 'text-purple-600' },
-              { label: 'Total Pedidos', value: orders.length, icon: '🍓', color: 'text-strawberry' },
+              { label: 'Pedidos Hoy', value: todayOrders.length, Icon: ShoppingBag, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+              { label: 'Ingresos Hoy', value: `$${todayRevenue.toFixed(0)}`, Icon: DollarSign, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' },
+              { label: 'Esta Semana', value: `$${weekRevenue.toFixed(0)}`, Icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+              { label: 'Total Pedidos', value: orders.length, Icon: Package, color: 'text-strawberry', bg: 'bg-strawberry/10' },
             ].map((stat, i) => (
               <div key={i} className="bg-card rounded-2xl border border-border p-4">
-                <div className="text-2xl mb-2">{stat.icon}</div>
+                <div className={`w-9 h-9 ${stat.bg} rounded-xl flex items-center justify-center mb-3`}>
+                  <stat.Icon className={`w-4 h-4 ${stat.color}`} />
+                </div>
                 <div className={`font-poppins font-bold text-2xl ${stat.color}`}>{stat.value}</div>
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -249,6 +291,7 @@ export default function Admin() {
               <TabsTrigger value="chat" className="flex-1 rounded-lg text-xs">Chat</TabsTrigger>
               <TabsTrigger value="settings" className="flex-1 rounded-lg text-xs">Config</TabsTrigger>
               <TabsTrigger value="analytics" className="flex-1 rounded-lg text-xs">Analytics</TabsTrigger>
+              <TabsTrigger value="export" className="flex-1 rounded-lg text-xs">Exportar</TabsTrigger>
             </TabsList>
 
             {/* Orders Kanban */}
@@ -268,13 +311,13 @@ export default function Admin() {
                 {products.map(product => (
                   <div key={product.id} className="bg-card rounded-xl border border-border p-4 flex items-center gap-4">
                     <div className="w-12 h-12 rounded-lg bg-cream overflow-hidden flex-shrink-0">
-                      {product.image_url ? <img src={product.image_url} alt={product.name_es} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">🍓</div>}
+                      {product.image_url ? <img src={product.image_url} alt={product.name_es} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-4 h-4 text-strawberry" /></div>}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm">{product.name_es}</p>
                       <p className="text-xs text-muted-foreground">${product.price} · {product.category}</p>
                     </div>
-                    {product.is_featured && <Badge className="text-xs bg-amber-100 text-amber-700">⭐ Destacado</Badge>}
+                    {product.is_featured && <Badge className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">Destacado</Badge>}
                     <Switch checked={product.is_available !== false} onCheckedChange={() => handleToggleProduct(product)} />
                     <span className="text-xs text-muted-foreground">{product.is_available !== false ? 'Disponible' : 'No disp.'}</span>
                   </div>
@@ -399,6 +442,46 @@ export default function Admin() {
             {/* Analytics */}
             <TabsContent value="analytics">
               <AdminAnalytics />
+            </TabsContent>
+
+            {/* CSV Export */}
+            <TabsContent value="export">
+              <div className="bg-card rounded-2xl border border-border p-6 space-y-6">
+                <h3 className="font-poppins font-semibold text-lg">Exportar Datos a CSV</h3>
+                <p className="text-sm text-muted-foreground">Descarga tus datos en formato CSV para análisis externo o reportes.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="border border-border rounded-2xl p-5 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center">
+                        <Package className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">Pedidos</p>
+                        <p className="text-xs text-muted-foreground">{orders.length} registros</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Incluye: código, cliente, dirección, total, estado, método de pago.</p>
+                    <Button onClick={handleExportOrders} className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl" size="sm">
+                      <Download className="w-4 h-4 mr-2" /> Descargar Pedidos CSV
+                    </Button>
+                  </div>
+                  <div className="border border-border rounded-2xl p-5 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-50 dark:bg-green-900/20 rounded-xl flex items-center justify-center">
+                        <Users className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">Clientes</p>
+                        <p className="text-xs text-muted-foreground">Todos los perfiles registrados</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Incluye: email, nombre, teléfono, puntos de lealtad, total de pedidos.</p>
+                    <Button onClick={handleExportCustomers} className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl" size="sm">
+                      <Download className="w-4 h-4 mr-2" /> Descargar Clientes CSV
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         </motion.div>

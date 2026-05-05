@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, MapPin, Star, Bell, Heart, Plus, Trash2, Check, Gift } from 'lucide-react';
+import { User, MapPin, Bell, Plus, Trash2, Gift, Star, BellRing } from 'lucide-react';
+import PushNotificationButton from '@/components/ui/PushNotificationButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -121,11 +122,12 @@ export default function Perfil() {
           </div>
 
           <Tabs defaultValue="profile">
-            <TabsList className="w-full rounded-xl mb-6 bg-muted">
+            <TabsList className="w-full rounded-xl mb-6 bg-muted flex-wrap h-auto">
               <TabsTrigger value="profile" className="flex-1 rounded-lg text-xs">{t.editProfile}</TabsTrigger>
               <TabsTrigger value="addresses" className="flex-1 rounded-lg text-xs">{t.savedAddresses}</TabsTrigger>
               <TabsTrigger value="loyalty" className="flex-1 rounded-lg text-xs">{t.loyaltyPoints}</TabsTrigger>
               <TabsTrigger value="notifications" className="flex-1 rounded-lg text-xs">{t.notifications}</TabsTrigger>
+              <TabsTrigger value="push" className="flex-1 rounded-lg text-xs">Alertas Push</TabsTrigger>
             </TabsList>
 
             {/* Profile Tab */}
@@ -204,7 +206,9 @@ export default function Perfil() {
             <TabsContent value="loyalty">
               <div className="space-y-4">
                 <div className="bg-gradient-to-br from-strawberry to-pink-500 text-white rounded-2xl p-6 text-center">
-                  <div className="text-4xl mb-2">🍓</div>
+                  <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <Star className="w-6 h-6 text-yellow-300 fill-yellow-300" />
+                  </div>
                   <div className="font-poppins font-black text-5xl">{profile?.loyalty_points || 0}</div>
                   <p className="text-pink-100 mt-1">{t.loyaltyPoints}</p>
                   <p className="text-xs text-pink-200 mt-2">{language === 'es' ? `= $${((profile?.loyalty_points || 0) / 100 * 5).toFixed(2)} de descuento` : `= $${((profile?.loyalty_points || 0) / 100 * 5).toFixed(2)} discount`}</p>
@@ -260,6 +264,29 @@ export default function Perfil() {
                     ))}
                   </div>
                 )}
+              </div>
+            </TabsContent>
+
+            {/* Push Notifications Tab */}
+            <TabsContent value="push">
+              <div className="bg-card rounded-2xl border border-border p-6 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 bg-strawberry/10 rounded-xl flex items-center justify-center">
+                    <BellRing className="w-5 h-5 text-strawberry" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">{language === 'es' ? 'Notificaciones Push' : 'Push Notifications'}</h3>
+                    <p className="text-xs text-muted-foreground">{language === 'es' ? 'Alertas en tiempo real en tu dispositivo' : 'Real-time alerts on your device'}</p>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {language === 'es'
+                    ? 'Activa las notificaciones push para recibir alertas instantáneas cuando tu pedido cambie de estado, cuando haya promociones especiales o cuando lleguen puntos de lealtad.'
+                    : 'Enable push notifications to receive instant alerts when your order status changes, when there are special promotions, or when loyalty points arrive.'}
+                </p>
+                <div className="flex justify-center pt-2">
+                  <PushNotificationButton />
+                </div>
               </div>
             </TabsContent>
           </Tabs>

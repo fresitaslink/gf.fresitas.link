@@ -38,7 +38,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
     { to: '/orders', label: t.orders },
     { to: '/favoritos', label: t.favorites },
     { to: '/chat', label: t.chat },
-    { to: '/referral', label: language === 'es' ? '🎁 Referir' : '🎁 Refer' },
+    { to: '/referral', label: language === 'es' ? 'Referir' : 'Refer' },
   ];
 
   if (user?.role === 'admin') {

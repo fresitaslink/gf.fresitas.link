@@ -1,0 +1,48 @@
+{
+  "name": "StoreSettings",
+  "type": "object",
+  "properties": {
+    "delivery_fee": {
+      "type": "number",
+      "default": 30
+    },
+    "free_delivery_min": {
+      "type": "number",
+      "default": 200
+    },
+    "is_open": {
+      "type": "boolean",
+      "default": true
+    },
+    "open_hours": {
+      "type": "string",
+      "default": "10:00 - 22:00"
+    },
+    "closed_message_es": {
+      "type": "string"
+    },
+    "closed_message_en": {
+      "type": "string"
+    },
+    "whatsapp_number": {
+      "type": "string"
+    },
+    "instagram_url": {
+      "type": "string"
+    },
+    "facebook_url": {
+      "type": "string"
+    },
+    "announcement_es": {
+      "type": "string"
+    },
+    "announcement_en": {
+      "type": "string"
+    },
+    "maintenance_mode": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": []
+}

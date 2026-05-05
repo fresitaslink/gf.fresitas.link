@@ -1,0 +1,123 @@
+{
+  "name": "Product",
+  "type": "object",
+  "properties": {
+    "name_es": {
+      "type": "string",
+      "description": "Product name in Spanish"
+    },
+    "name_en": {
+      "type": "string",
+      "description": "Product name in English"
+    },
+    "description_es": {
+      "type": "string",
+      "description": "Description in Spanish"
+    },
+    "description_en": {
+      "type": "string",
+      "description": "Description in English"
+    },
+    "price": {
+      "type": "number",
+      "description": "Base price"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "fresitas_crema",
+        "chocolate",
+        "combinados",
+        "especiales",
+        "bebidas",
+        "temporada"
+      ],
+      "description": "Product category"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Product image URL"
+    },
+    "is_available": {
+      "type": "boolean",
+      "default": true
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_new": {
+      "type": "boolean",
+      "default": false
+    },
+    "rating": {
+      "type": "number",
+      "description": "Average rating 1-5"
+    },
+    "review_count": {
+      "type": "number",
+      "default": 0
+    },
+    "toppings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name_es": {
+            "type": "string"
+          },
+          "name_en": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "sizes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "size": {
+            "type": "string",
+            "enum": [
+              "small",
+              "medium",
+              "large"
+            ]
+          },
+          "price": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "preparation_time_minutes": {
+      "type": "number"
+    },
+    "calories": {
+      "type": "number"
+    },
+    "allergens": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "badge": {
+      "type": "string",
+      "description": "e.g. M\u00e1s Vendido, Nuevo, Especial"
+    },
+    "sort_order": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "name_es",
+    "price",
+    "category"
+  ]
+}

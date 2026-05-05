@@ -2,56 +2,112 @@ import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-// Add page imports here
+import { LanguageProvider } from '@/lib/LanguageContext';
+import { CartProvider } from '@/lib/CartContext';
+import { Toaster as Sonner } from 'sonner';
+import { base44 } from '@/api/base44Client';
+
+// Pages
+import Home from './pages/Home';
+import Menu from './pages/Menu';
+import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
+import Orders from './pages/Orders';
+import Perfil from './pages/Perfil';
+import Favoritos from './pages/Favoritos';
+import Chat from './pages/Chat';
+import Reviews from './pages/Reviews';
+import Admin from './pages/Admin';
+
+// Layout
+import Navbar from './components/layout/Navbar';
+import WhatsAppButton from './components/layout/WhatsAppButton';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('fresitas_dark') === 'true');
+  const [storeOpen, setStoreOpen] = useState(true);
+  const [whatsappNumber, setWhatsappNumber] = useState('525512345678');
 
-  // Show loading spinner while checking app public settings or auth
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('fresitas_dark', darkMode);
+  }, [darkMode]);
+
+  useEffect(() => {
+    base44.entities.StoreSettings.list().then(settings => {
+      if (settings[0]) {
+        setStoreOpen(settings[0].is_open !== false);
+        if (settings[0].whatsapp_number) setWhatsappNumber(settings[0].whatsapp_number);
+      }
+    }).catch(() => {});
+  }, []);
+
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="text-5xl mb-4 animate-bounce">🍓</div>
+          <div className="w-8 h-8 border-4 border-cream border-t-strawberry rounded-full animate-spin mx-auto"></div>
+        </div>
       </div>
     );
   }
 
-  // Handle authentication errors
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
       navigateToLogin();
       return null;
     }
   }
 
-  // Render the main app
   return (
-    <Routes>
-      {/* Add your page Route elements here */}
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+    <>
+      <Navbar darkMode={darkMode} toggleDarkMode={() => setDarkMode(d => !d)} storeOpen={storeOpen} />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/menu" element={<Menu />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/orders" element={<Orders />} />
+        <Route path="/perfil" element={<Perfil />} />
+        <Route path="/favoritos" element={<Favoritos />} />
+        <Route path="/chat" element={<Chat />} />
+        <Route path="/reviews" element={<Reviews />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+      <WhatsAppButton phone={whatsappNumber} />
+    </>
   );
 };
 
-
 function App() {
-
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
+        <LanguageProvider>
+          <CartProvider>
+            <Router>
+              <AuthenticatedApp />
+            </Router>
+            <Toaster />
+            <Sonner richColors position="top-center" />
+          </CartProvider>
+        </LanguageProvider>
       </QueryClientProvider>
     </AuthProvider>
-  )
+  );
 }
 
-export default App
+export default App;

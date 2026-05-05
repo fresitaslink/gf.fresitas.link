@@ -1,0 +1,41 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "title_es": {
+      "type": "string"
+    },
+    "title_en": {
+      "type": "string"
+    },
+    "message_es": {
+      "type": "string"
+    },
+    "message_en": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "order_update",
+        "promo",
+        "new_product",
+        "loyalty"
+      ]
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false
+    },
+    "link": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email",
+    "title_es"
+  ]
+}

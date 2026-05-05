@@ -1,0 +1,49 @@
+{
+  "name": "PromoCode",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string"
+    },
+    "discount_type": {
+      "type": "string",
+      "enum": [
+        "percent",
+        "fixed"
+      ]
+    },
+    "discount_value": {
+      "type": "number"
+    },
+    "min_order": {
+      "type": "number",
+      "default": 0
+    },
+    "max_uses": {
+      "type": "number"
+    },
+    "uses_count": {
+      "type": "number",
+      "default": 0
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "description_es": {
+      "type": "string"
+    },
+    "description_en": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "code",
+    "discount_type",
+    "discount_value"
+  ]
+}

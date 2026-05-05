@@ -1,0 +1,46 @@
+{
+  "name": "Review",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string"
+    },
+    "order_id": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "customer_name": {
+      "type": "string"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "comment": {
+      "type": "string"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "helpful_count": {
+      "type": "number",
+      "default": 0
+    },
+    "reply": {
+      "type": "string"
+    },
+    "reply_date": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "product_id",
+    "rating"
+  ]
+}

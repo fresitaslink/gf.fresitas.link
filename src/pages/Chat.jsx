@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Circle, Sparkles, AtSign, Image as ImageIcon, Loader2, X, Users } from 'lucide-react';
+import { Send, Circle, Sparkles, AtSign, Loader2, Bot, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { base44 } from '@/api/base44Client';
@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import ChatBubble from '@/components/chat/ChatBubble';
 import AvatarUpload from '@/components/chat/AvatarUpload';
 
-const WILLFY_INTRO = "¡Hola! 🍓 Soy **Willfy**, tu asistente de Fresitas G&F. Puedo ayudarte con el menú, pedidos, puntos de lealtad y más. Escribe **@willfy** en cualquier momento para hablar directamente conmigo.";
+const WILLFY_INTRO = "¡Hola! 🍓 Soy **Willfy**, el asistente inteligente de Fresitas G&F. Puedo ayudarte con el menú, rastrear pedidos, consultar tus puntos de lealtad, gestionar tu suscripción y mucho más. ¿En qué te ayudo hoy?";
 
 export default function Chat() {
   const { t, language } = useLanguage();
@@ -23,19 +23,21 @@ export default function Chat() {
   const [settings, setSettings] = useState(null);
   const [profile, setProfile] = useState(null);
   const [willfyLoading, setWillfyLoading] = useState(false);
-  const [showMentionHint, setShowMentionHint] = useState(false);
   const [conversation, setConversation] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const unsubscribeRef = useRef(null);
 
   useEffect(() => {
     if (!user) { navigate('/'); return; }
     loadData();
+    return () => { if (unsubscribeRef.current) unsubscribeRef.current(); };
   }, [user]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, willfyLoading]);
 
   const loadData = async () => {
     const [settingsData, profilesData, msgsData] = await Promise.all([
@@ -62,7 +64,6 @@ export default function Chat() {
       setMessages(msgsData);
     }
 
-    // Subscribe to real-time updates
     const unsubscribe = base44.entities.ChatMessage.subscribe((event) => {
       if (event.data?.user_email === user.email) {
         if (event.type === 'create') {
@@ -74,8 +75,7 @@ export default function Chat() {
         }
       }
     });
-
-    return () => unsubscribe();
+    unsubscribeRef.current = unsubscribe;
   };
 
   const handleAvatarUpload = async (url) => {
@@ -98,8 +98,6 @@ export default function Chat() {
     setInput('');
     setSending(true);
 
-    const isWillfyMention = text.toLowerCase().includes('@willfy');
-
     try {
       const msg = await base44.entities.ChatMessage.create({
         user_email: user.email,
@@ -111,49 +109,39 @@ export default function Chat() {
       });
       setMessages(prev => prev.find(m => m.id === msg.id) ? prev : [...prev, msg]);
 
-      if (isWillfyMention) {
-        await handleWillfyResponse(text, msg);
-      }
+      // Willfy responds to ALL messages automatically
+      await handleWillfyResponse(text);
     } finally {
       setSending(false);
     }
   };
 
-  const handleWillfyResponse = async (userText, userMsg) => {
+  const handleWillfyResponse = async (userText) => {
     setWillfyLoading(true);
-    // Create a temporary thinking bubble
-    const thinkingId = 'thinking-' + Date.now();
-    setMessages(prev => [...prev, {
-      id: thinkingId,
-      message: '...',
-      is_admin: true,
-      is_willfy: true,
-      sender_name: 'Willfy',
-      sender_role: 'willfy',
-      user_email: user.email,
-      created_date: new Date().toISOString(),
-      _thinking: true,
-    }]);
+    setIsTyping(true);
 
     try {
-      // Use Willfy agent conversation
       let conv = conversation;
       if (!conv) {
         conv = await base44.agents.createConversation({
           agent_name: 'willfy',
-          metadata: { user_email: user.email, name: profile?.display_name || user.full_name },
+          metadata: {
+            user_email: user.email,
+            name: profile?.display_name || user.full_name,
+            role: user.role,
+            language: language,
+          },
         });
         setConversation(conv);
       }
 
-      const updated = await base44.agents.addMessage(conv, { role: 'user', content: userText });
+      // Build enriched context message
+      const contextualText = userText;
+      const updated = await base44.agents.addMessage(conv, { role: 'user', content: contextualText });
       setConversation(updated);
 
       const lastAssistant = [...updated.messages].reverse().find(m => m.role === 'assistant');
-      const responseText = lastAssistant?.content || '¡Con gusto te ayudo! 🍓';
-
-      // Remove thinking, add real response
-      setMessages(prev => prev.filter(m => m.id !== thinkingId));
+      const responseText = lastAssistant?.content || (language === 'es' ? '¡Con gusto te ayudo! 🍓' : 'Happy to help! 🍓');
 
       await base44.entities.ChatMessage.create({
         user_email: user.email,
@@ -163,10 +151,12 @@ export default function Chat() {
         sender_name: 'Willfy',
         sender_role: 'willfy',
       });
-    } catch {
-      setMessages(prev => prev.filter(m => m.id !== thinkingId));
+    } catch (err) {
+      console.error('Willfy error:', err);
+      toast.error(language === 'es' ? 'Willfy no pudo responder' : 'Willfy could not respond');
     } finally {
       setWillfyLoading(false);
+      setIsTyping(false);
     }
   };
 
@@ -186,15 +176,12 @@ export default function Chat() {
     await base44.entities.ChatMessage.delete(msgId).catch(() => {});
   };
 
-  const handleInputChange = (e) => {
-    const val = e.target.value;
-    setInput(val);
-    setShowMentionHint(val.includes('@') && !val.includes('@willfy'));
-  };
+  const quickReplies = language === 'es'
+    ? ['¿Qué hay en el menú?', 'Ver mis pedidos', 'Mis puntos de lealtad', 'Quiero suscribirme']
+    : ['What\'s on the menu?', 'Track my order', 'My loyalty points', 'Subscribe'];
 
-  const insertMention = () => {
-    setInput(i => i.replace('@', '@willfy '));
-    setShowMentionHint(false);
+  const handleQuickReply = (text) => {
+    setInput(text);
     inputRef.current?.focus();
   };
 
@@ -202,33 +189,34 @@ export default function Chat() {
   const isStoreOpen = settings?.is_open !== false;
 
   return (
-    <div className="min-h-screen pt-16 flex flex-col bg-background">
+    <div className="min-h-screen pt-16 flex flex-col bg-background" style={{ height: '100dvh' }}>
+
       {/* Chat Header */}
-      <div className="bg-card border-b border-border px-4 py-3 flex items-center justify-between gap-3 shadow-sm">
+      <div className="bg-card border-b border-border px-4 py-3 flex items-center justify-between gap-3 shadow-sm flex-shrink-0">
         <div className="flex items-center gap-3">
-          {/* Willfy avatar */}
           <div className="relative flex-shrink-0">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-md"
+            <div className="w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg"
               style={{ background: 'linear-gradient(135deg, hsl(var(--strawberry)), #e91e8c)' }}>
-              <span className="font-poppins font-black text-white text-sm">W</span>
+              <Brain className="w-5 h-5 text-white" />
             </div>
-            <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background ${isStoreOpen ? 'bg-green-500' : 'bg-gray-400'}`} />
+            <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background ${isStoreOpen ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <p className="font-semibold text-sm">Willfy</p>
-              <span className="text-[10px] bg-pink-100 dark:bg-pink-900/40 text-strawberry px-1.5 py-0.5 rounded-full font-medium flex items-center gap-0.5">
-                <Sparkles className="w-2.5 h-2.5" /> AI
+              <p className="font-semibold text-sm font-poppins">Willfy</p>
+              <span className="text-[10px] bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/40 dark:to-purple-900/40 text-strawberry px-2 py-0.5 rounded-full font-medium flex items-center gap-1 border border-pink-200 dark:border-pink-800">
+                <Sparkles className="w-2.5 h-2.5" /> IA Avanzada
               </span>
             </div>
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
               <Circle className={`w-2 h-2 fill-current ${isStoreOpen ? 'text-green-500' : 'text-gray-400'}`} />
-              {isStoreOpen ? 'En línea · Fresitas G&F' : 'Fuera de línea'}
+              {isStoreOpen
+                ? (language === 'es' ? 'En línea · Fresitas G&F' : 'Online · Fresitas G&F')
+                : (language === 'es' ? 'Fuera de horario' : 'Outside hours')}
             </p>
           </div>
         </div>
 
-        {/* User avatar upload */}
         <div className="flex items-center gap-2">
           <p className="text-xs text-muted-foreground hidden sm:block">{profile?.display_name || user.full_name}</p>
           <AvatarUpload
@@ -241,15 +229,17 @@ export default function Chat() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
-        style={{ background: 'linear-gradient(to bottom, hsl(var(--background)), hsl(var(--cream)))' }}>
+      <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-3"
+        style={{ background: 'linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--cream)) 100%)' }}>
+
         <AnimatePresence initial={false}>
           {messages.map((msg) => (
             <motion.div
               key={msg.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: msg._thinking ? [1, 0.4, 1] : 1, y: 0 }}
-              transition={msg._thinking ? { repeat: Infinity, duration: 1 } : {}}
+              initial={{ opacity: 0, y: 12, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
             >
               <ChatBubble
                 msg={msg}
@@ -262,73 +252,85 @@ export default function Chat() {
           ))}
         </AnimatePresence>
 
-        {willfyLoading && (
-          <div className="flex items-center gap-2 pl-10">
-            <div className="bg-card border border-border rounded-2xl rounded-tl-sm px-4 py-2.5 flex items-center gap-2">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-strawberry" />
-              <span className="text-xs text-muted-foreground">Willfy está pensando…</span>
-            </div>
-          </div>
-        )}
+        {/* Typing indicator */}
+        <AnimatePresence>
+          {willfyLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              className="flex items-end gap-2 pl-2"
+            >
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg, hsl(var(--strawberry)), #e91e8c)' }}>
+                <Brain className="w-4 h-4 text-white" />
+              </div>
+              <div className="bg-card border border-border rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground mr-1">{language === 'es' ? 'Willfy está pensando' : 'Willfy is thinking'}</span>
+                  <span className="w-1.5 h-1.5 bg-strawberry rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1.5 h-1.5 bg-strawberry rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1.5 h-1.5 bg-strawberry rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* @willfy hint */}
-      <AnimatePresence>
-        {showMentionHint && (
-          <motion.div
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 5 }}
-            className="px-4 py-2 bg-pink-50 dark:bg-pink-950/30 border-t border-pink-200 dark:border-pink-900"
-          >
-            <button onClick={insertMention} className="flex items-center gap-2 text-xs text-strawberry font-medium hover:underline">
-              <AtSign className="w-3.5 h-3.5" />
-              Mencionar @willfy para respuesta de IA
+      {/* Quick replies — show only when conversation is fresh */}
+      {messages.length <= 2 && !willfyLoading && (
+        <div className="flex-shrink-0 px-4 py-2 flex gap-2 overflow-x-auto scrollbar-hide bg-background/80 backdrop-blur-sm">
+          {quickReplies.map((reply) => (
+            <button
+              key={reply}
+              onClick={() => handleQuickReply(reply)}
+              className="flex-shrink-0 text-xs px-3 py-1.5 rounded-full border border-strawberry/40 text-strawberry bg-strawberry/5 hover:bg-strawberry hover:text-white transition-all duration-200 font-medium"
+            >
+              {reply}
             </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          ))}
+        </div>
+      )}
 
       {/* Input */}
-      <div className="bg-card border-t border-border px-4 py-3">
-        <div className="flex gap-2 items-end max-w-2xl mx-auto">
+      <div className="bg-card border-t border-border px-4 py-3 flex-shrink-0">
+        <div className="flex gap-2 items-end max-w-3xl mx-auto">
           <div className="flex-1 relative">
             <Textarea
               ref={inputRef}
               value={input}
-              onChange={handleInputChange}
+              onChange={e => setInput(e.target.value)}
               onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   handleSend();
                 }
               }}
-              placeholder={`${t.yourMessage || 'Escribe un mensaje'}… (@ para mencionar a Willfy)`}
-              className="flex-1 rounded-2xl border-border focus:border-strawberry resize-none min-h-[40px] max-h-28 pr-10 py-2.5"
+              placeholder={language === 'es' ? 'Escribe tu mensaje a Willfy…' : 'Message Willfy…'}
+              className="flex-1 rounded-2xl border-border focus:border-strawberry resize-none min-h-[44px] max-h-32 py-3 pr-3 text-sm"
               rows={1}
-              disabled={sending}
+              disabled={sending || willfyLoading}
             />
-            <button
-              className="absolute right-3 bottom-2.5 text-muted-foreground hover:text-strawberry transition-colors"
-              onClick={() => setShowMentionHint(true)}
-              title="Mencionar Willfy"
-            >
-              <AtSign className="w-4 h-4" />
-            </button>
           </div>
           <Button
             onClick={handleSend}
-            disabled={!input.trim() || sending}
-            className="bg-strawberry hover:bg-strawberry/90 text-white rounded-full w-10 h-10 p-0 flex-shrink-0 mb-0.5"
+            disabled={!input.trim() || sending || willfyLoading}
+            className="bg-strawberry hover:bg-strawberry/90 text-white rounded-full w-11 h-11 p-0 flex-shrink-0 shadow-md transition-all duration-200 hover:scale-105 active:scale-95"
           >
-            <Send className="w-4 h-4" />
+            {sending || willfyLoading
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <Send className="w-4 h-4" />
+            }
           </Button>
         </div>
         {!isStoreOpen && (
-          <p className="text-xs text-muted-foreground text-center mt-2">
-            {language === 'es' ? settings?.closed_message_es || 'Estamos cerrados. Respondemos en nuestro horario.' : "We're closed. We'll respond during business hours."}
+          <p className="text-xs text-muted-foreground text-center mt-1.5">
+            {language === 'es'
+              ? settings?.closed_message_es || '⏰ Estamos cerrados. Willfy responde 24/7.'
+              : "⏰ We're closed. Willfy replies 24/7."}
           </p>
         )}
       </div>

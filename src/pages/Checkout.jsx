@@ -149,11 +149,25 @@ export default function Checkout() {
       // Send email notification
       base44.functions.invoke('sendOrderEmail', { order_id: order.id, event_type: 'new_order' }).catch(() => {});
 
-      // Handle referral if present
+      // Handle referral if present — use code to find referrer
       const urlParams = new URLSearchParams(window.location.search);
-      const refEmail = urlParams.get('email');
-      if (refEmail && user?.email && refEmail !== user.email) {
-        base44.functions.invoke('handleReferral', { referrer_email: refEmail, new_user_email: user.email, order_id: order.id }).catch(() => {});
+      const refCode = urlParams.get('ref');
+      if (refCode && user?.email) {
+        // Look for a user whose referral code matches
+        const allProfiles = await base44.entities.CustomerProfile.list();
+        const referrerProfile = allProfiles.find(p => {
+          if (!p.user_email) return false;
+          const code = btoa(p.user_email).replace(/[^A-Z0-9]/gi, '').substring(0, 8).toUpperCase();
+          return code === refCode;
+        });
+        if (referrerProfile && referrerProfile.user_email !== user.email) {
+          base44.functions.invoke('handleReferral', {
+            referrer_email: referrerProfile.user_email,
+            new_user_email: user.email,
+            order_id: order.id,
+            referral_code: refCode,
+          }).catch(() => {});
+        }
       }
 
       // Confetti!

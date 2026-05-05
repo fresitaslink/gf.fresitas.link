@@ -10,6 +10,10 @@
       "type": "string",
       "description": "Product name in English"
     },
+    "slug": {
+      "type": "string",
+      "description": "URL-friendly slug for SEO (e.g. fresitas-con-crema)"
+    },
     "description_es": {
       "type": "string",
       "description": "Description in Spanish"
@@ -17,6 +21,14 @@
     "description_en": {
       "type": "string",
       "description": "Description in English"
+    },
+    "seo_title_es": {
+      "type": "string",
+      "description": "SEO page title in Spanish"
+    },
+    "seo_description_es": {
+      "type": "string",
+      "description": "SEO meta description in Spanish"
     },
     "price": {
       "type": "number",

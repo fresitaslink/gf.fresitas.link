@@ -1,0 +1,39 @@
+{
+  "name": "ReferralRecord",
+  "type": "object",
+  "properties": {
+    "referrer_email": {
+      "type": "string",
+      "description": "Email of the person who referred"
+    },
+    "referred_email": {
+      "type": "string",
+      "description": "Email of the person who was referred"
+    },
+    "referral_code": {
+      "type": "string",
+      "description": "The code used"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed"
+      ],
+      "default": "pending",
+      "description": "completed when the referred person places their first order"
+    },
+    "order_id": {
+      "type": "string"
+    },
+    "points_awarded": {
+      "type": "number",
+      "default": 50
+    }
+  },
+  "required": [
+    "referrer_email",
+    "referred_email",
+    "referral_code"
+  ]
+}

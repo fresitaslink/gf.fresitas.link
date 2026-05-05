@@ -46,6 +46,47 @@
     "maintenance_mode": {
       "type": "boolean",
       "default": false
+    },
+    "email_template_confirmed_es": {
+      "type": "string",
+      "description": "Email body for 'confirmed' status in Spanish"
+    },
+    "email_template_preparing_es": {
+      "type": "string",
+      "description": "Email body for 'preparing' status in Spanish"
+    },
+    "email_template_on_the_way_es": {
+      "type": "string",
+      "description": "Email body for 'on_the_way' status in Spanish"
+    },
+    "email_template_delivered_es": {
+      "type": "string",
+      "description": "Email body for 'delivered' status in Spanish"
+    },
+    "email_template_cancelled_es": {
+      "type": "string",
+      "description": "Email body for 'cancelled' status in Spanish"
+    },
+    "whatsapp_template_confirmed": {
+      "type": "string",
+      "description": "WhatsApp message for 'confirmed' status"
+    },
+    "whatsapp_template_on_the_way": {
+      "type": "string",
+      "description": "WhatsApp message for 'on_the_way' status"
+    },
+    "whatsapp_template_delivered": {
+      "type": "string",
+      "description": "WhatsApp message for 'delivered' status"
+    },
+    "referral_points": {
+      "type": "number",
+      "default": 50,
+      "description": "Points awarded on each side for a successful referral"
+    },
+    "referral_enabled": {
+      "type": "boolean",
+      "default": true
     }
   },
   "required": []

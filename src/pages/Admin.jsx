@@ -6,6 +6,8 @@ import AdminAnalytics from './AdminAnalytics';
 import BusinessIntelligence from '@/components/admin/BusinessIntelligence';
 import OrdersMap from '@/components/admin/OrdersMap';
 import CSVImport from '@/components/admin/CSVImport';
+import EmailTemplatesConfig from '@/components/admin/EmailTemplatesConfig';
+import ProductSeoEditor from '@/components/admin/ProductSeoEditor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -308,6 +310,8 @@ export default function Admin() {
               <TabsTrigger value="bi" className="flex-1 rounded-lg text-xs">📊 BI</TabsTrigger>
               <TabsTrigger value="export" className="flex-1 rounded-lg text-xs">Exportar</TabsTrigger>
               <TabsTrigger value="import" className="flex-1 rounded-lg text-xs">Importar CSV</TabsTrigger>
+              <TabsTrigger value="email_templates" className="flex-1 rounded-lg text-xs">Emails</TabsTrigger>
+              <TabsTrigger value="seo" className="flex-1 rounded-lg text-xs">SEO</TabsTrigger>
             </TabsList>
 
             {/* Orders Kanban */}
@@ -478,6 +482,26 @@ export default function Admin() {
                 <h3 className="font-poppins font-semibold text-lg mb-2">Importar Datos desde CSV</h3>
                 <p className="text-sm text-muted-foreground mb-6">Sube un archivo CSV para importar productos, clientes o códigos de descuento en masa.</p>
                 <CSVImport />
+              </div>
+            </TabsContent>
+
+            {/* SEO */}
+            <TabsContent value="seo">
+              <div className="bg-card rounded-2xl border border-border p-6">
+                <ProductSeoEditor
+                  products={products}
+                  onProductsChange={(id, edit) => setProducts(prev => prev.map(p => p.id === id ? { ...p, ...edit } : p))}
+                />
+              </div>
+            </TabsContent>
+
+            {/* Email Templates */}
+            <TabsContent value="email_templates">
+              <div className="bg-card rounded-2xl border border-border p-6">
+                <EmailTemplatesConfig
+                  settings={settings}
+                  onSaved={(updated) => setSettings(prev => ({ ...prev, ...updated }))}
+                />
               </div>
             </TabsContent>
 

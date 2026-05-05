@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, MapPin, Bell, Plus, Trash2, Gift, Star, BellRing, CalendarDays, CheckCircle2, BarChart2 } from 'lucide-react';
+import { User, MapPin, Bell, Plus, Trash2, Gift, Star, BellRing, CalendarDays, CheckCircle2, BarChart2, Crown, Shield, Zap } from 'lucide-react';
 import PushNotificationButton from '@/components/ui/PushNotificationButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -120,6 +120,19 @@ export default function Perfil() {
                 <Link to="/dashboard" className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-full flex items-center gap-1 hover:opacity-80 transition-opacity">
                   <BarChart2 className="w-3 h-3" /> {language === 'es' ? 'Ver Dashboard' : 'View Dashboard'}
                 </Link>
+                <Link to="/suscripciones" className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full flex items-center gap-1 hover:opacity-80 transition-opacity">
+                  <Zap className="w-3 h-3" /> {language === 'es' ? 'Mi Suscripción' : 'Subscription'}
+                </Link>
+                {user.role === 'owner' && (
+                  <Link to="/owner" className="text-xs bg-gold/20 text-gold border border-gold/30 px-2 py-0.5 rounded-full flex items-center gap-1 hover:opacity-80 transition-opacity">
+                    <Crown className="w-3 h-3" /> Owner Panel
+                  </Link>
+                )}
+                {user.role === 'manager' && (
+                  <Link to="/manager" className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full flex items-center gap-1 hover:opacity-80 transition-opacity">
+                    <Shield className="w-3 h-3" /> Manager Panel
+                  </Link>
+                )}
               </div>
             </div>
           </div>

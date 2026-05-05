@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import { motion } from 'framer-motion';
-import { Package, TrendingUp, Users, MessageCircle, Settings, Loader2, Star, BarChart2, DollarSign, Download, ShoppingBag, Phone, Mail } from 'lucide-react';
+import { Package, TrendingUp, Users, MessageCircle, Settings, Loader2, Star, BarChart2, DollarSign, Download, ShoppingBag, Phone, Mail, Crown, ExternalLink } from 'lucide-react';
 import AdminAnalytics from './AdminAnalytics';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -107,7 +107,7 @@ export default function Admin() {
   });
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') { navigate('/'); return; }
+    if (!user || !['admin', 'owner'].includes(user.role)) { navigate('/'); return; }
     Promise.all([
       base44.entities.Order.list('-created_date', 100),
       base44.entities.Product.list(),
@@ -226,7 +226,7 @@ export default function Admin() {
     exportCSV(rows, 'clientes_fresitas.csv');
   };
 
-  if (!user || user.role !== 'admin') return null;
+  if (!user || !['admin', 'owner'].includes(user.role)) return null;
 
   const todayOrders = orders.filter(o => new Date(o.created_date).toDateString() === new Date().toDateString());
   const todayRevenue = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
@@ -248,6 +248,11 @@ export default function Admin() {
             <div>
               <h1 className="font-poppins font-bold text-3xl text-foreground">Admin Panel</h1>
               <p className="text-muted-foreground text-sm">Fresitas G&F — Dashboard</p>
+              {user?.role === 'owner' && (
+                <a href="/owner" className="inline-flex items-center gap-1 text-xs text-gold hover:underline mt-1">
+                  <Crown className="w-3 h-3" /> Ir al Owner Panel <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
             </div>
             <div className="flex items-center gap-3">
               <span className="text-sm text-muted-foreground">Tienda:</span>

@@ -77,30 +77,44 @@ Deno.serve(async (req) => {
 
       // Email to admin/owner
       const settings = await base44.asServiceRole.entities.StoreSettings.list();
-      const adminEmail = settings[0]?.admin_email || 'fermingramajo96@gmail.com';
+      const adminEmail = settings[0]?.admin_email;
       
-      await base44.asServiceRole.integrations.Core.SendEmail({
-        to: adminEmail,
-        subject: `🍓 Nuevo Pedido #${order.tracking_code} — $${order.total?.toFixed(2)}`,
-        body: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background: #5C2D0E; padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
-              <h1 style="color: #FDE8EC; margin: 0;">🍓 Nuevo Pedido Recibido</h1>
-            </div>
-            <div style="padding: 24px; background: #fff;">
-              <h2 style="color: #E8294A;">Pedido #${order.tracking_code}</h2>
-              <p><strong>Cliente:</strong> ${order.customer_name}</p>
-              <p><strong>Tel:</strong> ${order.customer_phone}</p>
-              <p><strong>Dirección:</strong> ${order.customer_address}</p>
-              <p><strong>Total:</strong> $${order.total?.toFixed(2)}</p>
-              <p><strong>Pago:</strong> ${order.payment_method}</p>
-              <hr/>
-              <pre style="background: #f5f5f5; padding: 12px; border-radius: 8px;">${itemsList}</pre>
-              ${order.notes ? `<p><strong>Notas:</strong> ${order.notes}</p>` : ''}
-            </div>
+      const adminBody = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #5C2D0E; padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
+            <h1 style="color: #FDE8EC; margin: 0;">🍓 Nuevo Pedido Recibido</h1>
           </div>
-        `
-      });
+          <div style="padding: 24px; background: #fff;">
+            <h2 style="color: #E8294A;">Pedido #${order.tracking_code}</h2>
+            <p><strong>Cliente:</strong> ${order.customer_name}</p>
+            <p><strong>Tel:</strong> ${order.customer_phone}</p>
+            <p><strong>Dirección:</strong> ${order.customer_address}</p>
+            <p><strong>Total:</strong> $${order.total?.toFixed(2)}</p>
+            <p><strong>Pago:</strong> ${order.payment_method}</p>
+            <hr/>
+            <pre style="background: #f5f5f5; padding: 12px; border-radius: 8px;">${itemsList}</pre>
+            ${order.notes ? `<p><strong>Notas:</strong> ${order.notes}</p>` : ''}
+          </div>
+        </div>`;
+
+      const adminSubject = `🍓 Nuevo Pedido #${order.tracking_code} — $${order.total?.toFixed(2)}`;
+
+      // Notify main admin email
+      if (adminEmail) {
+        await base44.asServiceRole.integrations.Core.SendEmail({ to: adminEmail, subject: adminSubject, body: adminBody });
+      }
+
+      // Notify managers with order permission
+      const managerPerms = await base44.asServiceRole.entities.ManagerPermissions.filter({ is_active: true });
+      const allUsers = await base44.asServiceRole.entities.User.list();
+      for (const perm of managerPerms) {
+        if (perm.can_manage_orders !== false) {
+          const mgr = allUsers.find(u => u.email === perm.user_email);
+          if (mgr?.email && mgr.email !== adminEmail) {
+            await base44.asServiceRole.integrations.Core.SendEmail({ to: mgr.email, subject: adminSubject, body: adminBody }).catch(() => {});
+          }
+        }
+      }
 
     } else if (event_type === 'status_update') {
       if (!order.user_email) return Response.json({ success: true, skipped: 'no email' });

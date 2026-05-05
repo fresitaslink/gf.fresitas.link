@@ -1,0 +1,56 @@
+{
+  "name": "ManagerPermissions",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Manager's email"
+    },
+    "can_manage_orders": {
+      "type": "boolean",
+      "default": true
+    },
+    "can_manage_products": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_view_analytics": {
+      "type": "boolean",
+      "default": true
+    },
+    "can_manage_settings": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_manage_promos": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_chat_customers": {
+      "type": "boolean",
+      "default": true
+    },
+    "can_reply_reviews": {
+      "type": "boolean",
+      "default": true
+    },
+    "can_export_data": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_manage_users": {
+      "type": "boolean",
+      "default": false
+    },
+    "granted_by": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}

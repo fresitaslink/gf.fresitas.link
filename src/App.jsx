@@ -24,6 +24,9 @@ import Reviews from './pages/Reviews';
 import Admin from './pages/Admin';
 import Referral from './pages/Referral';
 import UserDashboard from './pages/UserDashboard';
+import OwnerPanel from './pages/OwnerPanel';
+import ManagerPanel from './pages/ManagerPanel';
+import Suscripciones from './pages/Suscripciones';
 
 // Layout
 import Navbar from './components/layout/Navbar';
@@ -89,6 +92,9 @@ const AuthenticatedApp = () => {
         <Route path="/admin" element={<Admin />} />
         <Route path="/referral" element={<Referral />} />
         <Route path="/dashboard" element={<UserDashboard />} />
+        <Route path="/owner" element={<OwnerPanel />} />
+        <Route path="/manager" element={<ManagerPanel />} />
+        <Route path="/suscripciones" element={<Suscripciones />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <WhatsAppButton phone={whatsappNumber} />

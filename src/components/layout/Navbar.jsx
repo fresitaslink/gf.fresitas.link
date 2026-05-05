@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Heart, User, Menu, X, Sun, Moon, Bot, BarChart2 } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, Sun, Moon, Bot, Crown, Shield, Zap } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useCart } from '@/lib/CartContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -28,14 +28,15 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
     { to: '/menu', label: t.menu },
     { to: '/orders', label: t.orders },
     { to: '/favoritos', label: t.favorites },
+    { to: '/suscripciones', label: language === 'es' ? 'Suscripción' : 'Subscribe' },
     { to: '/chat', label: t.chat },
     { to: '/referral', label: language === 'es' ? 'Referir' : 'Refer' },
     { to: '/dashboard', label: language === 'es' ? 'Mi Stats' : 'My Stats' },
   ];
 
-  if (user?.role === 'admin') {
-    navLinks.push({ to: '/admin', label: t.admin });
-  }
+  if (user?.role === 'admin') navLinks.push({ to: '/admin', label: t.admin });
+  if (user?.role === 'manager') navLinks.push({ to: '/manager', label: 'Manager' });
+  if (user?.role === 'owner') navLinks.push({ to: '/owner', label: 'Owner' });
 
   return (
     <motion.nav
@@ -121,11 +122,13 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
               </Button>
             </Link>
 
-            {/* Profile */}
+            {/* Profile with role indicator */}
             {user ? (
               <Link to="/perfil">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="relative">
                   <User className="h-4 w-4" />
+                  {user.role === 'owner' && <Crown className="absolute -top-1 -right-1 w-3 h-3 text-gold" />}
+                  {user.role === 'manager' && <Shield className="absolute -top-1 -right-1 w-3 h-3 text-purple-500" />}
                 </Button>
               </Link>
             ) : (

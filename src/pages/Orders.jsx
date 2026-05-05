@@ -91,6 +91,17 @@ export default function Orders() {
   }, [user]);
 
   const handleReorder = async (order) => {
+    if (!order.items?.length) return;
+    for (const item of order.items) {
+      addItem({
+        product_id: item.product_id,
+        name_es: item.name,
+        name_en: item.name,
+        image_url: item.image_url,
+        price: item.price / (item.quantity || 1),
+        quantity: item.quantity,
+      });
+    }
     toast.success(language === 'es' ? '¡Items agregados al carrito!' : 'Items added to cart!', { icon: '🍓' });
     navigate('/cart');
   };

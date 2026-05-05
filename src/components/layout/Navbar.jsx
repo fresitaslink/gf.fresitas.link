@@ -36,6 +36,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
   ];
 
   if (user?.role === 'admin') navLinks.push({ to: '/admin', label: t.admin });
+  if (['admin', 'owner'].includes(user?.role)) navLinks.push({ to: '/analytics', label: 'Analytics' });
   if (user?.role === 'manager') navLinks.push({ to: '/manager', label: 'Manager' });
   if (user?.role === 'owner') navLinks.push({ to: '/owner', label: 'Owner' });
   if (['admin', 'owner', 'manager', 'delivery'].includes(user?.role)) navLinks.push({ to: '/logistica', label: 'Logística' });

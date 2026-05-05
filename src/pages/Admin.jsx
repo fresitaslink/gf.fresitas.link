@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 
 import { motion } from 'framer-motion';
-import { Package, TrendingUp, Users, MessageCircle, Settings, Loader2, Star, BarChart2, DollarSign, Download, ShoppingBag, Phone, Mail, Crown, ExternalLink, Navigation, Map } from 'lucide-react';
+import { Package, TrendingUp, Users, MessageCircle, Settings, Loader2, Star, BarChart2, DollarSign, Download, ShoppingBag, Phone, Mail, Crown, ExternalLink, Navigation, Map, Upload } from 'lucide-react';
 import AdminAnalytics from './AdminAnalytics';
 import BusinessIntelligence from '@/components/admin/BusinessIntelligence';
 import OrdersMap from '@/components/admin/OrdersMap';
+import CSVImport from '@/components/admin/CSVImport';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -257,6 +258,9 @@ export default function Admin() {
               )}
             </div>
             <div className="flex items-center gap-3 flex-wrap">
+              <a href="/analytics" className="inline-flex items-center gap-1.5 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 rounded-full px-3 py-1.5 hover:opacity-80">
+                <BarChart2 className="w-3 h-3" /> Analytics
+              </a>
               <a href="/logistica" className="inline-flex items-center gap-1.5 text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 rounded-full px-3 py-1.5 hover:opacity-80">
                 <Navigation className="w-3 h-3" /> Logística Repartidores
               </a>
@@ -303,6 +307,7 @@ export default function Admin() {
               <TabsTrigger value="settings" className="flex-1 rounded-lg text-xs">Config</TabsTrigger>
               <TabsTrigger value="bi" className="flex-1 rounded-lg text-xs">📊 BI</TabsTrigger>
               <TabsTrigger value="export" className="flex-1 rounded-lg text-xs">Exportar</TabsTrigger>
+              <TabsTrigger value="import" className="flex-1 rounded-lg text-xs">Importar CSV</TabsTrigger>
             </TabsList>
 
             {/* Orders Kanban */}
@@ -465,6 +470,15 @@ export default function Admin() {
             {/* Business Intelligence */}
             <TabsContent value="bi">
               <BusinessIntelligence />
+            </TabsContent>
+
+            {/* CSV Import */}
+            <TabsContent value="import">
+              <div className="bg-card rounded-2xl border border-border p-6">
+                <h3 className="font-poppins font-semibold text-lg mb-2">Importar Datos desde CSV</h3>
+                <p className="text-sm text-muted-foreground mb-6">Sube un archivo CSV para importar productos, clientes o códigos de descuento en masa.</p>
+                <CSVImport />
+              </div>
             </TabsContent>
 
             {/* CSV Export */}

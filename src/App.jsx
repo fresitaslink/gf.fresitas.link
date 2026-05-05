@@ -30,6 +30,7 @@ import Suscripciones from './pages/Suscripciones';
 import Logistica from './pages/Logistica';
 import Blog from './pages/Blog';
 import BlogPostDetail from './pages/BlogPostDetail';
+import Analytics from './pages/Analytics';
 
 // Layout
 import Navbar from './components/layout/Navbar';
@@ -89,6 +90,7 @@ const AuthenticatedApp = () => {
         <Route path="/logistica" element={<Logistica />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPostDetail />} />
+        <Route path="/analytics" element={<Analytics />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <WillfyButton />

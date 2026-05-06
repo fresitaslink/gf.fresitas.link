@@ -12,6 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import DriverAssignmentPanel from '@/components/admin/DriverAssignmentPanel';
+import AutoDispatchPanel from '@/components/admin/AutoDispatchPanel';
+import LiveTrackingDashboard from '@/components/admin/LiveTrackingDashboard';
 
 export default function DriverManagement() {
   const { user } = useAuth();
@@ -161,12 +163,23 @@ export default function DriverManagement() {
             </div>
           </div>
 
-          <Tabs defaultValue="assignment" className="w-full">
+          <Tabs defaultValue="dispatch" className="w-full">
             <TabsList className="w-full mb-4 bg-muted flex-wrap h-auto">
-              <TabsTrigger value="assignment">Asignación de Pedidos</TabsTrigger>
+              <TabsTrigger value="dispatch">Despacho Automático</TabsTrigger>
+              <TabsTrigger value="tracking">Rastreo en Vivo</TabsTrigger>
+              <TabsTrigger value="assignment">Asignación Manual</TabsTrigger>
               <TabsTrigger value="drivers">Conductores</TabsTrigger>
-              <TabsTrigger value="map">Mapa en Vivo</TabsTrigger>
             </TabsList>
+
+            {/* Auto Dispatch */}
+            <TabsContent value="dispatch">
+              <AutoDispatchPanel orders={orders} drivers={drivers} />
+            </TabsContent>
+
+            {/* Live Tracking */}
+            <TabsContent value="tracking">
+              <LiveTrackingDashboard orders={orders} />
+            </TabsContent>
 
             {/* Assignment Panel */}
             <TabsContent value="assignment">
@@ -238,12 +251,7 @@ export default function DriverManagement() {
               ))}
             </TabsContent>
 
-            {/* Map */}
-            <TabsContent value="map">
-              <div className="bg-card rounded-2xl border border-border p-4 h-96 flex items-center justify-center">
-                <p className="text-muted-foreground">Integración de mapa en vivo próximamente</p>
-              </div>
-            </TabsContent>
+
           </Tabs>
         </motion.div>
       </div>

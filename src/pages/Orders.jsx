@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp, RotateCcw, Star, MessageCircle, Package, Clock,
 import OrderReceipt from '@/components/orders/OrderReceipt';
 import LiveDeliveryTracker from '@/components/orders/LiveDeliveryTracker';
 import EnhancedOrderTracking from '@/components/orders/EnhancedOrderTracking';
+import CustomerReviewSection from '@/components/orders/CustomerReviewSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -193,11 +194,16 @@ export default function Orders() {
                          <OrderTracker status={order.status} />
 
                          {/* Enhanced tracking with driver info, PIN verification, and live map */}
-                         {['confirmed', 'preparing', 'on_the_way', 'delivered'].includes(order.status) && (
-                           <EnhancedOrderTracking order={order} />
+                          {['confirmed', 'preparing', 'on_the_way', 'delivered'].includes(order.status) && (
+                            <EnhancedOrderTracking order={order} />
+                          )}
+
+                         {/* Review Section */}
+                         {['delivered', 'confirmed', 'preparing', 'on_the_way'].includes(order.status) && (
+                           <CustomerReviewSection orderId={order.id} orderStatus={order.status} />
                          )}
 
-                        {/* Items */}
+                         {/* Items */}
                         <div className="space-y-2">
                           {order.items?.map((item, i) => (
                             <div key={i} className="flex items-center gap-3">

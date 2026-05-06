@@ -126,7 +126,9 @@
   "context_files": [],
   "app_user_connector_configs": [],
   "selected_skill_names": [],
-  "selected_workspace_skill_ids": [],
+  "selected_workspace_skill_ids": [
+    "69d94c8fa8c9811c201a2c77"
+  ],
   "model": "claude_sonnet_4_6",
   "whatsapp_greeting": "",
   "telegram_greeting": "",

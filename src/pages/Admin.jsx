@@ -15,6 +15,7 @@ import InventoryDashboard from '@/components/admin/InventoryDashboard';
 import RewardsManager from '@/components/admin/RewardsManager';
 import ChallengesManager from '@/components/admin/ChallengesManager';
 import ReviewManager from '@/components/admin/ReviewManager';
+import ReviewReplies from '@/components/admin/ReviewReplies';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -61,7 +62,7 @@ function KanbanColumn({ status, orders, onUpdateStatus }) {
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><Phone className="w-3 h-3" /> {order.customer_phone}</p>
             <p className="text-xs text-muted-foreground">{order.items?.length} items · {order.payment_method}</p>
             {order.delivery_time_preference && order.delivery_time_preference !== 'asap' && (
-              <p className="text-xs text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 rounded-lg px-2 py-1 mt-1 font-medium">📅 {order.delivery_time_preference}</p>
+              <p className="text-xs text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 rounded-lg px-2 py-1 mt-1 font-medium">{order.delivery_time_preference}</p>
             )}
             {order.notes && <p className="text-xs italic text-muted-foreground mt-1">"{order.notes}"</p>}
             {status !== 'delivered' && status !== 'cancelled' && (
@@ -311,23 +312,24 @@ export default function Admin() {
 
           <Tabs defaultValue="orders">
             <TabsList className="w-full rounded-xl mb-6 bg-muted flex-wrap h-auto">
-              <TabsTrigger value="live" className="flex-1 rounded-lg text-xs">🔴 En Vivo</TabsTrigger>
+              <TabsTrigger value="live" className="flex-1 rounded-lg text-xs">En Vivo</TabsTrigger>
               <TabsTrigger value="orders" className="flex-1 rounded-lg text-xs">Pedidos</TabsTrigger>
-              <TabsTrigger value="mapa" className="flex-1 rounded-lg text-xs">🗺 Mapa</TabsTrigger>
+              <TabsTrigger value="mapa" className="flex-1 rounded-lg text-xs">Mapa</TabsTrigger>
               <TabsTrigger value="products" className="flex-1 rounded-lg text-xs">Productos</TabsTrigger>
-              <TabsTrigger value="inventory" className="flex-1 rounded-lg text-xs">🥬 Inventario</TabsTrigger>
-              <TabsTrigger value="inv_dashboard" className="flex-1 rounded-lg text-xs">📦 Stock IA</TabsTrigger>
+              <TabsTrigger value="inventory" className="flex-1 rounded-lg text-xs">Inventario</TabsTrigger>
+              <TabsTrigger value="inv_dashboard" className="flex-1 rounded-lg text-xs">Stock IA</TabsTrigger>
               <TabsTrigger value="reviews" className="flex-1 rounded-lg text-xs">Reseñas</TabsTrigger>
+              <TabsTrigger value="review_replies" className="flex-1 rounded-lg text-xs">Respuestas</TabsTrigger>
               <TabsTrigger value="chat" className="flex-1 rounded-lg text-xs">Chat</TabsTrigger>
               <TabsTrigger value="settings" className="flex-1 rounded-lg text-xs">Config</TabsTrigger>
-              <TabsTrigger value="bi" className="flex-1 rounded-lg text-xs">📊 BI</TabsTrigger>
+              <TabsTrigger value="bi" className="flex-1 rounded-lg text-xs">BI</TabsTrigger>
               <TabsTrigger value="export" className="flex-1 rounded-lg text-xs">Exportar</TabsTrigger>
-              <TabsTrigger value="import" className="flex-1 rounded-lg text-xs">Importar CSV</TabsTrigger>
+              <TabsTrigger value="import" className="flex-1 rounded-lg text-xs">Importar</TabsTrigger>
               <TabsTrigger value="email_templates" className="flex-1 rounded-lg text-xs">Emails</TabsTrigger>
               <TabsTrigger value="seo" className="flex-1 rounded-lg text-xs">SEO</TabsTrigger>
               <TabsTrigger value="seo_gen" className="flex-1 rounded-lg text-xs">SEO IA</TabsTrigger>
-              <TabsTrigger value="rewards" className="flex-1 rounded-lg text-xs">🎁 Premios</TabsTrigger>
-              <TabsTrigger value="challenges" className="flex-1 rounded-lg text-xs">🎯 Desafíos</TabsTrigger>
+              <TabsTrigger value="rewards" className="flex-1 rounded-lg text-xs">Premios</TabsTrigger>
+              <TabsTrigger value="challenges" className="flex-1 rounded-lg text-xs">Desafíos</TabsTrigger>
             </TabsList>
 
             {/* Live Orders Panel */}
@@ -362,9 +364,9 @@ export default function Admin() {
             <TabsContent value="inventory">
               <div className="space-y-3">
                 <div>
-                  <h3 className="font-poppins font-bold text-lg">🥬 Inventario de Ingredientes</h3>
-                  <p className="text-xs text-muted-foreground">Gestiona el stock. Al llegar a 0, los productos vinculados se desactivan automáticamente.</p>
-                </div>
+                   <h3 className="font-poppins font-bold text-lg">Inventario de Ingredientes</h3>
+                   <p className="text-xs text-muted-foreground">Gestiona el stock. Al llegar a 0, los productos vinculados se desactivan automáticamente.</p>
+                 </div>
                 <IngredientManager products={products} />
               </div>
             </TabsContent>
@@ -373,9 +375,9 @@ export default function Admin() {
             <TabsContent value="inv_dashboard">
               <div className="space-y-3">
                 <div>
-                  <h3 className="font-poppins font-bold text-lg">📦 Dashboard de Inventario Inteligente</h3>
-                  <p className="text-xs text-muted-foreground">Rastreo automático de uso por pedidos, alertas de stock bajo y control en tiempo real.</p>
-                </div>
+                   <h3 className="font-poppins font-bold text-lg">Dashboard de Inventario Inteligente</h3>
+                   <p className="text-xs text-muted-foreground">Rastreo automático de uso por pedidos, alertas de stock bajo y control en tiempo real.</p>
+                 </div>
                 <InventoryDashboard orders={orders} />
               </div>
             </TabsContent>
@@ -401,11 +403,16 @@ export default function Admin() {
             </TabsContent>
 
             {/* Reviews — New Manager Component */}
-            <TabsContent value="reviews">
-              <ReviewManager />
-            </TabsContent>
+             <TabsContent value="reviews">
+               <ReviewManager />
+             </TabsContent>
 
-            {/* Chat */}
+             {/* Review Replies */}
+             <TabsContent value="review_replies">
+               <ReviewReplies />
+             </TabsContent>
+
+             {/* Chat */}
             <TabsContent value="chat">
               <div className="space-y-6">
                 {conversations.map(email => {
@@ -519,9 +526,9 @@ export default function Admin() {
             <TabsContent value="rewards">
               <div className="space-y-3">
                 <div>
-                  <h3 className="font-poppins font-bold text-lg">🎁 Gestión de Premios y Canjes</h3>
-                  <p className="text-xs text-muted-foreground">Administra el inventario de premios y procesa los canjes de clientes.</p>
-                </div>
+                   <h3 className="font-poppins font-bold text-lg">Gestión de Premios y Canjes</h3>
+                   <p className="text-xs text-muted-foreground">Administra el inventario de premios y procesa los canjes de clientes.</p>
+                 </div>
                 <RewardsManager />
               </div>
             </TabsContent>
@@ -530,9 +537,9 @@ export default function Admin() {
             <TabsContent value="challenges">
               <div className="space-y-3">
                 <div>
-                  <h3 className="font-poppins font-bold text-lg">🎯 Gestión de Desafíos Diarios</h3>
-                  <p className="text-xs text-muted-foreground">Crea y administra desafíos para los clientes. Notifícalos con un clic.</p>
-                </div>
+                   <h3 className="font-poppins font-bold text-lg">Gestión de Desafíos Diarios</h3>
+                   <p className="text-xs text-muted-foreground">Crea y administra desafíos para los clientes. Notifícalos con un clic.</p>
+                 </div>
                 <ChallengesManager />
               </div>
             </TabsContent>

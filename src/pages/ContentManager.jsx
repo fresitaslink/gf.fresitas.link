@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShoppingBag, FileText, Tag, Settings, Image, Star, Package,
   Plus, Trash2, Edit2, Eye, EyeOff, Archive, RotateCcw, Save,
   Loader2, CheckCircle2, Search, Filter, ChevronDown, ChevronUp,
-  Crown, Globe, Palette, BookOpen, Gift, Zap, Users, BarChart2, X
+  Crown, Globe, Palette, BookOpen, Gift, Zap, Users, BarChart2, X, MapPin
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -281,11 +281,11 @@ function BlogManager() {
       if (editingId === 'new') {
         const created = await base44.entities.BlogPost.create(dataToSave);
         setPosts(prev => [created, ...prev]);
-        toast.success('📝 Post creado y ' + (form.is_published ? 'publicado ✅' : 'guardado como borrador'));
+        toast.success('Post creado y ' + (form.is_published ? 'publicado' : 'guardado como borrador'));
       } else {
         await base44.entities.BlogPost.update(editingId, dataToSave);
         setPosts(prev => prev.map(p => p.id === editingId ? { ...p, ...dataToSave } : p));
-        toast.success('✅ Post actualizado' + (form.is_published ? ' y publicado' : ''));
+        toast.success('Post actualizado' + (form.is_published ? ' y publicado' : ''));
       }
       setEditingId(null); setForm({});
     } catch (err) {
@@ -301,7 +301,7 @@ function BlogManager() {
       };
       await base44.entities.BlogPost.update(post.id, update);
       setPosts(prev => prev.map(p => p.id === post.id ? { ...p, ...update } : p));
-      toast.success(!post.is_published ? '✅ Post publicado en vivo' : '📝 Guardado como borrador');
+      toast.success(!post.is_published ? 'Post publicado en vivo' : 'Guardado como borrador');
     } catch (err) {
       toast.error('Error: ' + err.message);
     }
@@ -356,14 +356,14 @@ function BlogManager() {
               {post.cover_image ? (
                 <img src={post.cover_image} alt={post.title_es} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
               ) : (
-                <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-xl flex-shrink-0">📝</div>
+                <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0"><FileText className="w-5 h-5 text-blue-600" /></div>
               )}
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate">{post.title_es}</p>
                 <div className="flex items-center gap-2 mt-0.5">
                   <Badge className={`text-xs ${post.is_published ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                    {post.is_published ? '✅ Publicado' : '📝 Borrador'}
-                  </Badge>
+                     {post.is_published ? 'Publicado' : 'Borrador'}
+                   </Badge>
                   <span className="text-xs text-muted-foreground">{post.category}</span>
                 </div>
               </div>
@@ -413,11 +413,11 @@ function RewardsManager() {
       if (editingId === 'new') {
         const created = await base44.entities.RewardItem.create(form);
         setItems(prev => [created, ...prev]);
-        toast.success('Premio creado ✅');
+        toast.success('Premio creado');
       } else {
         await base44.entities.RewardItem.update(editingId, form);
         setItems(prev => prev.map(r => r.id === editingId ? { ...r, ...form } : r));
-        toast.success('Premio actualizado ✅');
+        toast.success('Premio actualizado');
       }
       setEditingId(null); setForm({});
     } finally { setSaving(false); }
@@ -429,8 +429,8 @@ function RewardsManager() {
     if (red.user_email) {
       base44.entities.Notification.create({
         user_email: red.user_email,
-        title_es: newStatus === 'delivered' ? '🎁 ¡Tu premio fue entregado!' : '🔄 Tu premio está en proceso',
-        title_en: newStatus === 'delivered' ? '🎁 Your reward was delivered!' : '🔄 Your reward is being processed',
+        title_es: newStatus === 'delivered' ? '¡Tu premio fue entregado!' : 'Tu premio está en proceso',
+        title_en: newStatus === 'delivered' ? 'Your reward was delivered!' : 'Your reward is being processed',
         message_es: `Tu canje de "${red.reward_name}" está ${newStatus === 'delivered' ? 'entregado' : 'en proceso'}. ¡Gracias!`,
         message_en: `Your "${red.reward_name}" redemption is ${newStatus}.`,
         type: 'loyalty',
@@ -459,10 +459,10 @@ function RewardsManager() {
               <Select value={form.category || 'producto'} onValueChange={v => setForm(p => ({ ...p, category: v }))}>
                 <SelectTrigger className="rounded-xl text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="producto">🍓 Producto</SelectItem>
-                  <SelectItem value="descuento">🎟️ Descuento</SelectItem>
-                  <SelectItem value="experiencia">✨ Experiencia</SelectItem>
-                  <SelectItem value="merch">👕 Merch</SelectItem>
+                  <SelectItem value="producto">Producto</SelectItem>
+                  <SelectItem value="descuento">Descuento</SelectItem>
+                  <SelectItem value="experiencia">Experiencia</SelectItem>
+                  <SelectItem value="merch">Merch</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -481,8 +481,8 @@ function RewardsManager() {
           <h4 className="font-semibold text-sm">Premios ({items.length})</h4>
           {items.map(item => (
             <div key={item.id} className="flex items-center gap-3 p-3 bg-card border rounded-xl">
-              <div className="w-10 h-10 bg-strawberry/10 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
-                {item.category === 'producto' ? '🍓' : item.category === 'descuento' ? '🎟️' : item.category === 'experiencia' ? '✨' : '👕'}
+              <div className="w-10 h-10 bg-strawberry/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                {item.category === 'producto' ? <span className="text-lg">🍓</span> : item.category === 'descuento' ? <Tag className="w-5 h-5 text-amber-600" /> : item.category === 'experiencia' ? <Star className="w-5 h-5 text-purple-600" /> : <ShoppingBag className="w-5 h-5 text-blue-600" />}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm">{item.name_es}</p>
@@ -506,15 +506,15 @@ function RewardsManager() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{red.reward_name}</p>
                       <p className="text-xs text-muted-foreground">{red.user_email} · {red.points_spent} pts</p>
-                      {red.delivery_address && <p className="text-xs text-muted-foreground">📍 {red.delivery_address}</p>}
+                      {red.delivery_address && <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" /> {red.delivery_address}</p>}
                     </div>
                     <Select value={red.status} onValueChange={(v) => handleUpdateRedemptionStatus(red, v)}>
                       <SelectTrigger className="w-32 rounded-xl h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="pending">⏳ Pendiente</SelectItem>
-                        <SelectItem value="processing">🔄 Procesando</SelectItem>
-                        <SelectItem value="delivered">✅ Entregado</SelectItem>
-                        <SelectItem value="cancelled">❌ Cancelado</SelectItem>
+                        <SelectItem value="pending">Pendiente</SelectItem>
+                          <SelectItem value="processing">Procesando</SelectItem>
+                          <SelectItem value="delivered">Entregado</SelectItem>
+                          <SelectItem value="cancelled">Cancelado</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -553,11 +553,11 @@ function ChallengesManager() {
       if (editingId === 'new') {
         const created = await base44.entities.DailyChallenge.create(form);
         setChallenges(prev => [created, ...prev]);
-        toast.success('Desafío creado ✅');
+        toast.success('Desafío creado');
       } else {
         await base44.entities.DailyChallenge.update(editingId, form);
         setChallenges(prev => prev.map(c => c.id === editingId ? { ...c, ...form } : c));
-        toast.success('Desafío actualizado ✅');
+        toast.success('Desafío actualizado');
       }
       setEditingId(null); setForm({});
     } finally { setSaving(false); }
@@ -571,7 +571,7 @@ function ChallengesManager() {
 
       {editingId && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-muted rounded-2xl p-5 border-2 border-strawberry/30 space-y-3">
-          <h4 className="font-semibold flex items-center gap-2">🎯 {editingId === 'new' ? 'Nuevo Desafío' : 'Editando Desafío'}</h4>
+          <h4 className="font-semibold flex items-center gap-2"><Zap className="w-4 h-4 text-amber-500" /> {editingId === 'new' ? 'Nuevo Desafío' : 'Editando Desafío'}</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1 sm:col-span-2"><Label className="text-xs">Título *</Label><Input value={form.title_es || ''} onChange={e => setForm(p => ({ ...p, title_es: e.target.value }))} className="rounded-xl text-sm" placeholder="Haz un pedido con fresas y chocolate antes de las 2pm" /></div>
             <div className="space-y-1 sm:col-span-2"><Label className="text-xs">Descripción</Label><Textarea value={form.description_es || ''} onChange={e => setForm(p => ({ ...p, description_es: e.target.value }))} className="rounded-xl text-sm" rows={2} /></div>
@@ -579,11 +579,11 @@ function ChallengesManager() {
               <Select value={form.challenge_type || 'order_before_time'} onValueChange={v => setForm(p => ({ ...p, challenge_type: v }))}>
                 <SelectTrigger className="rounded-xl text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="order_before_time">⏰ Pedir antes de hora</SelectItem>
-                  <SelectItem value="order_product">🍓 Pedir producto específico</SelectItem>
-                  <SelectItem value="order_amount">💰 Gastar monto mínimo</SelectItem>
-                  <SelectItem value="referral">🤝 Referir amigo</SelectItem>
-                  <SelectItem value="review">⭐ Dejar reseña</SelectItem>
+                  <SelectItem value="order_before_time">Pedir antes de hora</SelectItem>
+                  <SelectItem value="order_product">Pedir producto específico</SelectItem>
+                  <SelectItem value="order_amount">Gastar monto mínimo</SelectItem>
+                  <SelectItem value="referral">Referir amigo</SelectItem>
+                  <SelectItem value="review">Dejar reseña</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -604,7 +604,7 @@ function ChallengesManager() {
         <div className="space-y-2">
           {challenges.map(c => (
             <div key={c.id} className="flex items-center gap-3 p-3 bg-card border rounded-xl">
-              <div className="w-10 h-10 bg-strawberry/10 rounded-xl flex items-center justify-center text-xl flex-shrink-0">{c.icon || '🎯'}</div>
+              <div className="w-10 h-10 bg-strawberry/10 rounded-xl flex items-center justify-center flex-shrink-0"><Zap className="w-5 h-5 text-amber-500" /></div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate">{c.title_es}</p>
                 <div className="flex items-center gap-2 mt-0.5">

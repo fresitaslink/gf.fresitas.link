@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Star, Check, Loader2, Upload, X, Image } from 'lucide-react';
+import { Star, Check, Loader2, Upload, X, Image, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { base44 } from '@/api/base44Client';
@@ -206,9 +206,9 @@ export default function Reviews() {
                 <div className="flex gap-3 mb-4">
                   <div className="w-14 h-14 rounded-xl bg-cream overflow-hidden flex-shrink-0">
                     {item.image_url
-                      ? <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                      : <div className="w-full h-full flex items-center justify-center text-2xl">🍓</div>
-                    }
+                       ? <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                       : <div className="w-full h-full flex items-center justify-center"><Package className="w-6 h-6 text-strawberry" /></div>
+                     }
                   </div>
                   <div>
                     <h3 className="font-semibold">{item.name}</h3>

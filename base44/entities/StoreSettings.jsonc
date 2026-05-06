@@ -2,6 +2,15 @@
   "name": "StoreSettings",
   "type": "object",
   "properties": {
+    "store_name": {
+      "type": "string",
+      "default": "Fresitas G&F",
+      "description": "Store display name"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "Logo image URL - upload your own or use default Fresitas logo"
+    },
     "delivery_fee": {
       "type": "number",
       "default": 30

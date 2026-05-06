@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp, RotateCcw, Star, MessageCircle, Package, Clock,
 import OrderReceipt from '@/components/orders/OrderReceipt';
 import LiveDeliveryTracker from '@/components/orders/LiveDeliveryTracker';
 import EnhancedOrderTracking from '@/components/orders/EnhancedOrderTracking';
+import DeliveryChat from '@/components/orders/DeliveryChat';
 import CustomerReviewSection from '@/components/orders/CustomerReviewSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -73,6 +74,7 @@ export default function Orders() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(null);
   const [receiptOrder, setReceiptOrder] = useState(null);
+  const [chatOpen, setChatOpen] = useState(null);
 
   useEffect(() => {
     if (!user) { navigate('/'); return; }
@@ -143,6 +145,14 @@ export default function Orders() {
   return (
     <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
       {receiptOrder && <OrderReceipt order={receiptOrder} onClose={() => setReceiptOrder(null)} />}
+      {chatOpen && (
+        <DeliveryChat 
+          order={orders.find(o => o.id === chatOpen)}
+          driver={{}}
+          isOpen={!!chatOpen}
+          onClose={() => setChatOpen(null)}
+        />
+      )}
       <div className="max-w-3xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="font-poppins font-bold text-3xl text-foreground py-8">{t.myOrders}</h1>

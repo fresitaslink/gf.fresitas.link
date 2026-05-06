@@ -17,6 +17,20 @@ import StripePayment from '@/components/checkout/StripePayment';
 import ScheduledDelivery from '@/components/checkout/ScheduledDelivery';
 import TipSelector from '@/components/checkout/TipSelector';
 
+// Surge pricing helper
+const calculateSurgePrice = async (delivery_lat, delivery_lng, base_fee) => {
+  try {
+    const result = await base44.functions.invoke('calculateSurgePricing', {
+      delivery_lat,
+      delivery_lng,
+      base_fee
+    });
+    return result.data;
+  } catch {
+    return { final_delivery_fee: base_fee, is_surge: false };
+  }
+};
+
 const STEPS = ['delivery', 'customize', 'payment', 'confirm'];
 
 export default function Checkout() {
@@ -45,7 +59,10 @@ export default function Checkout() {
     delivery_time_preference: '',
     payment_method: 'efectivo',
     tip: 0,
+    delivery_lat: null,
+    delivery_lng: null,
   });
+  const [surgePrice, setSurgePrice] = useState(null);
 
   useEffect(() => {
     base44.entities.StoreSettings.list().then(s => { if (s[0]) setSettings(s[0]); });
@@ -87,7 +104,8 @@ export default function Checkout() {
   const pointsDiscount = Math.min(pointsToRedeem / 10, subtotal * 0.5); // max 50% of subtotal
   const totalDiscount = discount + subDiscount + pointsDiscount;
   const total = cartTotal ? cartTotal - subDiscount - pointsDiscount : subtotal + (subtotal >= settings.free_delivery_min ? 0 : settings.delivery_fee) - totalDiscount;
-  const actualDeliveryFee = subtotal >= settings.free_delivery_min ? 0 : (deliveryFee || settings.delivery_fee);
+  const baseDeliveryFee = subtotal >= settings.free_delivery_min ? 0 : (deliveryFee || settings.delivery_fee);
+  const actualDeliveryFee = surgePrice?.final_delivery_fee || baseDeliveryFee;
   // Earn 1 point per $10 spent
   const pointsEarned = Math.floor(total / 10);
   // Total with tip
@@ -331,10 +349,13 @@ export default function Checkout() {
                 </div>
                 {/* Delivery Map */}
                 <DeliveryMap
-                  onLocationSelect={(latlng) => {
-                    setForm(p => ({ ...p, delivery_lat: latlng[0], delivery_lng: latlng[1] }));
-                  }}
-                />
+                   onLocationSelect={async (latlng) => {
+                     setForm(p => ({ ...p, delivery_lat: latlng[0], delivery_lng: latlng[1] }));
+                     // Calculate surge pricing
+                     const surge = await calculateSurgePrice(latlng[0], latlng[1], baseDeliveryFee);
+                     setSurgePrice(surge);
+                   }}
+                 />
               </motion.div>
             )}
 
@@ -465,7 +486,13 @@ export default function Checkout() {
                 </div>
                 <div className="border-t border-border pt-3 space-y-2 text-sm">
                   <div className="flex justify-between"><span className="text-muted-foreground">{t.subtotal}</span><span>${subtotal.toFixed(2)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">{t.deliveryFee}</span><span>{actualDeliveryFee === 0 ? t.free : `$${actualDeliveryFee}`}</span></div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">
+                      {t.deliveryFee}
+                      {surgePrice?.is_surge && <span className="ml-1 text-orange-600 font-semibold">📈 +{(surgePrice.surge_amount).toFixed(0)}</span>}
+                    </span>
+                    <span>{actualDeliveryFee === 0 ? t.free : `$${actualDeliveryFee}`}</span>
+                  </div>
                   {discount > 0 && <div className="flex justify-between text-green-600"><span>{t.discount} (promo)</span><span>-${discount.toFixed(2)}</span></div>}
                   {subDiscount > 0 && <div className="flex justify-between text-green-600"><span>Desc. suscripción ({subscription?.discount_percent}%)</span><span>-${subDiscount.toFixed(2)}</span></div>}
                   {pointsDiscount > 0 && <div className="flex justify-between text-amber-600"><span>⭐ Puntos canjeados ({pointsToRedeem} pts)</span><span>-${pointsDiscount.toFixed(2)}</span></div>}

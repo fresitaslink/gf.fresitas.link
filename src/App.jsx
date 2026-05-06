@@ -41,6 +41,7 @@ import ContentManager from './pages/ContentManager';
 import SuperAdmin from './pages/SuperAdmin';
 import DriverEarnings from './pages/DriverEarnings';
 import DriverStats from './pages/DriverStats';
+import Achievements from './pages/Achievements';
 
 // Layout
 import Navbar from './components/layout/Navbar';
@@ -109,6 +110,7 @@ const AuthenticatedApp = () => {
         <Route path="/driver-earnings" element={<DriverEarnings />} />
         <Route path="/driver-stats" element={<DriverStats />} />
         <Route path="/challenges" element={<Challenges />} />
+        <Route path="/achievements" element={<Achievements />} />
         <Route path="/rewards" element={<RewardsStore />} />
         <Route path="/content" element={<ContentManager />} />
         <Route path="/superadmin" element={<SuperAdmin />} />

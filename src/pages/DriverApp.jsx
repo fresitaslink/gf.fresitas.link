@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import DriverLiveMap from '@/components/driver/DriverLiveMap';
 import OptimizedRouteOverlay from '@/components/driver/OptimizedRouteOverlay';
+import RealtimeChatWidget from '@/components/orders/RealtimeChatWidget';
 
 const STATUS_COLORS = {
   confirmed:  'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
@@ -22,7 +23,7 @@ const STATUS_COLORS = {
 
 const PRIORITY = { on_the_way: 0, preparing: 1, confirmed: 2 };
 
-function OrderCard({ order, driverLocation, onStartDelivery, onMarkDelivered, delivering }) {
+function OrderCard({ order, driverLocation, onStartDelivery, onMarkDelivered, delivering, onChat }) {
   const [expanded, setExpanded] = useState(order.status === 'on_the_way');
 
   const openGoogleMaps = () => {
@@ -193,6 +194,13 @@ function OrderCard({ order, driverLocation, onStartDelivery, onMarkDelivered, de
 
               <div className="flex gap-2">
                 <Button
+                  onClick={() => onChat(order.id)}
+                  className="flex-1 bg-strawberry hover:bg-strawberry/90 text-white rounded-xl gap-1.5 text-xs"
+                >
+                  💬 Chat
+                </Button>
+
+                <Button
                   onClick={openGoogleMaps}
                   variant="outline"
                   className="flex-1 rounded-xl gap-1.5 text-xs"
@@ -353,6 +361,7 @@ export default function DriverApp() {
   const [showMap, setShowMap] = useState(false);
   const [optimizedRoute, setOptimizedRoute] = useState(null);
   const [optimizing, setOptimizing] = useState(false);
+  const [chatOrder, setChatOrder] = useState(null);
 
   const handleOptimizeRoute = async () => {
     setOptimizing(true);
@@ -504,18 +513,28 @@ export default function DriverApp() {
               const order = orders.find(o => o.id === orderId);
               return order ? (
                 <OrderCard
-                  key={order.id}
-                  order={order}
-                  driverLocation={driverLocation}
-                  onStartDelivery={handleStartDelivery}
-                  onMarkDelivered={handleMarkDelivered}
-                  delivering={delivering}
-                />
+                   key={order.id}
+                   order={order}
+                   driverLocation={driverLocation}
+                   onStartDelivery={handleStartDelivery}
+                   onMarkDelivered={handleMarkDelivered}
+                   delivering={delivering}
+                   onChat={setChatOrder}
+                 />
               ) : null;
             })}
           </AnimatePresence>
         )}
       </div>
+
+      {/* Real-time chat widget */}
+      {chatOrder && (
+        <RealtimeChatWidget 
+          order={orders.find(o => o.id === chatOrder)}
+          driver={user}
+          onClose={() => setChatOrder(null)}
+        />
+      )}
     </div>
   );
 }

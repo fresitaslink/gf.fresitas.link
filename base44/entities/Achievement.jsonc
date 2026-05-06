@@ -1,0 +1,77 @@
+{
+  "name": "Achievement",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "User who earned this achievement"
+    },
+    "achievement_id": {
+      "type": "string",
+      "description": "Unique achievement identifier"
+    },
+    "title_es": {
+      "type": "string",
+      "description": "Achievement title in Spanish"
+    },
+    "title_en": {
+      "type": "string",
+      "description": "Achievement title in English"
+    },
+    "description_es": {
+      "type": "string"
+    },
+    "description_en": {
+      "type": "string"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Emoji or icon"
+    },
+    "badge_color": {
+      "type": "string",
+      "enum": [
+        "gold",
+        "silver",
+        "bronze",
+        "platinum",
+        "rainbow"
+      ],
+      "default": "bronze"
+    },
+    "points_multiplier": {
+      "type": "number",
+      "default": 1.0,
+      "description": "1.0x = normal, 1.5x = 50% bonus points"
+    },
+    "unlocked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "progress": {
+      "type": "number",
+      "default": 0,
+      "description": "Progress toward unlocking (0-100)"
+    },
+    "is_unlocked": {
+      "type": "boolean",
+      "default": false
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "delivery",
+        "loyalty",
+        "social",
+        "seasonal",
+        "milestone"
+      ],
+      "default": "milestone"
+    }
+  },
+  "required": [
+    "user_email",
+    "achievement_id",
+    "title_es"
+  ]
+}

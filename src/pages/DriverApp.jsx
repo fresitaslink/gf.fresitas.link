@@ -247,6 +247,11 @@ export default function DriverApp() {
   const [driverLocation, setDriverLocation] = useState(null);
   const [locationError, setLocationError] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [showMap, setShowMap] = useState(false);
+  const [optimizedRoute, setOptimizedRoute] = useState(null);
+  const [optimizing, setOptimizing] = useState(false);
+  const [chatOrder, setChatOrder] = useState(null);
+  const [verifyingOrder, setVerifyingOrder] = useState(null);
   const watchRef = useRef(null);
 
   useEffect(() => {
@@ -357,11 +362,6 @@ export default function DriverApp() {
   const onWay     = orders.filter(o => o.status === 'on_the_way');
   const prep      = orders.filter(o => o.status === 'preparing');
   const confirmed = orders.filter(o => o.status === 'confirmed');
-  const [showMap, setShowMap] = useState(false);
-  const [optimizedRoute, setOptimizedRoute] = useState(null);
-  const [optimizing, setOptimizing] = useState(false);
-  const [chatOrder, setChatOrder] = useState(null);
-  const [verifyingOrder, setVerifyingOrder] = useState(null);
 
   const handleOptimizeRoute = async () => {
     setOptimizing(true);
@@ -536,16 +536,16 @@ export default function DriverApp() {
          />
        )}
 
-       {/* Delivery Verification Modal */}
-       {verifyingOrder && (
-         <DeliveryVerificationModal
-           order={verifyingOrder}
-           onComplete={() => {
-             setOrders(prev => prev.filter(o => o.id !== verifyingOrder.id));
-             setVerifyingOrder(null);
-           }}
-         />
-       )}
-      </div>
-      );
-      }
+      {/* Delivery Verification Modal */}
+      {verifyingOrder && (
+        <DeliveryVerificationModal
+          order={verifyingOrder}
+          onComplete={() => {
+            setOrders(prev => prev.filter(o => o.id !== verifyingOrder.id));
+            setVerifyingOrder(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}

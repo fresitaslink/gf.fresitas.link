@@ -35,6 +35,8 @@ import BlogPostDetail from './pages/BlogPostDetail';
 import Analytics from './pages/Analytics';
 import MiCuenta from './pages/MiCuenta';
 import DriverApp from './pages/DriverApp';
+import DriverLogin from './pages/DriverLogin';
+import ReceiptPrint from './pages/ReceiptPrint';
 import Challenges from './pages/Challenges';
 import RewardsStore from './pages/RewardsStore';
 import ContentManager from './pages/ContentManager';
@@ -110,7 +112,9 @@ const AuthenticatedApp = () => {
         <Route path="/producto/:slug" element={<Menu />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/mi-cuenta" element={<MiCuenta />} />
+        <Route path="/driver-login" element={<DriverLogin />} />
         <Route path="/driver" element={<DriverApp />} />
+        <Route path="/receipt" element={<ReceiptPrint />} />
         <Route path="/driver-earnings" element={<DriverEarnings />} />
         <Route path="/driver-stats" element={<DriverStats />} />
         <Route path="/challenges" element={<Challenges />} />

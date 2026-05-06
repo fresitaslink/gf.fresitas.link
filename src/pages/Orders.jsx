@@ -279,13 +279,18 @@ export default function Orders() {
                               <Star className="w-3 h-3 mr-1" /> {t.leaveReview}
                             </Button>
                           )}
-                          <Button
-                            size="sm"
-                            className="rounded-full text-xs bg-green-600 hover:bg-green-700 text-white"
-                            onClick={() => setReceiptOrder(order)}
-                          >
-                            <Receipt className="w-3 h-3 mr-1" /> Recibo
-                          </Button>
+                          <a
+                             href={`/receipt?id=${order.id}`}
+                             target="_blank"
+                             rel="noopener noreferrer"
+                           >
+                             <Button
+                               size="sm"
+                               className="rounded-full text-xs bg-green-600 hover:bg-green-700 text-white"
+                             >
+                               <Receipt className="w-3 h-3 mr-1" /> Recibo
+                             </Button>
+                           </a>
                           <Button
                             size="sm"
                             variant="outline"

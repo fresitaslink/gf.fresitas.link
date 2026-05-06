@@ -204,6 +204,15 @@ export default function Checkout() {
       // Send email notification
       base44.functions.invoke('sendOrderEmail', { order_id: order.id, event_type: 'new_order' }).catch(() => {});
 
+      // Trigger smart driver assignment
+      if (form.delivery_lat && form.delivery_lng) {
+        base44.functions.invoke('smartDriverAssignment', {
+          order_id: order.id,
+          delivery_lat: form.delivery_lat,
+          delivery_lng: form.delivery_lng
+        }).catch(err => console.log('Driver assignment failed:', err));
+      }
+
       // Handle referral if present — check URL param OR localStorage (persists through login flow)
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get('ref') || localStorage.getItem('fresitas_ref');

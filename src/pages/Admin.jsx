@@ -53,6 +53,9 @@ function KanbanColumn({ status, orders, onUpdateStatus }) {
             <p className="text-xs text-muted-foreground truncate">{order.customer_address}</p>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><Phone className="w-3 h-3" /> {order.customer_phone}</p>
             <p className="text-xs text-muted-foreground">{order.items?.length} items · {order.payment_method}</p>
+            {order.delivery_time_preference && order.delivery_time_preference !== 'asap' && (
+              <p className="text-xs text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 rounded-lg px-2 py-1 mt-1 font-medium">📅 {order.delivery_time_preference}</p>
+            )}
             {order.notes && <p className="text-xs italic text-muted-foreground mt-1">"{order.notes}"</p>}
             {status !== 'delivered' && status !== 'cancelled' && (
               <div className="flex gap-1 mt-2 flex-wrap">

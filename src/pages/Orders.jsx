@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, RotateCcw, Star, MessageCircle, Package, Clock, CheckCircle, ChefHat, Truck, Home, XCircle, MapPin, Phone, ShoppingBag } from 'lucide-react';
+import { ChevronDown, ChevronUp, RotateCcw, Star, MessageCircle, Package, Clock, CheckCircle, ChefHat, Truck, Home, XCircle, MapPin, Phone, ShoppingBag, CalendarClock } from 'lucide-react';
+import DriverTrackingMap from '@/components/orders/DriverTrackingMap';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -187,6 +188,11 @@ export default function Orders() {
                         {/* Tracker */}
                         <OrderTracker status={order.status} />
 
+                        {/* Real-time driver map when on_the_way */}
+                        {order.status === 'on_the_way' && (
+                          <DriverTrackingMap order={order} />
+                        )}
+
                         {/* Items */}
                         <div className="space-y-2">
                           {order.items?.map((item, i) => (
@@ -209,6 +215,9 @@ export default function Orders() {
                           <p className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />{order.customer_address}</p>
                           <p className="flex items-center gap-2"><Phone className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />{order.customer_phone}</p>
                           {order.notes && <p className="flex items-center gap-2"><MessageCircle className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />{order.notes}</p>}
+                          {order.delivery_time_preference && order.delivery_time_preference !== 'asap' && (
+                            <p className="flex items-center gap-2"><CalendarClock className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" /><span className="text-xs">{language === 'es' ? 'Entrega programada:' : 'Scheduled:'} {order.delivery_time_preference}</span></p>
+                          )}
                         </div>
 
                         {/* Actions */}

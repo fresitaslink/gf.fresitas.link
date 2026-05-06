@@ -30,6 +30,13 @@ export default function Home() {
   const [reviewIndex, setReviewIndex] = useState(0);
 
   useEffect(() => {
+    // Capture referral code from URL and save to localStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode) {
+      localStorage.setItem('fresitas_ref', refCode);
+    }
+
     Promise.all([
       base44.entities.Product.filter({ is_featured: true, is_available: true }),
       base44.entities.Product.filter({ category: 'temporada', is_available: true }),

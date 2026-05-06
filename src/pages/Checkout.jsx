@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, MapPin, Clock, CreditCard, FileText, Loader2, Zap, PartyPopper, MessageCircle, Package, Sparkles } from 'lucide-react';
+import { Check, MapPin, Clock, CreditCard, FileText, Loader2, Zap, PartyPopper, MessageCircle, Package, Sparkles, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import DeliveryMap from '@/components/checkout/DeliveryMap';
 import StripePayment from '@/components/checkout/StripePayment';
+import ScheduledDelivery from '@/components/checkout/ScheduledDelivery';
 
 const STEPS = ['delivery', 'customize', 'payment', 'confirm'];
 
@@ -166,9 +167,9 @@ export default function Checkout() {
       // Send email notification
       base44.functions.invoke('sendOrderEmail', { order_id: order.id, event_type: 'new_order' }).catch(() => {});
 
-      // Handle referral if present — use code to find referrer
+      // Handle referral if present — check URL param OR localStorage (persists through login flow)
       const urlParams = new URLSearchParams(window.location.search);
-      const refCode = urlParams.get('ref');
+      const refCode = urlParams.get('ref') || localStorage.getItem('fresitas_ref');
       if (refCode && user?.email) {
         // Look for a user whose referral code matches
         const allProfiles = await base44.entities.CustomerProfile.list();
@@ -184,6 +185,7 @@ export default function Checkout() {
             order_id: order.id,
             referral_code: refCode,
           }).catch(() => {});
+          localStorage.removeItem('fresitas_ref'); // clear after use
         }
       }
 
@@ -321,23 +323,12 @@ export default function Checkout() {
               <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
                 <h2 className="font-poppins font-bold text-xl">{t.customize}</h2>
                 <div className="space-y-1">
-                  <Label>{t.deliveryTime}</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { value: 'asap', label: language === 'es' ? 'Lo antes posible' : 'As soon as possible' },
-                      { value: 'afternoon', label: language === 'es' ? 'Por la tarde' : 'In the afternoon' },
-                      { value: 'evening', label: language === 'es' ? 'Por la noche' : 'In the evening' },
-                      { value: 'custom', label: language === 'es' ? 'Hora específica' : 'Specific time' },
-                    ].map(opt => (
-                      <button
-                        key={opt.value}
-                        onClick={() => setForm(p => ({ ...p, delivery_time_preference: opt.value }))}
-                        className={`p-3 rounded-xl border-2 text-sm transition-all ${form.delivery_time_preference === opt.value ? 'border-strawberry bg-strawberry/5 text-strawberry' : 'border-border hover:border-strawberry/50'}`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
+                  <Label className="flex items-center gap-1.5"><CalendarClock className="w-4 h-4 text-strawberry" />{t.deliveryTime}</Label>
+                  <ScheduledDelivery
+                    value={form.delivery_time_preference}
+                    onChange={v => setForm(p => ({ ...p, delivery_time_preference: v }))}
+                    language={language}
+                  />
                 </div>
                 <div className="space-y-1">
                   <Label>{t.notes}</Label>
@@ -459,6 +450,13 @@ export default function Checkout() {
                 <div className="bg-muted rounded-xl p-3 text-sm space-y-1">
                   <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" /><span>{form.customer_address}</span></div>
                   <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" /><span>{form.customer_phone}</span></div>
+                  <div className="flex items-center gap-2">
+                    <CalendarClock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <span>{form.delivery_time_preference === 'asap' || !form.delivery_time_preference
+                      ? (language === 'es' ? 'Lo antes posible' : 'As soon as possible')
+                      : `${language === 'es' ? 'Programada:' : 'Scheduled:'} ${form.delivery_time_preference}`
+                    }</span>
+                  </div>
                   <div className="flex items-center gap-2"><CreditCard className="w-4 h-4 text-muted-foreground flex-shrink-0" /><span>{paymentMethods.find(p => p.value === form.payment_method)?.label}</span></div>
                 </div>
               </motion.div>

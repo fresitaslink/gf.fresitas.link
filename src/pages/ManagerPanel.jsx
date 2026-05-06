@@ -43,6 +43,11 @@ export default function ManagerPanel() {
   useEffect(() => {
     if (!user || user.role !== 'manager') { navigate('/'); return; }
     loadAll();
+    const unsubscribe = base44.entities.Order.subscribe((event) => {
+      if (event.type === 'create') setOrders(prev => [event.data, ...prev]);
+      if (event.type === 'update') setOrders(prev => prev.map(o => o.id === event.id ? event.data : o));
+    });
+    return () => unsubscribe();
   }, [user]);
 
   const loadAll = async () => {
@@ -70,13 +75,7 @@ export default function ManagerPanel() {
     setChatMessages(chats);
     setPromoCodes(promos);
 
-    const unsubscribe = base44.entities.Order.subscribe((event) => {
-      if (event.type === 'create') setOrders(prev => [event.data, ...prev]);
-      if (event.type === 'update') setOrders(prev => prev.map(o => o.id === event.id ? event.data : o));
-    });
-
     setLoading(false);
-    return () => unsubscribe();
   };
 
   const handleUpdateStatus = async (orderId, newStatus) => {

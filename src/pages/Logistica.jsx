@@ -53,30 +53,13 @@ export default function Logistica() {
 
       // Trigger loyalty flow for customer
       if (order.user_email) {
-        const profiles = await base44.entities.CustomerProfile.filter({ user_email: order.user_email });
-        const profile = profiles[0];
-        const pointsEarned = order.loyalty_points_earned || Math.floor(order.total || 0);
-        if (profile) {
-          await base44.entities.CustomerProfile.update(profile.id, {
-            loyalty_points: (profile.loyalty_points || 0) + pointsEarned,
-            total_orders: (profile.total_orders || 0) + 1,
-          });
-        }
-        // Create loyalty transaction
-        await base44.entities.LoyaltyTransaction.create({
-          user_email: order.user_email,
-          points: pointsEarned,
-          type: 'earned',
-          description: `Pedido entregado #${order.tracking_code}`,
-          order_id: order.id,
-        });
-        // Send final notification to customer
+        // Send final notification to customer (points were already awarded at checkout)
         await base44.entities.Notification.create({
           user_email: order.user_email,
           title_es: '¡Tu pedido llegó! 🍓',
           title_en: 'Your order arrived! 🍓',
-          message_es: `Tu pedido #${order.tracking_code} fue entregado. ¡Ganaste ${pointsEarned} puntos de lealtad! ⭐`,
-          message_en: `Order #${order.tracking_code} delivered. You earned ${pointsEarned} loyalty points! ⭐`,
+          message_es: `Tu pedido #${order.tracking_code} fue entregado. ¡Disfrútalo! ⭐`,
+          message_en: `Order #${order.tracking_code} delivered. Enjoy! ⭐`,
           type: 'order_update',
           link: '/orders',
         });
@@ -85,7 +68,7 @@ export default function Logistica() {
       }
 
       setOrders(prev => prev.filter(o => o.id !== order.id));
-      toast.success(`✅ Pedido #${order.tracking_code} marcado como entregado. Puntos enviados al cliente.`);
+      toast.success(`✅ Pedido #${order.tracking_code} marcado como entregado.`);
     } catch (err) {
       toast.error('Error: ' + err.message);
     } finally {

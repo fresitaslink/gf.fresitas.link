@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { base44 } from '@/api/base44Client';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useAuth } from '@/lib/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -254,16 +254,16 @@ export default function Admin() {
               <h1 className="font-poppins font-bold text-3xl text-foreground">Admin Panel</h1>
               <p className="text-muted-foreground text-sm">Fresitas G&F — Dashboard</p>
               {user?.role === 'owner' && (
-                <a href="/owner" className="inline-flex items-center gap-1 text-xs text-gold hover:underline mt-1">
+                <a href="/owner" className="inline-flex items-center gap-1 text-xs text-gold hover:underline mt-1" onClick={e => { e.preventDefault(); navigate('/owner'); }}>
                   <Crown className="w-3 h-3" /> Ir al Owner Panel <ExternalLink className="w-3 h-3" />
                 </a>
               )}
             </div>
             <div className="flex items-center gap-3 flex-wrap">
-              <a href="/analytics" className="inline-flex items-center gap-1.5 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 rounded-full px-3 py-1.5 hover:opacity-80">
+              <a href="/analytics" onClick={e => { e.preventDefault(); navigate('/analytics'); }} className="inline-flex items-center gap-1.5 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 rounded-full px-3 py-1.5 hover:opacity-80">
                 <BarChart2 className="w-3 h-3" /> Analytics
               </a>
-              <a href="/logistica" className="inline-flex items-center gap-1.5 text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 rounded-full px-3 py-1.5 hover:opacity-80">
+              <a href="/logistica" onClick={e => { e.preventDefault(); navigate('/logistica'); }} className="inline-flex items-center gap-1.5 text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 rounded-full px-3 py-1.5 hover:opacity-80">
                 <Navigation className="w-3 h-3" /> Logística Repartidores
               </a>
               <span className="text-sm text-muted-foreground">Tienda:</span>

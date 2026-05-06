@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  MapPin, Phone, CheckCircle2, Loader2, Navigation, Package,
+  MapPin, CheckCircle2, Loader2, Navigation, Package,
   Clock, User, RefreshCw, Bike, PhoneCall, MessageSquare,
-  AlertCircle, Zap, ChevronDown, ChevronUp, Signal
+  AlertCircle, Zap, ChevronDown, ChevronUp, Signal, Map
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import DriverLiveMap from '@/components/driver/DriverLiveMap';
 
 const STATUS_COLORS = {
   confirmed:  'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
@@ -19,25 +20,6 @@ const STATUS_COLORS = {
 };
 
 const PRIORITY = { on_the_way: 0, preparing: 1, confirmed: 2 };
-
-// Embedded mini-map using OpenStreetMap iframe
-function MiniMap({ lat, lng, label }) {
-  if (!lat || !lng) return null;
-  const zoom = 15;
-  const src = `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.005}%2C${lat-0.005}%2C${lng+0.005}%2C${lat+0.005}&layer=mapnik&marker=${lat}%2C${lng}`;
-  return (
-    <div className="rounded-xl overflow-hidden border border-border mt-2" style={{ height: 160 }}>
-      <iframe
-        title={`Mapa ${label}`}
-        src={src}
-        width="100%"
-        height="160"
-        style={{ border: 0 }}
-        loading="lazy"
-      />
-    </div>
-  );
-}
 
 function OrderCard({ order, driverLocation, onStartDelivery, onMarkDelivered, delivering }) {
   const [expanded, setExpanded] = useState(order.status === 'on_the_way');
@@ -142,9 +124,15 @@ function OrderCard({ order, driverLocation, onStartDelivery, onMarkDelivered, de
                 </div>
               </div>
 
-              {/* Embedded map if coords available */}
+              {/* Embedded map if coords available - using full react-leaflet */}
               {order.delivery_lat && order.delivery_lng && (
-                <MiniMap lat={order.delivery_lat} lng={order.delivery_lng} label={order.customer_name} />
+                <div className="rounded-xl overflow-hidden border border-border mt-2" style={{ height: 160 }}>
+                  <iframe
+                    title={`Mapa ${order.customer_name}`}
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${order.delivery_lng-0.005}%2C${order.delivery_lat-0.005}%2C${order.delivery_lng+0.005}%2C${order.delivery_lat+0.005}&layer=mapnik&marker=${order.delivery_lat}%2C${order.delivery_lng}`}
+                    width="100%" height="160" style={{ border: 0 }} loading="lazy"
+                  />
+                </div>
               )}
 
               {/* Notes */}
@@ -358,9 +346,10 @@ export default function DriverApp() {
     }
   };
 
-  const onWay    = orders.filter(o => o.status === 'on_the_way');
-  const prep     = orders.filter(o => o.status === 'preparing');
-  const confirmed= orders.filter(o => o.status === 'confirmed');
+  const onWay     = orders.filter(o => o.status === 'on_the_way');
+  const prep      = orders.filter(o => o.status === 'preparing');
+  const confirmed = orders.filter(o => o.status === 'confirmed');
+  const [showMap, setShowMap] = useState(false);
 
   if (!user || !['admin', 'owner', 'manager', 'delivery'].includes(user.role)) return null;
 
@@ -389,6 +378,15 @@ export default function DriverApp() {
               <Signal className={`w-3 h-3 ${driverLocation ? 'text-green-500' : 'text-amber-500'}`} />
               <span className="hidden sm:inline">{driverLocation ? 'GPS' : locationError ? 'Sin GPS' : '...'}</span>
             </div>
+            <Button
+              onClick={() => setShowMap(v => !v)}
+              variant={showMap ? 'default' : 'outline'}
+              size="icon"
+              className={`rounded-xl h-8 w-8 ${showMap ? 'bg-purple-600 text-white hover:bg-purple-700' : ''}`}
+              title="Mapa General"
+            >
+              <Map className="w-3.5 h-3.5" />
+            </Button>
             <Button onClick={loadOrders} variant="outline" size="icon" className="rounded-xl h-8 w-8">
               <RefreshCw className="w-3.5 h-3.5" />
             </Button>
@@ -417,6 +415,35 @@ export default function DriverApp() {
           <span>En vivo · Actualizado {lastUpdate.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
         </div>
       </div>
+
+      {/* Live Map Overview */}
+      <AnimatePresence>
+        {showMap && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="max-w-lg mx-auto px-4 mt-3 overflow-hidden"
+          >
+            <div className="bg-card rounded-2xl border border-border p-3 shadow-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Map className="w-4 h-4 text-purple-600" />
+                <h3 className="font-semibold text-sm">Mapa General — {orders.length} pedidos activos</h3>
+                {driverLocation && (
+                  <span className="ml-auto text-xs text-green-600 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                    Tu pos.
+                  </span>
+                )}
+              </div>
+              <DriverLiveMap orders={orders} driverLocation={driverLocation} />
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                🚗 Tu posición &nbsp;·&nbsp; 📦 Pedidos activos (toca para ver detalles)
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Orders list */}
       <div className="max-w-lg mx-auto px-4 mt-3 space-y-3">

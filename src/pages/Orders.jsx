@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, RotateCcw, Star, MessageCircle, Package, Clock, CheckCircle, ChefHat, Truck, Home, XCircle, MapPin, Phone, ShoppingBag, CalendarClock, Receipt } from 'lucide-react';
 import OrderReceipt from '@/components/orders/OrderReceipt';
-import DriverTrackingMap from '@/components/orders/DriverTrackingMap';
+import CustomerTrackingMap from '@/components/driver/CustomerTrackingMap';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -193,7 +193,18 @@ export default function Orders() {
 
                         {/* Real-time driver map when on_the_way */}
                         {order.status === 'on_the_way' && (
-                          <DriverTrackingMap order={order} />
+                          <div className="rounded-2xl overflow-hidden border border-purple-200 dark:border-purple-800 shadow-lg">
+                            <div className="bg-gradient-to-r from-purple-600 to-purple-800 px-4 py-3 flex items-center gap-3">
+                              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                                <Truck className="w-4 h-4 text-white animate-pulse" />
+                              </div>
+                              <div>
+                                <p className="text-white font-semibold text-sm">¡Tu repartidor está en camino! 🚗</p>
+                                <p className="text-purple-200 text-xs">Mapa en tiempo real</p>
+                              </div>
+                            </div>
+                            <CustomerTrackingMap order={order} driverLat={null} driverLng={null} />
+                          </div>
                         )}
 
                         {/* Items */}

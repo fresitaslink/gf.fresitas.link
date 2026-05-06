@@ -12,6 +12,8 @@ import ProductSeoGenerator from '@/components/admin/ProductSeoGenerator';
 import LiveOrdersPanel from '@/components/admin/LiveOrdersPanel';
 import IngredientManager from '@/components/admin/IngredientManager';
 import InventoryDashboard from '@/components/admin/InventoryDashboard';
+import RewardsManager from '@/components/admin/RewardsManager';
+import ChallengesManager from '@/components/admin/ChallengesManager';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -323,6 +325,8 @@ export default function Admin() {
               <TabsTrigger value="email_templates" className="flex-1 rounded-lg text-xs">Emails</TabsTrigger>
               <TabsTrigger value="seo" className="flex-1 rounded-lg text-xs">SEO</TabsTrigger>
               <TabsTrigger value="seo_gen" className="flex-1 rounded-lg text-xs">SEO IA</TabsTrigger>
+              <TabsTrigger value="rewards" className="flex-1 rounded-lg text-xs">🎁 Premios</TabsTrigger>
+              <TabsTrigger value="challenges" className="flex-1 rounded-lg text-xs">🎯 Desafíos</TabsTrigger>
             </TabsList>
 
             {/* Live Orders Panel */}
@@ -540,6 +544,28 @@ export default function Admin() {
                   products={products}
                   onProductsChange={(id, changes) => setProducts(prev => prev.map(p => p.id === id ? { ...p, ...changes } : p))}
                 />
+              </div>
+            </TabsContent>
+
+            {/* Rewards Manager */}
+            <TabsContent value="rewards">
+              <div className="space-y-3">
+                <div>
+                  <h3 className="font-poppins font-bold text-lg">🎁 Gestión de Premios y Canjes</h3>
+                  <p className="text-xs text-muted-foreground">Administra el inventario de premios y procesa los canjes de clientes.</p>
+                </div>
+                <RewardsManager />
+              </div>
+            </TabsContent>
+
+            {/* Challenges Manager */}
+            <TabsContent value="challenges">
+              <div className="space-y-3">
+                <div>
+                  <h3 className="font-poppins font-bold text-lg">🎯 Gestión de Desafíos Diarios</h3>
+                  <p className="text-xs text-muted-foreground">Crea y administra desafíos para los clientes. Notifícalos con un clic.</p>
+                </div>
+                <ChallengesManager />
               </div>
             </TabsContent>
 

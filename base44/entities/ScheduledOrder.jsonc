@@ -1,0 +1,155 @@
+{
+  "name": "ScheduledOrder",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "customer_name": {
+      "type": "string"
+    },
+    "customer_phone": {
+      "type": "string"
+    },
+    "customer_address": {
+      "type": "string"
+    },
+    "delivery_lat": {
+      "type": "number"
+    },
+    "delivery_lng": {
+      "type": "number"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "size": {
+            "type": "string"
+          },
+          "toppings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "price": {
+            "type": "number"
+          },
+          "image_url": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "weekly",
+        "biweekly",
+        "monthly"
+      ],
+      "description": "Recurrence pattern"
+    },
+    "day_of_week": {
+      "type": "number",
+      "description": "0=Monday, 6=Sunday"
+    },
+    "day_of_month": {
+      "type": "number",
+      "description": "For monthly frequency (1-31)"
+    },
+    "preferred_time": {
+      "type": "string",
+      "description": "HH:MM format"
+    },
+    "subtotal": {
+      "type": "number"
+    },
+    "delivery_fee": {
+      "type": "number"
+    },
+    "discount": {
+      "type": "number",
+      "default": 0
+    },
+    "tip_percent": {
+      "type": "number",
+      "default": 0
+    },
+    "tip_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "total": {
+      "type": "number"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "efectivo",
+        "transferencia",
+        "tarjeta"
+      ]
+    },
+    "card_last4": {
+      "type": "string"
+    },
+    "stripe_payment_method_id": {
+      "type": "string",
+      "description": "Saved payment method for auto-charges"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "cancelled"
+      ],
+      "default": "active"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_order_created": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "next_order_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "total_orders_created": {
+      "type": "number",
+      "default": 0
+    },
+    "created_on": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cancellation_reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email",
+    "customer_name",
+    "customer_phone",
+    "items",
+    "frequency"
+  ]
+}

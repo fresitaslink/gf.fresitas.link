@@ -20,7 +20,7 @@ import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
 import Perfil from './pages/Perfil';
 import Favoritos from './pages/Favoritos';
-import Chat from './pages/Chat';
+import Chat from './pages/Chat.jsx';
 import Reviews from './pages/Reviews';
 import Admin from './pages/Admin';
 import Referral from './pages/Referral';

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Users, Settings, Tag, Crown, Shield, ShoppingBag, BarChart2, Palette, Globe, Bell, Save, Plus, Trash2, Edit2, Check, X, RefreshCw, Loader2, Mail, Key, ToggleLeft, Star, Zap, Map } from 'lucide-react';
 import DeliveryHeatmap from '@/components/owner/DeliveryHeatmap';
+import StoreBrandingEditor from '@/components/owner/StoreBrandingEditor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -618,32 +619,7 @@ export default function OwnerPanel() {
 
             {/* STORE BRANDING */}
             <TabsContent value="store">
-              <div className="bg-card rounded-2xl border border-border p-6 space-y-4">
-                <h3 className="font-poppins font-semibold text-lg flex items-center gap-2"><Palette className="w-5 h-5 text-strawberry" /> Identidad de la Tienda</h3>
-                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-                  <p className="text-sm text-amber-700 dark:text-amber-400 font-medium">🎨 Personalización Visual</p>
-                  <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">
-                    Para cambiar colores, logo, favicon y título del sitio, ve a <strong>Dashboard → Configuración → Branding</strong> en el panel de Base44. Los cambios se aplican instantáneamente.
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 opacity-75">
-                  <div className="border-2 border-dashed border-border rounded-xl p-6 text-center">
-                    <ShoppingBag className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm font-medium">Logo de la Tienda</p>
-                    <p className="text-xs text-muted-foreground">Configurable desde Dashboard</p>
-                  </div>
-                  <div className="border-2 border-dashed border-border rounded-xl p-6 text-center">
-                    <Palette className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm font-medium">Colores del Tema</p>
-                    <p className="text-xs text-muted-foreground">Modificar index.css</p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Nombre de la Tienda (en anuncios)</Label>
-                  <Input value="Fresitas G&F" className="rounded-xl" readOnly />
-                  <p className="text-xs text-muted-foreground">Cambia el nombre en el código fuente (components/layout/Navbar.jsx)</p>
-                </div>
-              </div>
+              <StoreBrandingEditor settings={settings} onSaved={(s) => setSettings(s)} />
             </TabsContent>
           </Tabs>
         </motion.div>

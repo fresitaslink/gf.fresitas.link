@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { User, MapPin, Bell, Plus, Trash2, Gift, Star, BellRing, CalendarDays, CheckCircle2, BarChart2, Crown, Shield, Zap, Award } from 'lucide-react';
 import { LoyaltyLevelCard, BadgesGrid } from '@/components/loyalty/LoyaltyLevel';
 import PushNotificationButton from '@/components/ui/PushNotificationButton';
+import AvatarUpload from '@/components/chat/AvatarUpload';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -108,9 +109,20 @@ export default function Perfil() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           {/* Header */}
           <div className="py-8 flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-strawberry to-pink-400 flex items-center justify-center text-white text-2xl font-bold">
-              {(profile?.display_name || user.full_name || 'U')[0].toUpperCase()}
-            </div>
+            <AvatarUpload
+              currentUrl={profile?.avatar_url}
+              name={profile?.display_name || user.full_name || user.email}
+              onUpload={async (url) => {
+                if (profile) {
+                  const updated = await base44.entities.CustomerProfile.update(profile.id, { avatar_url: url });
+                  setProfile(updated);
+                } else {
+                  const created = await base44.entities.CustomerProfile.create({ user_email: user.email, display_name: user.full_name, avatar_url: url, loyalty_points: 0 });
+                  setProfile(created);
+                }
+              }}
+              size="lg"
+            />
             <div>
               <h1 className="font-poppins font-bold text-2xl text-foreground">{profile?.display_name || user.full_name}</h1>
               <p className="text-muted-foreground text-sm">{user.email}</p>

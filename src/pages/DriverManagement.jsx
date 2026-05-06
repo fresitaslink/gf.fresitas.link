@@ -26,11 +26,14 @@ export default function DriverManagement() {
   const [formData, setFormData] = useState({
     full_name: '',
     phone: '',
+    user_email: '',
+    photo_url: '',
     vehicle_type: 'car',
     vehicle_plate: '',
     vehicle_model: '',
     vehicle_color: '',
   });
+  const [photoPreview, setPhotoPreview] = useState(null);
 
   useEffect(() => {
     if (!user || !['admin', 'owner', 'manager'].includes(user.role)) {
@@ -67,15 +70,17 @@ export default function DriverManagement() {
         await base44.entities.Driver.update(editingDriver.id, formData);
         toast.success('Conductor actualizado');
       } else {
-        await base44.entities.Driver.create({
-          ...formData,
-          user_email: `driver_${Date.now()}@fresitas.local`,
-        });
+        if (!formData.user_email?.trim()) {
+          toast.error('El email es requerido');
+          return;
+        }
+        await base44.entities.Driver.create(formData);
         toast.success('Conductor agregado');
       }
       setShowForm(false);
       setEditingDriver(null);
-      setFormData({ full_name: '', phone: '', vehicle_type: 'car', vehicle_plate: '', vehicle_model: '', vehicle_color: '' });
+      setPhotoPreview(null);
+      setFormData({ full_name: '', phone: '', user_email: '', photo_url: '', vehicle_type: 'car', vehicle_plate: '', vehicle_model: '', vehicle_color: '' });
     } catch (err) {
       toast.error('Error al guardar');
     }
@@ -189,32 +194,41 @@ export default function DriverManagement() {
             {/* Drivers List */}
             <TabsContent value="drivers" className="space-y-3">
               {showForm && (
-                <div className="bg-card rounded-2xl border border-border p-6 space-y-4 mb-6">
-                  <h3 className="font-semibold">{editingDriver ? 'Editar Conductor' : 'Nuevo Conductor'}</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <Label>Nombre Completo</Label>
-                      <Input value={formData.full_name} onChange={e => setFormData(p => ({ ...p, full_name: e.target.value }))} className="rounded-lg" />
-                    </div>
-                    <div>
-                      <Label>Teléfono</Label>
-                      <Input value={formData.phone} onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))} className="rounded-lg" />
-                    </div>
-                    <div>
-                      <Label>Vehículo</Label>
-                      <Input value={formData.vehicle_model} onChange={e => setFormData(p => ({ ...p, vehicle_model: e.target.value }))} placeholder="Toyota Corolla" className="rounded-lg" />
-                    </div>
-                    <div className="flex gap-2">
-                      <Input value={formData.vehicle_color} onChange={e => setFormData(p => ({ ...p, vehicle_color: e.target.value }))} placeholder="Color" className="rounded-lg flex-1" />
-                      <Input value={formData.vehicle_plate} onChange={e => setFormData(p => ({ ...p, vehicle_plate: e.target.value }))} placeholder="Placa" className="rounded-lg flex-1" />
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button onClick={handleSaveDriver} className="flex-1 bg-strawberry text-white">Guardar</Button>
-                    <Button onClick={() => setShowForm(false)} variant="outline" className="flex-1">Cancelar</Button>
-                  </div>
-                </div>
-              )}
+                  <div className="bg-card rounded-2xl border border-border p-6 space-y-4 mb-6">
+                     <h3 className="font-semibold">{editingDriver ? 'Editar Conductor' : 'Nuevo Conductor'}</h3>
+                     <div className="space-y-3">
+                       <div>
+                         <Label>Email</Label>
+                         <Input type="email" value={formData.user_email} onChange={e => setFormData(p => ({ ...p, user_email: e.target.value }))} placeholder="conductor@example.com" className="rounded-lg" disabled={!!editingDriver} />
+                       </div>
+                       <div>
+                         <Label>Nombre Completo</Label>
+                         <Input value={formData.full_name} onChange={e => setFormData(p => ({ ...p, full_name: e.target.value }))} className="rounded-lg" />
+                       </div>
+                       <div>
+                         <Label>Teléfono</Label>
+                         <Input value={formData.phone} onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))} className="rounded-lg" />
+                       </div>
+                       <div>
+                         <Label>Foto de Perfil (URL)</Label>
+                         <Input value={formData.photo_url} onChange={e => { setFormData(p => ({ ...p, photo_url: e.target.value })); setPhotoPreview(e.target.value); }} placeholder="https://example.com/photo.jpg" className="rounded-lg" />
+                         {photoPreview && <img src={photoPreview} alt="preview" className="w-20 h-20 rounded-lg mt-2 object-cover" />}
+                       </div>
+                       <div>
+                         <Label>Vehículo</Label>
+                         <Input value={formData.vehicle_model} onChange={e => setFormData(p => ({ ...p, vehicle_model: e.target.value }))} placeholder="Toyota Corolla" className="rounded-lg" />
+                       </div>
+                       <div className="flex gap-2">
+                         <Input value={formData.vehicle_color} onChange={e => setFormData(p => ({ ...p, vehicle_color: e.target.value }))} placeholder="Color" className="rounded-lg flex-1" />
+                         <Input value={formData.vehicle_plate} onChange={e => setFormData(p => ({ ...p, vehicle_plate: e.target.value }))} placeholder="Placa" className="rounded-lg flex-1" />
+                       </div>
+                     </div>
+                     <div className="flex gap-2">
+                       <Button onClick={handleSaveDriver} className="flex-1 bg-strawberry text-white">Guardar</Button>
+                       <Button onClick={() => { setShowForm(false); setPhotoPreview(null); }} variant="outline" className="flex-1">Cancelar</Button>
+                     </div>
+                   </div>
+                 )}
 
               {activeDrivers.map(driver => (
                 <motion.div key={driver.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-card rounded-xl border border-border p-4">
@@ -237,7 +251,8 @@ export default function DriverManagement() {
                     <div className="flex gap-2">
                       <Button size="sm" variant="outline" onClick={() => {
                         setEditingDriver(driver);
-                        setFormData({ full_name: driver.full_name, phone: driver.phone, vehicle_type: driver.vehicle_type, vehicle_plate: driver.vehicle_plate, vehicle_model: driver.vehicle_model, vehicle_color: driver.vehicle_color });
+                        setFormData({ full_name: driver.full_name, phone: driver.phone, user_email: driver.user_email, photo_url: driver.photo_url || '', vehicle_type: driver.vehicle_type, vehicle_plate: driver.vehicle_plate, vehicle_model: driver.vehicle_model, vehicle_color: driver.vehicle_color });
+                        setPhotoPreview(driver.photo_url);
                         setShowForm(true);
                       }}>
                         <Edit className="w-3 h-3" />

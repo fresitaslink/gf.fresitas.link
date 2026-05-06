@@ -16,6 +16,7 @@ import RewardsManager from '@/components/admin/RewardsManager';
 import ChallengesManager from '@/components/admin/ChallengesManager';
 import ReviewManager from '@/components/admin/ReviewManager';
 import ReviewReplies from '@/components/admin/ReviewReplies';
+import HeatmapDashboard from '@/components/admin/HeatmapDashboard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -330,6 +331,7 @@ export default function Admin() {
               <TabsTrigger value="seo_gen" className="flex-1 rounded-lg text-xs">SEO IA</TabsTrigger>
               <TabsTrigger value="rewards" className="flex-1 rounded-lg text-xs">Premios</TabsTrigger>
               <TabsTrigger value="challenges" className="flex-1 rounded-lg text-xs">Desafíos</TabsTrigger>
+              <TabsTrigger value="heatmap" className="flex-1 rounded-lg text-xs">🔥 Zonas</TabsTrigger>
             </TabsList>
 
             {/* Live Orders Panel */}
@@ -542,6 +544,11 @@ export default function Admin() {
                  </div>
                 <ChallengesManager />
               </div>
+            </TabsContent>
+
+            {/* Heatmap Dashboard */}
+            <TabsContent value="heatmap">
+              <HeatmapDashboard />
             </TabsContent>
 
             {/* Email Templates */}

@@ -15,6 +15,7 @@ import confetti from 'canvas-confetti';
 import DeliveryMap from '@/components/checkout/DeliveryMap';
 import StripePayment from '@/components/checkout/StripePayment';
 import ScheduledDelivery from '@/components/checkout/ScheduledDelivery';
+import TipSelector from '@/components/checkout/TipSelector';
 
 const STEPS = ['delivery', 'customize', 'payment', 'confirm'];
 
@@ -43,6 +44,7 @@ export default function Checkout() {
     notes: '',
     delivery_time_preference: '',
     payment_method: 'efectivo',
+    tip: 0,
   });
 
   useEffect(() => {
@@ -88,6 +90,8 @@ export default function Checkout() {
   const actualDeliveryFee = subtotal >= settings.free_delivery_min ? 0 : (deliveryFee || settings.delivery_fee);
   // Earn 1 point per $10 spent
   const pointsEarned = Math.floor(total / 10);
+  // Total with tip
+  const totalWithTip = total + (form.tip || 0);
 
   const handlePlaceOrder = async () => {
     setLoading(true);
@@ -114,7 +118,8 @@ export default function Checkout() {
         subtotal,
         delivery_fee: actualDeliveryFee,
         discount: totalDiscount,
-        total,
+        total: totalWithTip,
+        tip_amount: form.tip || 0,
         status: 'pending',
         payment_method: form.payment_method,
         payment_status: stripePaymentData ? 'paid' : 'pending',
@@ -127,6 +132,14 @@ export default function Checkout() {
         tracking_code: trackingCode,
         loyalty_points_earned: pointsEarned,
       });
+
+      // Add tip to driver earnings if provided
+      if (form.tip > 0) {
+        base44.functions.invoke('recordDeliveryEarnings', {
+          order_id: order.id,
+          tip_amount: form.tip,
+        }).catch(err => console.log('Tip recording failed:', err));
+      }
 
       // Update profile stats
       if (user) {
@@ -417,13 +430,19 @@ export default function Checkout() {
                   </div>
                 )}
                 {form.payment_method === 'tarjeta' && stripePaymentData && (
-                  <div className="flex items-center gap-2 bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-xl p-3 text-sm">
-                    <Check className="w-4 h-4 text-green-600" />
-                    <span className="text-green-800 dark:text-green-300">
-                      Tarjeta ••••{stripePaymentData.last4} autorizada. Procede a confirmar el pedido.
-                    </span>
-                  </div>
-                )}
+                   <div className="flex items-center gap-2 bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-xl p-3 text-sm">
+                     <Check className="w-4 h-4 text-green-600" />
+                     <span className="text-green-800 dark:text-green-300">
+                       Tarjeta ••••{stripePaymentData.last4} autorizada. Procede a confirmar el pedido.
+                     </span>
+                   </div>
+                 )}
+
+                {/* Tip Selector */}
+                <TipSelector 
+                  onTipChange={(tip) => setForm(p => ({ ...p, tip }))} 
+                  subtotal={subtotal}
+                />
               </motion.div>
             )}
 
@@ -450,7 +469,8 @@ export default function Checkout() {
                   {discount > 0 && <div className="flex justify-between text-green-600"><span>{t.discount} (promo)</span><span>-${discount.toFixed(2)}</span></div>}
                   {subDiscount > 0 && <div className="flex justify-between text-green-600"><span>Desc. suscripción ({subscription?.discount_percent}%)</span><span>-${subDiscount.toFixed(2)}</span></div>}
                   {pointsDiscount > 0 && <div className="flex justify-between text-amber-600"><span>⭐ Puntos canjeados ({pointsToRedeem} pts)</span><span>-${pointsDiscount.toFixed(2)}</span></div>}
-                  <div className="flex justify-between font-bold text-base border-t pt-2"><span>{t.total}</span><span className="text-strawberry">${total.toFixed(2)}</span></div>
+                  {form.tip > 0 && <div className="flex justify-between text-red-600"><span>❤️ Propina para el repartidor</span><span>+${form.tip.toFixed(2)}</span></div>}
+                  <div className="flex justify-between font-bold text-base border-t pt-2"><span>{t.total}</span><span className="text-strawberry">${totalWithTip.toFixed(2)}</span></div>
                   <div className="flex justify-between text-xs text-amber-600 mt-1"><span>⭐ Puntos que ganarás</span><span>+{pointsEarned} pts</span></div>
                 </div>
                 <div className="bg-muted rounded-xl p-3 text-sm space-y-1">
@@ -497,7 +517,7 @@ export default function Checkout() {
               className="flex-1 bg-strawberry hover:bg-strawberry/90 text-white rounded-xl py-3 font-semibold"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              {form.payment_method === 'tarjeta' && !stripePaymentData ? 'Autoriza el pago primero' : t.placeOrder}
+              {form.payment_method === 'tarjeta' && !stripePaymentData ? 'Autoriza el pago primero' : `${t.placeOrder} — $${totalWithTip.toFixed(2)}`}
             </Button>
           )}
         </div>

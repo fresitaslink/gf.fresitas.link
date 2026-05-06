@@ -7,6 +7,7 @@ import EnhancedOrderTracking from '@/components/orders/EnhancedOrderTracking';
 import DeliveryChat from '@/components/orders/DeliveryChat';
 import CustomerReviewSection from '@/components/orders/CustomerReviewSection';
 import DriverRatingComponent from '@/components/orders/DriverRatingComponent';
+import LiveCustomerTracking from '@/components/orders/LiveCustomerTracking';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -203,6 +204,11 @@ export default function Orders() {
                       <div className="px-4 pb-4 border-t border-border pt-4 space-y-4">
                         {/* Tracker */}
                          <OrderTracker status={order.status} />
+
+                         {/* Live customer tracking map */}
+                         {['on_the_way', 'preparing', 'confirmed'].includes(order.status) && (
+                           <LiveCustomerTracking order={order} />
+                         )}
 
                          {/* Enhanced tracking with driver info, PIN verification, and live map */}
                           {['confirmed', 'preparing', 'on_the_way', 'delivered'].includes(order.status) && (

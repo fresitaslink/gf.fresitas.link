@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import DriverLiveMap from '@/components/driver/DriverLiveMap';
 import OptimizedRouteOverlay from '@/components/driver/OptimizedRouteOverlay';
 import RealtimeChatWidget from '@/components/orders/RealtimeChatWidget';
+import DeliveryVerificationModal from '@/components/driver/DeliveryVerificationModal';
 
 const STATUS_COLORS = {
   confirmed:  'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
@@ -335,29 +336,8 @@ export default function DriverApp() {
   };
 
   const handleMarkDelivered = async (order) => {
-    setDelivering(d => ({ ...d, [order.id]: true }));
-    try {
-      await base44.entities.Order.update(order.id, { status: 'delivered' });
-      setOrders(prev => prev.filter(o => o.id !== order.id));
-      toast.success(`✅ Pedido #${order.tracking_code} entregado!`);
-      if (order.user_email) {
-        Promise.all([
-          base44.entities.Notification.create({
-            user_email: order.user_email,
-            title_es: '✅ ¡Tu pedido llegó!',
-            title_en: '✅ Order delivered!',
-            message_es: `Pedido #${order.tracking_code} entregado. ¡Disfrútalo! 🍓`,
-            message_en: `Order #${order.tracking_code} delivered. Enjoy!`,
-            type: 'order_update', link: '/orders',
-          }),
-          base44.functions.invoke('sendOrderEmail', { order_id: order.id, event_type: 'status_update' }),
-        ]).catch(() => {});
-      }
-    } catch (err) {
-      toast.error('Error: ' + err.message);
-    } finally {
-      setDelivering(d => ({ ...d, [order.id]: false }));
-    }
+    // Open verification modal instead of directly marking delivered
+    setVerifyingOrder(order);
   };
 
   const onWay     = orders.filter(o => o.status === 'on_the_way');
@@ -367,6 +347,7 @@ export default function DriverApp() {
   const [optimizedRoute, setOptimizedRoute] = useState(null);
   const [optimizing, setOptimizing] = useState(false);
   const [chatOrder, setChatOrder] = useState(null);
+  const [verifyingOrder, setVerifyingOrder] = useState(null);
 
   const handleOptimizeRoute = async () => {
     setOptimizing(true);
@@ -533,13 +514,24 @@ export default function DriverApp() {
       </div>
 
       {/* Real-time chat widget */}
-      {chatOrder && (
-        <RealtimeChatWidget 
-          order={orders.find(o => o.id === chatOrder)}
-          driver={user}
-          onClose={() => setChatOrder(null)}
-        />
-      )}
-    </div>
-  );
-}
+       {chatOrder && (
+         <RealtimeChatWidget 
+           order={orders.find(o => o.id === chatOrder)}
+           driver={user}
+           onClose={() => setChatOrder(null)}
+         />
+       )}
+
+       {/* Delivery Verification Modal */}
+       {verifyingOrder && (
+         <DeliveryVerificationModal
+           order={verifyingOrder}
+           onComplete={() => {
+             setOrders(prev => prev.filter(o => o.id !== verifyingOrder.id));
+             setVerifyingOrder(null);
+           }}
+         />
+       )}
+      </div>
+      );
+      }

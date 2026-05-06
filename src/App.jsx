@@ -48,6 +48,8 @@ import Membership from './pages/Membership';
 import AdminHeatmap from './pages/AdminHeatmap';
 import ScheduledOrders from './pages/ScheduledOrders';
 import AnalyticsAdvanced from './pages/AnalyticsAdvanced';
+import DriverRouteHistory from './pages/DriverRouteHistory';
+import DriverEarningsReport from './pages/DriverEarningsReport';
 
 // Layout
 import Navbar from './components/layout/Navbar';
@@ -123,6 +125,8 @@ const AuthenticatedApp = () => {
         <Route path="/admin/heatmap" element={<AdminHeatmap />} />
         <Route path="/scheduled-orders" element={<ScheduledOrders />} />
         <Route path="/analytics-advanced" element={<AnalyticsAdvanced />} />
+        <Route path="/driver-routes" element={<DriverRouteHistory />} />
+        <Route path="/driver-earnings-report" element={<DriverEarningsReport />} />
         <Route path="/rewards" element={<RewardsStore />} />
         <Route path="/content" element={<ContentManager />} />
         <Route path="/superadmin" element={<SuperAdmin />} />

@@ -123,6 +123,52 @@
       "type": "number",
       "default": 0
     },
+    "tip_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "tip_percent": {
+      "type": "number",
+      "default": 0
+    },
+    "assigned_driver_email": {
+      "type": "string",
+      "description": "Driver assigned to this order"
+    },
+    "assigned_driver_name": {
+      "type": "string"
+    },
+    "assigned_driver_photo": {
+      "type": "string"
+    },
+    "assigned_driver_rating": {
+      "type": "number"
+    },
+    "driver_current_lat": {
+      "type": "number",
+      "description": "Real-time driver location - latitude"
+    },
+    "driver_current_lng": {
+      "type": "number",
+      "description": "Real-time driver location - longitude"
+    },
+    "driver_last_location_update": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "assignment_id": {
+      "type": "string",
+      "description": "Link to DriverAssignment record"
+    },
+    "verification_pin": {
+      "type": "string",
+      "description": "PIN for delivery verification"
+    },
+    "five_min_notified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether 5-minute arrival notification was already sent"
+    },
     "rating": {
       "type": "number"
     },

@@ -1,0 +1,31 @@
+{
+  "name": "DriverLocationHistory",
+  "type": "object",
+  "properties": {
+    "driver_email": {
+      "type": "string"
+    },
+    "order_id": {
+      "type": "string",
+      "description": "Order being delivered when this point was recorded"
+    },
+    "lat": {
+      "type": "number"
+    },
+    "lng": {
+      "type": "number"
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "speed_kmh": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "driver_email",
+    "lat",
+    "lng"
+  ]
+}

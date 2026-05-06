@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Printer, X, CheckCircle, MapPin, Clock, CreditCard, Star, Package, Zap } from 'lucide-react';
+import { Download, Printer, X, CheckCircle, MapPin, Clock, CreditCard, Star, Package, Zap, User, Phone, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useStore } from '@/lib/StoreContext';
@@ -70,10 +70,10 @@ export default function OrderReceipt({ order, onClose }) {
       doc.setTextColor(255, 255, 255);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(18);
-      doc.text('🍓 Fresitas G&F', pw / 2, y + 8, { align: 'center' });
+      doc.text('Fresitas G&F', pw / 2, y + 8, { align: 'center' });
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.text('Strawberries • Chocolate • Cream & More', pw / 2, y + 13, { align: 'center' });
+      doc.text('Fresas · Chocolate · Crema & Más', pw / 2, y + 13, { align: 'center' });
 
       // Order Code Box
       doc.setFillColor(255, 255, 255, 0.15);
@@ -103,10 +103,10 @@ export default function OrderReceipt({ order, onClose }) {
       doc.setTextColor(51, 51, 51);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
-      doc.text(`👤 ${order.customer_name}`, margin + 3, y + 10);
-      doc.text(`📞 ${order.customer_phone || 'N/A'}`, margin + 3, y + 15);
-      doc.text(`📍 ${(order.customer_address || 'N/A').substring(0, 45)}`, margin + 3, y + 20);
-      doc.text(`⏱️ ${order.delivery_time_preference || 'ASAP'}`, margin + 3, y + 25);
+      doc.text(`Cliente: ${order.customer_name}`, margin + 3, y + 10);
+      doc.text(`Teléfono: ${order.customer_phone || 'N/A'}`, margin + 3, y + 15);
+      doc.text(`Dirección: ${(order.customer_address || 'N/A').substring(0, 45)}`, margin + 3, y + 20);
+      doc.text(`Horario: ${order.delivery_time_preference || 'ASAP'}`, margin + 3, y + 25);
       y += 32;
 
       // Items Section
@@ -215,7 +215,7 @@ export default function OrderReceipt({ order, onClose }) {
       doc.setTextColor(150, 150, 150);
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(7);
-      doc.text('Preparadas con amor 🍓', pw / 2, y + 2, { align: 'center' });
+      doc.text('Preparadas con amor', pw / 2, y + 2, { align: 'center' });
       doc.text('Fresitas G&F — Gracias por elegirnos', pw / 2, y + 5, { align: 'center' });
 
       doc.save(`fresitas_${order.tracking_code}.pdf`);
@@ -295,14 +295,16 @@ export default function OrderReceipt({ order, onClose }) {
           {/* Customer Info - Enhanced */}
           <div className="bg-gradient-to-br from-cream to-pink-50 dark:from-slate-800 dark:to-slate-700 rounded-2xl p-4 space-y-2.5 text-sm border border-pink-200 dark:border-pink-800">
             <div className="flex items-center gap-3 font-semibold">
-              <div className="w-8 h-8 bg-strawberry text-white rounded-full flex items-center justify-center text-xs">👤</div>
+              <div className="w-8 h-8 bg-strawberry text-white rounded-full flex items-center justify-center text-xs">
+                <User className="w-4 h-4" />
+              </div>
               <div>
                 <p className="text-xs text-muted-foreground">Cliente</p>
                 <p className="font-bold">{order.customer_name}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <Zap className="w-4 h-4 text-strawberry flex-shrink-0 mt-1" />
+              <Phone className="w-4 h-4 text-strawberry flex-shrink-0 mt-1" />
               <div>
                 <p className="text-xs text-muted-foreground">Teléfono</p>
                 <p className="font-medium">{order.customer_phone || 'No proporcionado'}</p>
@@ -348,7 +350,9 @@ export default function OrderReceipt({ order, onClose }) {
                     {item.image_url ? (
                       <img src={item.image_url} alt={item.name} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
                     ) : (
-                      <div className="w-12 h-12 rounded-lg bg-strawberry/10 flex items-center justify-center text-lg flex-shrink-0">🍓</div>
+                      <div className="w-12 h-12 rounded-lg bg-strawberry/10 flex items-center justify-center flex-shrink-0">
+                        <Package className="w-6 h-6 text-strawberry" />
+                      </div>
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-sm">{item.name}</p>
@@ -442,7 +446,7 @@ export default function OrderReceipt({ order, onClose }) {
           {/* Footer */}
           <div className="border-t border-border pt-4 text-center space-y-1">
             <p className="text-sm font-poppins font-bold text-strawberry">Fresitas G&F</p>
-            <p className="text-xs text-muted-foreground italic">Preparadas con amor 🍓</p>
+             <p className="text-xs text-muted-foreground italic">Preparadas con amor</p>
             <p className="text-xs text-muted-foreground">Gracias por tu compra. ¡Esperamos verte pronto!</p>
           </div>
         </div>

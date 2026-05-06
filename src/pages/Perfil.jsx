@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, MapPin, Bell, Plus, Trash2, Gift, Star, BellRing, CalendarDays, CheckCircle2, BarChart2, Crown, Shield, Zap, Award } from 'lucide-react';
+import { User, MapPin, Bell, Plus, Trash2, Gift, Star, BellRing, CalendarDays, CheckCircle2, BarChart2, Crown, Shield, Zap, Award, Heart } from 'lucide-react';
 import { LoyaltyLevelCard, BadgesGrid } from '@/components/loyalty/LoyaltyLevel';
 import MisRecompensas from '@/components/loyalty/MisRecompensas';
 import PushNotificationButton from '@/components/ui/PushNotificationButton';
@@ -154,12 +154,18 @@ export default function Perfil() {
           <Tabs defaultValue="profile">
             <TabsList className="w-full rounded-xl mb-6 bg-muted flex-wrap h-auto">
               <TabsTrigger value="profile" className="flex-1 rounded-lg text-xs">{t.editProfile}</TabsTrigger>
-              <TabsTrigger value="nivel" className="flex-1 rounded-lg text-xs">Mi Nivel 🏆</TabsTrigger>
-              <TabsTrigger value="recompensas" className="flex-1 rounded-lg text-xs">🎁 Recompensas</TabsTrigger>
+              <TabsTrigger value="nivel" className="flex-1 rounded-lg text-xs flex items-center gap-1">
+                <Crown className="w-3 h-3" /> Mi Nivel
+              </TabsTrigger>
+              <TabsTrigger value="recompensas" className="flex-1 rounded-lg text-xs flex items-center gap-1">
+                <Gift className="w-3 h-3" /> Recompensas
+              </TabsTrigger>
               <TabsTrigger value="addresses" className="flex-1 rounded-lg text-xs">{t.savedAddresses}</TabsTrigger>
               <TabsTrigger value="loyalty" className="flex-1 rounded-lg text-xs">{t.loyaltyPoints}</TabsTrigger>
               <TabsTrigger value="notifications" className="flex-1 rounded-lg text-xs">{t.notifications}</TabsTrigger>
-              <TabsTrigger value="push" className="flex-1 rounded-lg text-xs">Alertas Push</TabsTrigger>
+              <TabsTrigger value="push" className="flex-1 rounded-lg text-xs flex items-center gap-1">
+                <Bell className="w-3 h-3" /> Alertas
+              </TabsTrigger>
             </TabsList>
 
             {/* Profile Tab */}

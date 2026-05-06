@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, RotateCcw, Star, MessageCircle, Package, Clock, CheckCircle, ChefHat, Truck, Home, XCircle, MapPin, Phone, ShoppingBag, CalendarClock, Receipt } from 'lucide-react';
+import { ChevronDown, ChevronUp, RotateCcw, Star, MessageCircle, Package, Clock, CheckCircle, ChefHat, Truck, Home, XCircle, MapPin, Phone, ShoppingBag, CalendarClock, Receipt, AlertCircle, TrendingUp } from 'lucide-react';
 import OrderReceipt from '@/components/orders/OrderReceipt';
 import CustomerTrackingMap from '@/components/driver/CustomerTrackingMap';
 import { Button } from '@/components/ui/button';
@@ -82,11 +82,11 @@ export default function Orders() {
     const unsubscribeOrders = base44.entities.Order.subscribe((event) => {
       if (event.type === 'update' && event.data?.user_email === user.email) {
         setOrders(prev => prev.map(o => o.id === event.id ? event.data : o));
-        const statusMsg = { confirmed: '✅ Confirmado', preparing: '👨‍🍳 En preparación', on_the_way: '🚗 ¡En camino!', delivered: '🏠 ¡Entregado!' };
+        const statusMsg = { confirmed: 'Confirmado', preparing: 'En preparación', on_the_way: '¡En camino!', delivered: '¡Entregado!' };
         const msg = statusMsg[event.data?.status];
         if (msg) {
           toast.success(`Pedido ${msg}`, { duration: 5000 });
-          showPushNotification('🍓 Fresitas G&F', `Tu pedido está: ${msg}`, '/orders');
+          showPushNotification('Fresitas G&F', `Tu pedido está: ${msg}`, '/orders');
         }
       }
     });
@@ -105,7 +105,7 @@ export default function Orders() {
         quantity: item.quantity,
       });
     }
-    toast.success(language === 'es' ? '¡Items agregados al carrito!' : 'Items added to cart!', { icon: '🍓' });
+    toast.success(language === 'es' ? '¡Items agregados al carrito!' : 'Items added to cart!');
     navigate('/cart');
   };
 
@@ -131,7 +131,7 @@ export default function Orders() {
           <h2 className="font-poppins font-bold text-2xl text-foreground mb-2">{t.noOrders}</h2>
           <p className="text-muted-foreground mb-8">{t.noOrdersDesc}</p>
           <Button onClick={() => navigate('/menu')} className="bg-strawberry hover:bg-strawberry/90 text-white rounded-full px-8">
-            {t.goToMenu} 🍓
+            {t.goToMenu}
           </Button>
         </div>
       </div>
@@ -199,7 +199,7 @@ export default function Orders() {
                                 <Truck className="w-4 h-4 text-white animate-pulse" />
                               </div>
                               <div>
-                                <p className="text-white font-semibold text-sm">¡Tu repartidor está en camino! 🚗</p>
+                                <p className="text-white font-semibold text-sm">¡Tu repartidor está en camino!</p>
                                 <p className="text-purple-200 text-xs">Mapa en tiempo real</p>
                               </div>
                             </div>

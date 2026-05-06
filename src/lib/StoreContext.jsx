@@ -37,8 +37,8 @@ export const StoreProvider = ({ children }) => {
     return unsub;
   }, []);
 
-  // Derived: logo url from settings or fallback to generated brand logo
-  const logoUrl = storeSettings?.logo_url || 'https://media.base44.com/images/public/69f98745fea6885f71e28a28/ef7bb6d21_generated_image.png';
+  // Derived: logo url from settings or fallback to Fresitas mascot
+  const logoUrl = storeSettings?.logo_url || 'https://media.base44.com/images/public/69f98745fea6885f71e28a28/c3d413035_853bb520-92b6-4829-992f-79cceb7ff54c.png';
   const storeName = storeSettings?.store_name || 'Fresitas G&F';
 
   return (

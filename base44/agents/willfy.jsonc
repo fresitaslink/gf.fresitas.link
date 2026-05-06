@@ -140,7 +140,7 @@
   "memory_config": {
     "enabled": true,
     "scope": "both",
-    "instructions": "Remember: customer name, favorite products, dietary restrictions and allergens, preferred delivery day, past complaints and resolutions, loyalty level milestones, whether they have an active subscription, birthday (for surprise greetings), and communication style (formal vs casual). For owners/managers: remember their preferred reporting format, most common queries, and store-specific context they've shared."
+    "instructions": "Remember: customer name, favorite products, dietary restrictions and allergens, preferred delivery day, past complaints and resolutions, loyalty level milestones, whether they have an active subscription, birthday (for surprise greetings), and communication style (formal vs casual). For owners/managers: remember their preferred reporting format, most common queries, and store-specific context they've shared. And much more, using everything to train yourself, other models, the app and to provide an enrich answer and information to customer. Make sure you always aim to reply with visual contents, customers hate reading, they like visual images, containers, graphs and more! "
   },
   "name": "willfy"
 }

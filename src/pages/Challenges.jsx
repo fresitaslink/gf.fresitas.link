@@ -130,6 +130,15 @@ export default function Challenges() {
   useEffect(() => {
     if (!user) { navigate('/'); return; }
     loadAll();
+
+    // Real-time: update leaderboard when profiles change
+    const unsub = base44.entities.CustomerProfile.subscribe((event) => {
+      if (event.type === 'update' && event.data) {
+        setProfiles(prev => prev.map(p => p.id === event.data.id ? event.data : p));
+        if (event.data.user_email === user.email) setMyProfile(event.data);
+      }
+    });
+    return () => unsub();
   }, [user]);
 
   const loadAll = async () => {

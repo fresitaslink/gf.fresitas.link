@@ -106,6 +106,17 @@ export default function RewardsStore() {
   useEffect(() => {
     if (!user) { navigate('/'); return; }
     loadAll();
+
+    // Real-time: reflect reward stock changes and redemption updates
+    const unsubRewards = base44.entities.RewardItem.subscribe((event) => {
+      if (event.data) {
+        setRewards(prev => prev.map(r => r.id === event.data.id ? event.data : r));
+      }
+    });
+    const unsubProfile = base44.entities.CustomerProfile.subscribe((event) => {
+      if (event.data?.user_email === user.email) setMyProfile(event.data);
+    });
+    return () => { unsubRewards(); unsubProfile(); };
   }, [user]);
 
   const loadAll = async () => {

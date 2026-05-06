@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -26,6 +26,7 @@ export default function Menu() {
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
+  const { slug: slugParam } = useParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
@@ -41,7 +42,8 @@ export default function Menu() {
 
     base44.entities.Product.list().then(prods => {
       setProducts(prods);
-      const prodSlug = searchParams.get('producto');
+      // Support both /menu?producto=slug and /producto/slug
+      const prodSlug = searchParams.get('producto') || slugParam;
       if (prodSlug) {
         const found = prods.find(p => p.slug === prodSlug);
         if (found) setSelectedProduct(found);

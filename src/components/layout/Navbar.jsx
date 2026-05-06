@@ -31,6 +31,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
     { to: '/suscripciones', label: language === 'es' ? 'Suscripción' : 'Subscribe' },
     { to: '/chat', label: t.chat },
     { to: '/referral', label: language === 'es' ? 'Referir' : 'Refer' },
+    { to: '/mi-cuenta', label: language === 'es' ? 'Mi Cuenta' : 'My Account' },
     { to: '/dashboard', label: language === 'es' ? 'Mi Stats' : 'My Stats' },
     { to: '/blog', label: language === 'es' ? 'Blog' : 'Blog' },
   ];
@@ -127,7 +128,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
 
             {/* Profile with role indicator */}
             {user ? (
-              <Link to="/perfil">
+              <Link to="/mi-cuenta">
                 <Button variant="ghost" size="icon" className="relative">
                   <User className="h-4 w-4" />
                   {user.role === 'owner' && <Crown className="absolute -top-1 -right-1 w-3 h-3 text-gold" />}

@@ -32,6 +32,7 @@ import Logistica from './pages/Logistica';
 import Blog from './pages/Blog';
 import BlogPostDetail from './pages/BlogPostDetail';
 import Analytics from './pages/Analytics';
+import MiCuenta from './pages/MiCuenta';
 
 // Layout
 import Navbar from './components/layout/Navbar';
@@ -93,6 +94,7 @@ const AuthenticatedApp = () => {
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPostDetail />} />
         <Route path="/analytics" element={<Analytics />} />
+        <Route path="/mi-cuenta" element={<MiCuenta />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <WillfyButton />

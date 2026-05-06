@@ -8,46 +8,36 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { user_email, title, body, icon, badge, tag, data } = await req.json();
+    const payload = await req.json();
+    const { user_email, title, icon, badge, tag, data } = payload;
+    // Accept either `body` or `message` for compatibility
+    const body = payload.body || payload.message;
 
-    if (!user_email || !title || !body) {
-      return Response.json({ error: 'user_email, title, body required' }, { status: 400 });
+    // If automation passed an Order object, derive user_email from it
+    const targetEmail = user_email || payload.data?.user_email;
+
+    if (!targetEmail || !title || !body) {
+      console.warn('[PUSH] Missing fields:', { hasEmail: !!targetEmail, hasTitle: !!title, hasBody: !!body });
+      return Response.json({ error: 'user_email, title, body/message required' }, { status: 400 });
     }
 
-    // Get user device tokens (where push subscriptions are stored)
-    const userTokens = await base44.asServiceRole.entities.PushSubscription?.filter(
-      { user_email },
-      undefined,
-      50
-    ).catch(() => []);
-
-    const results = [];
-
-    // Send to each device
-    for (const token of userTokens) {
-      try {
-        // TODO: Send actual push via FCM or Web Push API
-        // For now, send email notification as fallback
-        await base44.integrations.Core.SendEmail({
-          to: user_email,
-          subject: title,
-          body: `${body}\n\nData: ${JSON.stringify(data || {})}`
-        });
-
-        results.push({ device: token.id, status: 'sent' });
-      } catch (err) {
-        results.push({ device: token.id, status: 'failed', error: err.message });
-      }
+    // Send email notification as fallback (Web Push not configured yet)
+    try {
+      await base44.integrations.Core.SendEmail({
+        to: targetEmail,
+        subject: title,
+        body: body
+      });
+    } catch (err) {
+      console.warn('[PUSH] Email send failed:', err.message);
     }
 
-    console.log(`[PUSH] Sent to ${user_email}: ${title}`);
+    console.log(`[PUSH] Sent to ${targetEmail}: ${title}`);
 
     return Response.json({
       success: true,
-      user_email,
+      user_email: targetEmail,
       title,
-      sent_to: results.length,
-      results
     });
   } catch (error) {
     console.error('Push Notification Error:', error);

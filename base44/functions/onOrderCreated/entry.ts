@@ -16,6 +16,12 @@ Deno.serve(async (req) => {
 
     const order = data;
 
+    // IDEMPOTENCY: Skip if already assigned (e.g., manual assignment ran first)
+    if (order.assigned_driver_email) {
+      console.log(`[onOrderCreated] Order ${order.id} already assigned to ${order.assigned_driver_email}, skipping`);
+      return Response.json({ success: true, already_assigned: true });
+    }
+
     // Step 1: Generate and save verification PIN if missing
     let verificationPin = order.verification_pin;
     if (!verificationPin) {

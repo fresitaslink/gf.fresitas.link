@@ -14,6 +14,22 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'order_id and driver_email required' }, { status: 400 });
     }
 
+    // IDEMPOTENCY: Check if earnings already recorded for this order
+    const existingTx = await base44.asServiceRole.entities.DriverTransaction.filter({
+      order_id,
+      driver_email,
+      type: 'delivery'
+    }, undefined, 1);
+
+    if (existingTx.length > 0) {
+      console.log(`[EARNINGS] Already recorded for order ${order_id}, skipping duplicate`);
+      return Response.json({
+        success: true,
+        already_recorded: true,
+        earnings: existingTx[0].amount
+      });
+    }
+
     // Base fare calculation
     const BASE_FARE = 3; // $3 per delivery
     const KM_RATE = 0.50; // $0.50 per km

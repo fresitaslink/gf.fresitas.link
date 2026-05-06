@@ -6,14 +6,18 @@
       "entity_name": "Product",
       "allowed_operations": [
         "read",
-        "update"
+        "update",
+        "create",
+        "delete"
       ]
     },
     {
       "entity_name": "Order",
       "allowed_operations": [
         "read",
-        "update"
+        "update",
+        "create",
+        "delete"
       ]
     },
     {
@@ -21,7 +25,8 @@
       "allowed_operations": [
         "read",
         "update",
-        "create"
+        "create",
+        "delete"
       ]
     },
     {
@@ -29,7 +34,8 @@
       "allowed_operations": [
         "read",
         "create",
-        "update"
+        "update",
+        "delete"
       ]
     },
     {
@@ -37,21 +43,26 @@
       "allowed_operations": [
         "read",
         "create",
-        "update"
+        "update",
+        "delete"
       ]
     },
     {
       "entity_name": "StoreSettings",
       "allowed_operations": [
         "read",
-        "update"
+        "update",
+        "delete",
+        "create"
       ]
     },
     {
       "entity_name": "LoyaltyTransaction",
       "allowed_operations": [
         "read",
-        "create"
+        "create",
+        "delete",
+        "update"
       ]
     },
     {
@@ -59,7 +70,8 @@
       "allowed_operations": [
         "read",
         "create",
-        "update"
+        "update",
+        "delete"
       ]
     },
     {
@@ -67,14 +79,17 @@
       "allowed_operations": [
         "read",
         "update",
-        "create"
+        "create",
+        "delete"
       ]
     },
     {
       "entity_name": "ChatMessage",
       "allowed_operations": [
         "read",
-        "create"
+        "create",
+        "delete",
+        "update"
       ]
     },
     {
@@ -82,7 +97,8 @@
       "allowed_operations": [
         "read",
         "create",
-        "delete"
+        "delete",
+        "update"
       ]
     },
     {
@@ -90,7 +106,8 @@
       "allowed_operations": [
         "read",
         "create",
-        "update"
+        "update",
+        "delete"
       ]
     },
     {
@@ -111,9 +128,9 @@
   "selected_skill_names": [],
   "selected_workspace_skill_ids": [],
   "model": "claude_sonnet_4_6",
-  "whatsapp_greeting": null,
-  "telegram_greeting": null,
-  "line_greeting": null,
+  "whatsapp_greeting": "",
+  "telegram_greeting": "",
+  "line_greeting": "",
   "memory_config": {
     "enabled": true,
     "scope": "both",

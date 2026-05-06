@@ -1,0 +1,39 @@
+{
+  "name": "Ingredient",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Ingredient name"
+    },
+    "unit": {
+      "type": "string",
+      "description": "Unit of measure (kg, L, piezas, etc.)",
+      "default": "piezas"
+    },
+    "stock": {
+      "type": "number",
+      "default": 0,
+      "description": "Current stock quantity"
+    },
+    "low_stock_threshold": {
+      "type": "number",
+      "default": 5,
+      "description": "Alert when below this amount"
+    },
+    "linked_product_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Product IDs that use this ingredient. When stock hits 0, those products auto-disable."
+    },
+    "is_available": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

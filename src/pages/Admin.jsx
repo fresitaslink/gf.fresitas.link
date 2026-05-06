@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
 import { motion } from 'framer-motion';
-import { Package, TrendingUp, Users, MessageCircle, Settings, Loader2, Star, BarChart2, DollarSign, Download, ShoppingBag, Phone, Mail, Crown, ExternalLink, Navigation, Map, Upload } from 'lucide-react';
+import { Package, TrendingUp, Users, MessageCircle, Settings, Loader2, Star, BarChart2, DollarSign, Download, ShoppingBag, Phone, Mail, Crown, ExternalLink, Navigation, Map, Upload, Layers } from 'lucide-react';
 import AdminAnalytics from './AdminAnalytics';
 import BusinessIntelligence from '@/components/admin/BusinessIntelligence';
 import OrdersMap from '@/components/admin/OrdersMap';
 import CSVImport from '@/components/admin/CSVImport';
 import EmailTemplatesConfig from '@/components/admin/EmailTemplatesConfig';
 import ProductSeoEditor from '@/components/admin/ProductSeoEditor';
+import LiveOrdersPanel from '@/components/admin/LiveOrdersPanel';
+import IngredientManager from '@/components/admin/IngredientManager';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -304,9 +306,11 @@ export default function Admin() {
 
           <Tabs defaultValue="orders">
             <TabsList className="w-full rounded-xl mb-6 bg-muted flex-wrap h-auto">
+              <TabsTrigger value="live" className="flex-1 rounded-lg text-xs">🔴 En Vivo</TabsTrigger>
               <TabsTrigger value="orders" className="flex-1 rounded-lg text-xs">Pedidos</TabsTrigger>
               <TabsTrigger value="mapa" className="flex-1 rounded-lg text-xs">🗺 Mapa</TabsTrigger>
               <TabsTrigger value="products" className="flex-1 rounded-lg text-xs">Productos</TabsTrigger>
+              <TabsTrigger value="inventory" className="flex-1 rounded-lg text-xs">🥬 Inventario</TabsTrigger>
               <TabsTrigger value="reviews" className="flex-1 rounded-lg text-xs">Reseñas</TabsTrigger>
               <TabsTrigger value="chat" className="flex-1 rounded-lg text-xs">Chat</TabsTrigger>
               <TabsTrigger value="settings" className="flex-1 rounded-lg text-xs">Config</TabsTrigger>
@@ -316,6 +320,11 @@ export default function Admin() {
               <TabsTrigger value="email_templates" className="flex-1 rounded-lg text-xs">Emails</TabsTrigger>
               <TabsTrigger value="seo" className="flex-1 rounded-lg text-xs">SEO</TabsTrigger>
             </TabsList>
+
+            {/* Live Orders Panel */}
+            <TabsContent value="live">
+              <LiveOrdersPanel orders={orders} onUpdateStatus={handleUpdateOrderStatus} />
+            </TabsContent>
 
             {/* Orders Kanban */}
             <TabsContent value="orders">
@@ -337,6 +346,17 @@ export default function Admin() {
                 </div>
                 <p className="text-xs text-muted-foreground">Los pedidos con coordenadas GPS del cliente aparecen en el mapa. El tamaño del círculo indica concentración.</p>
                 <OrdersMap orders={orders.filter(o => ['pending','confirmed','preparing','on_the_way'].includes(o.status))} />
+              </div>
+            </TabsContent>
+
+            {/* Ingredient Inventory */}
+            <TabsContent value="inventory">
+              <div className="space-y-3">
+                <div>
+                  <h3 className="font-poppins font-bold text-lg">🥬 Inventario de Ingredientes</h3>
+                  <p className="text-xs text-muted-foreground">Gestiona el stock. Al llegar a 0, los productos vinculados se desactivan automáticamente.</p>
+                </div>
+                <IngredientManager products={products} />
               </div>
             </TabsContent>
 

@@ -10,9 +10,11 @@ import {
 import { useLanguage } from '@/lib/LanguageContext';
 import { useCart } from '@/lib/CartContext';
 import { useAuth } from '@/lib/AuthContext';
+import { useStore } from '@/lib/StoreContext';
 import { base44 } from '@/api/base44Client';
 import { Badge } from '@/components/ui/badge';
 import NotificationDrawer from '@/components/layout/NotificationDrawer';
+
 
 // ── Dropdown Menu Component ─────────────────────────────────────────────────
 function NavDropdown({ label, icon: Icon, items, align = 'left' }) {
@@ -85,9 +87,29 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
   const { t, language, toggleLanguage } = useLanguage();
   const { itemCount } = useCart();
   const { user } = useAuth();
+  const { logoUrl, storeName } = useStore();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(null);
+
+  useEffect(() => {
+    if (!user) { setAvatarUrl(null); return; }
+    base44.entities.CustomerProfile.filter({ user_email: user.email }).then(profiles => {
+      if (profiles[0]?.avatar_url) setAvatarUrl(profiles[0].avatar_url);
+    }).catch(() => {});
+  }, [user?.email]);
+
+  // Subscribe to profile updates for avatar changes
+  useEffect(() => {
+    if (!user) return;
+    const unsub = base44.entities.CustomerProfile.subscribe((event) => {
+      if ((event.type === 'update' || event.type === 'create') && event.data?.user_email === user.email) {
+        setAvatarUrl(event.data?.avatar_url || null);
+      }
+    });
+    return unsub;
+  }, [user?.email]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -168,8 +190,14 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
 
           {/* ── Logo ── */}
           <Link to="/" className="flex items-center gap-1.5 flex-shrink-0 mr-2">
-            <span className="text-lg sm:text-xl font-poppins font-black text-strawberry">Fresitas</span>
-            <span className="text-lg sm:text-xl font-poppins font-black text-chocolate hidden sm:inline">G&F</span>
+            {logoUrl ? (
+              <img src={logoUrl} alt={storeName} className="h-8 w-auto object-contain" />
+            ) : (
+              <>
+                <span className="text-lg sm:text-xl font-poppins font-black text-strawberry">Fresitas</span>
+                <span className="text-lg sm:text-xl font-poppins font-black text-chocolate hidden sm:inline">G&F</span>
+              </>
+            )}
           </Link>
 
           {/* ── Desktop Nav ── */}
@@ -272,9 +300,11 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
             {/* Profile icon or Login */}
             {user ? (
               <Link to="/mi-cuenta">
-                <button className="p-1.5 relative text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors">
-                  <div className="w-7 h-7 rounded-full bg-strawberry/10 flex items-center justify-center">
-                    {roleIcon ? (
+                <button className="p-1 relative text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors">
+                  <div className="w-8 h-8 rounded-full bg-strawberry/10 flex items-center justify-center overflow-hidden ring-2 ring-transparent hover:ring-strawberry/40 transition-all">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt={user.full_name || ''} className="w-full h-full object-cover" />
+                    ) : roleIcon ? (
                       React.createElement(roleIcon, { className: `w-3.5 h-3.5 ${roleColor}` })
                     ) : (
                       <span className="text-xs font-bold text-strawberry">
@@ -339,10 +369,26 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
 
               <div className="border-t border-border mb-2" />
 
-              {allMobileLinks.filter((_, i, arr) => {
-                // Remove duplicate leading dividers and dedup
-                return true;
-              }).map((link, i) => {
+              {/* Mobile user avatar + name */}
+              {user && (
+                <div className="flex items-center gap-3 px-3 py-3 bg-muted rounded-xl mb-2">
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-strawberry/10 flex items-center justify-center ring-2 ring-strawberry/20 flex-shrink-0">
+                    {avatarUrl
+                      ? <img src={avatarUrl} alt={user.full_name || ''} className="w-full h-full object-cover" />
+                      : <span className="text-sm font-bold text-strawberry">{(user.full_name || user.email || '?')[0].toUpperCase()}</span>
+                    }
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm truncate">{user.full_name || user.email}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{user.role || 'cliente'}</p>
+                  </div>
+                  <button onClick={() => { base44.auth.logout(); setMobileOpen(false); }} className="text-xs text-muted-foreground hover:text-destructive transition-colors px-2 py-1 rounded-lg hover:bg-destructive/10">
+                    {t.logout || 'Salir'}
+                  </button>
+                </div>
+              )}
+
+              {allMobileLinks.map((link, i) => {
                 if (link.divider) return <div key={i} className="my-1.5 border-t border-border" />;
                 if (link.to === '/menu' || link.to === '/cart') return null; // already shown above
                 return (

@@ -15,7 +15,7 @@ export const StoreProvider = ({ children }) => {
         if (settingsList && settingsList.length > 0) {
           const settings = settingsList[0];
           setStoreSettings(settings);
-          setIsOpen(!!settings.is_open); // Ensure proper boolean
+          setIsOpen(!!settings.is_open);
         }
       } catch (err) {
         console.error('Failed to load store settings:', err);
@@ -25,8 +25,8 @@ export const StoreProvider = ({ children }) => {
     };
 
     loadSettings();
-    
-    // Subscribe to real-time updates
+
+    // Subscribe to real-time updates — logo, branding, open status all propagate instantly
     const unsub = base44.entities.StoreSettings.subscribe((event) => {
       if (event.type === 'update' || event.type === 'create') {
         setStoreSettings(event.data);
@@ -37,8 +37,12 @@ export const StoreProvider = ({ children }) => {
     return unsub;
   }, []);
 
+  // Derived: logo url from settings or fallback to generated brand logo
+  const logoUrl = storeSettings?.logo_url || 'https://media.base44.com/images/public/69f98745fea6885f71e28a28/ef7bb6d21_generated_image.png';
+  const storeName = storeSettings?.store_name || 'Fresitas G&F';
+
   return (
-    <StoreContext.Provider value={{ storeSettings, isOpen, loading }}>
+    <StoreContext.Provider value={{ storeSettings, isOpen, loading, logoUrl, storeName }}>
       {children}
     </StoreContext.Provider>
   );

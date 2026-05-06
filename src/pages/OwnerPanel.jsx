@@ -59,7 +59,7 @@ export default function OwnerPanel() {
   const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
-    if (!user || user.role !== 'owner') { navigate('/'); return; }
+    if (!user || !['owner', 'admin'].includes(user.role)) { navigate('/'); return; }
     loadAll();
   }, [user]);
 
@@ -215,7 +215,7 @@ export default function OwnerPanel() {
     );
   }
 
-  if (!user || user.role !== 'owner') return null;
+  if (!user || !['owner', 'admin'].includes(user.role)) return null;
 
   const managers = users.filter(u => u.role === 'manager');
   const buyers = users.filter(u => u.role === 'user' || !u.role);

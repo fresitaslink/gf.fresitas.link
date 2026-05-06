@@ -65,10 +65,14 @@ export default function DriverManagement() {
      toast.error('El nombre es requerido');
      return;
    }
+   if (!formData.user_email?.trim()) {
+     toast.error('El email es requerido');
+     return;
+   }
 
    try {
      if (editingDriver) {
-       // Update driver record
+       // Update driver record (email cannot be changed)
        await base44.entities.Driver.update(editingDriver.id, {
          full_name: formData.full_name,
          phone: formData.phone,
@@ -78,29 +82,12 @@ export default function DriverManagement() {
          vehicle_model: formData.vehicle_model,
          vehicle_color: formData.vehicle_color,
        });
-
-       // Update corresponding User account
-       const users = await base44.entities.User.filter({ email: editingDriver.user_email });
-       if (users[0]) {
-         await base44.auth.updateMe({
-           role: 'delivery', // Ensure role is set
-         });
-       }
        toast.success('Conductor actualizado');
      } else {
-       if (!formData.user_email?.trim()) {
-         toast.error('El email es requerido');
-         return;
-       }
+       // Step 1: Invite user with delivery role (creates valid user account)
+       await base44.users.inviteUser(formData.user_email, 'delivery');
 
-       // Verify the user exists in User table
-       const existingUsers = await base44.entities.User.filter({ email: formData.user_email });
-       if (!existingUsers[0]) {
-         toast.error('El usuario no existe. Primero invita el usuario como "delivery" en configuración');
-         return;
-       }
-
-       // Create driver record linked to real user
+       // Step 2: Create driver profile linked to the invited user
        await base44.entities.Driver.create({
          user_email: formData.user_email,
          full_name: formData.full_name,
@@ -113,7 +100,7 @@ export default function DriverManagement() {
          is_active: true,
          is_available: false,
        });
-       toast.success(`Conductor ${formData.full_name} agregado con email: ${formData.user_email}`);
+       toast.success(`Conductor ${formData.full_name} agregado e invitado con email: ${formData.user_email}`);
      }
      setShowForm(false);
      setEditingDriver(null);

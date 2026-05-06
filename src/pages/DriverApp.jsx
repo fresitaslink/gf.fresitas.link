@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   MapPin, CheckCircle2, Loader2, Navigation, Package,
   Clock, User, RefreshCw, Bike, PhoneCall, MessageSquare,
-  AlertCircle, Zap, ChevronDown, ChevronUp, Signal, Map
+  AlertCircle, Zap, ChevronDown, ChevronUp, Signal, Map, Route
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import DriverLiveMap from '@/components/driver/DriverLiveMap';
+import OptimizedRouteOverlay from '@/components/driver/OptimizedRouteOverlay';
 
 const STATUS_COLORS = {
   confirmed:  'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
@@ -350,6 +351,27 @@ export default function DriverApp() {
   const prep      = orders.filter(o => o.status === 'preparing');
   const confirmed = orders.filter(o => o.status === 'confirmed');
   const [showMap, setShowMap] = useState(false);
+  const [optimizedRoute, setOptimizedRoute] = useState(null);
+  const [optimizing, setOptimizing] = useState(false);
+
+  const handleOptimizeRoute = async () => {
+    setOptimizing(true);
+    try {
+      const result = await base44.functions.invoke('optimizeDeliveryRoutes', {
+        order_ids: orders.map(o => o.id)
+      });
+      if (result.data?.optimized_routes?.[0]) {
+        setOptimizedRoute(result.data.optimized_routes[0]);
+        toast.success('✨ Ruta optimizada', {
+          description: `${result.data.optimized_routes[0].sequence} pedidos · ${result.data.optimized_routes[0].total_distance_km} km`
+        });
+      }
+    } catch (err) {
+      toast.error('Error: ' + err.message);
+    } finally {
+      setOptimizing(false);
+    }
+  };
 
   if (!user || !['admin', 'owner', 'manager', 'delivery'].includes(user.role)) return null;
 
@@ -378,6 +400,16 @@ export default function DriverApp() {
               <Signal className={`w-3 h-3 ${driverLocation ? 'text-green-500' : 'text-amber-500'}`} />
               <span className="hidden sm:inline">{driverLocation ? 'GPS' : locationError ? 'Sin GPS' : '...'}</span>
             </div>
+            <Button
+              onClick={handleOptimizeRoute}
+              disabled={optimizing || orders.length === 0}
+              variant={optimizedRoute ? 'default' : 'outline'}
+              size="icon"
+              className={`rounded-xl h-8 w-8 ${optimizedRoute ? 'bg-green-600 text-white hover:bg-green-700' : ''}`}
+              title="Optimizar Ruta"
+            >
+              {optimizing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Route className="w-3.5 h-3.5" />}
+            </Button>
             <Button
               onClick={() => setShowMap(v => !v)}
               variant={showMap ? 'default' : 'outline'}
@@ -445,8 +477,13 @@ export default function DriverApp() {
         )}
       </AnimatePresence>
 
-      {/* Orders list */}
-      <div className="max-w-lg mx-auto px-4 mt-3 space-y-3">
+      {/* Optimized Route Overlay */}
+      <div className="max-w-lg mx-auto px-4 mt-3">
+        <OptimizedRouteOverlay route={optimizedRoute} onClose={() => setOptimizedRoute(null)} driverLocation={driverLocation} />
+      </div>
+
+      {/* Orders list - show in optimized sequence if available */}
+      <div className="max-w-lg mx-auto px-4 space-y-3">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <Loader2 className="w-10 h-10 animate-spin text-strawberry" />
@@ -463,16 +500,19 @@ export default function DriverApp() {
           </div>
         ) : (
           <AnimatePresence>
-            {orders.map(order => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                driverLocation={driverLocation}
-                onStartDelivery={handleStartDelivery}
-                onMarkDelivered={handleMarkDelivered}
-                delivering={delivering}
-              />
-            ))}
+            {(optimizedRoute?.orders?.map(o => o.id) || orders.map(o => o.id)).map(orderId => {
+              const order = orders.find(o => o.id === orderId);
+              return order ? (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  driverLocation={driverLocation}
+                  onStartDelivery={handleStartDelivery}
+                  onMarkDelivered={handleMarkDelivered}
+                  delivering={delivering}
+                />
+              ) : null;
+            })}
           </AnimatePresence>
         )}
       </div>

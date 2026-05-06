@@ -8,12 +8,13 @@ import {
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, TrendingDown, Users, ShoppingBag, DollarSign, Star, Package, RefreshCw, Zap, ArrowLeft, GitMerge } from 'lucide-react';
+import { TrendingUp, TrendingDown, Users, ShoppingBag, DollarSign, Star, Package, RefreshCw, Zap, ArrowLeft, GitMerge, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ConversionFunnel from '@/components/analytics/ConversionFunnel';
+import DeliveryAnalyticsDashboard from '@/components/admin/DeliveryAnalyticsDashboard';
 
 const COLORS = ['#E8294A', '#5C2D0E', '#F59E0B', '#10B981', '#8B5CF6', '#EC4899', '#3B82F6'];
 
@@ -213,10 +214,17 @@ export default function Analytics() {
               <TabsTrigger value="funnel" className="rounded-lg text-xs flex items-center gap-1.5">
                 <GitMerge className="w-3.5 h-3.5" /> Embudo de Conversión
               </TabsTrigger>
+              <TabsTrigger value="delivery" className="rounded-lg text-xs flex items-center gap-1.5">
+                <Truck className="w-3.5 h-3.5" /> Entregas
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="funnel">
               <ConversionFunnel orders={orders} profiles={profiles} />
+            </TabsContent>
+
+            <TabsContent value="delivery">
+              <DeliveryAnalyticsDashboard />
             </TabsContent>
 
             <TabsContent value="metrics">

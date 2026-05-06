@@ -250,7 +250,12 @@ export default function DriverApp() {
 
   useEffect(() => {
     if (!user) { navigate('/'); return; }
-    if (!['admin', 'owner', 'manager', 'delivery'].includes(user.role)) { navigate('/'); return; }
+    // Only delivery role can access driver app
+    if (user.role !== 'delivery' && !['admin', 'owner', 'manager'].includes(user.role)) { 
+      toast.error('Solo repartidores pueden acceder aquí');
+      navigate('/'); 
+      return; 
+    }
 
     loadOrders();
     startTracking();

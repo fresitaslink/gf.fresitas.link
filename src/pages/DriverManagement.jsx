@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import DriverAssignmentPanel from '@/components/admin/DriverAssignmentPanel';
 import AutoDispatchPanel from '@/components/admin/AutoDispatchPanel';
 import LiveTrackingDashboard from '@/components/admin/LiveTrackingDashboard';
+import DriverSetupGuide from '@/components/admin/DriverSetupGuide';
 
 export default function DriverManagement() {
   const { user } = useAuth();
@@ -60,30 +61,67 @@ export default function DriverManagement() {
   }, [user]);
 
   const handleSaveDriver = async () => {
-    if (!formData.full_name?.trim()) {
-      toast.error('El nombre es requerido');
-      return;
-    }
+   if (!formData.full_name?.trim()) {
+     toast.error('El nombre es requerido');
+     return;
+   }
 
-    try {
-      if (editingDriver) {
-        await base44.entities.Driver.update(editingDriver.id, formData);
-        toast.success('Conductor actualizado');
-      } else {
-        if (!formData.user_email?.trim()) {
-          toast.error('El email es requerido');
-          return;
-        }
-        await base44.entities.Driver.create(formData);
-        toast.success('Conductor agregado');
-      }
-      setShowForm(false);
-      setEditingDriver(null);
-      setPhotoPreview(null);
-      setFormData({ full_name: '', phone: '', user_email: '', photo_url: '', vehicle_type: 'car', vehicle_plate: '', vehicle_model: '', vehicle_color: '' });
-    } catch (err) {
-      toast.error('Error al guardar');
-    }
+   try {
+     if (editingDriver) {
+       // Update driver record
+       await base44.entities.Driver.update(editingDriver.id, {
+         full_name: formData.full_name,
+         phone: formData.phone,
+         photo_url: formData.photo_url,
+         vehicle_type: formData.vehicle_type,
+         vehicle_plate: formData.vehicle_plate,
+         vehicle_model: formData.vehicle_model,
+         vehicle_color: formData.vehicle_color,
+       });
+
+       // Update corresponding User account
+       const users = await base44.entities.User.filter({ email: editingDriver.user_email });
+       if (users[0]) {
+         await base44.auth.updateMe({
+           role: 'delivery', // Ensure role is set
+         });
+       }
+       toast.success('Conductor actualizado');
+     } else {
+       if (!formData.user_email?.trim()) {
+         toast.error('El email es requerido');
+         return;
+       }
+
+       // Verify the user exists in User table
+       const existingUsers = await base44.entities.User.filter({ email: formData.user_email });
+       if (!existingUsers[0]) {
+         toast.error('El usuario no existe. Primero invita el usuario como "delivery" en configuración');
+         return;
+       }
+
+       // Create driver record linked to real user
+       await base44.entities.Driver.create({
+         user_email: formData.user_email,
+         full_name: formData.full_name,
+         phone: formData.phone,
+         photo_url: formData.photo_url,
+         vehicle_type: formData.vehicle_type,
+         vehicle_plate: formData.vehicle_plate,
+         vehicle_model: formData.vehicle_model,
+         vehicle_color: formData.vehicle_color,
+         is_active: true,
+         is_available: false,
+       });
+       toast.success(`Conductor ${formData.full_name} agregado con email: ${formData.user_email}`);
+     }
+     setShowForm(false);
+     setEditingDriver(null);
+     setPhotoPreview(null);
+     setFormData({ full_name: '', phone: '', user_email: '', photo_url: '', vehicle_type: 'car', vehicle_plate: '', vehicle_model: '', vehicle_color: '' });
+   } catch (err) {
+     toast.error('Error: ' + err.message);
+   }
   };
 
   const handleDelete = async (id) => {
@@ -116,6 +154,9 @@ export default function DriverManagement() {
               <Plus className="w-4 h-4 mr-2" /> Agregar Conductor
             </Button>
           </div>
+
+          {/* Setup Guide */}
+          <DriverSetupGuide />
 
           {/* Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

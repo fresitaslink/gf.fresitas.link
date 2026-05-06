@@ -2,224 +2,252 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowUpRight, Wallet, TrendingUp, Clock, DollarSign, CreditCard } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { Wallet, TrendingUp, Clock, DollarSign, CreditCard, ExternalLink, AlertCircle, CheckCircle2, Loader2, Banknote } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 
 export default function DriverEarnings() {
+  const [user, setUser] = useState(null);
+  const [driver, setDriver] = useState(null);
   const [earnings, setEarnings] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [withdrawing, setWithdrawing] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [onboarding, setOnboarding] = useState(false);
 
-  useEffect(() => {
-    fetchEarningsData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
-  const fetchEarningsData = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const user = await base44.auth.me();
-      
-      const earningsData = await base44.entities.DriverEarnings.filter(
-        { driver_email: user.email },
-        '-created_date',
-        1
-      );
+      const me = await base44.auth.me();
+      setUser(me);
 
-      if (earningsData.length > 0) {
-        setEarnings(earningsData[0]);
+      const [drivers, earningsList, txns] = await Promise.all([
+        base44.entities.Driver.filter({ user_email: me.email }, undefined, 1),
+        base44.entities.DriverEarnings.filter({ driver_email: me.email }, '-created_date', 1),
+        base44.entities.DriverTransaction.filter({ driver_email: me.email }, '-created_date', 50),
+      ]);
 
-        const txns = await base44.entities.DriverTransaction.filter(
-          { driver_email: user.email },
-          '-created_date',
-          50
-        );
-        setTransactions(txns);
-      } else {
-        setEarnings({
-          driver_email: user.email,
-          balance: 0,
-          total_earned: 0,
-          total_withdrawn: 0,
-          pending_balance: 0,
-          total_deliveries: 0,
-          avg_earnings_per_delivery: 0
-        });
+      setDriver(drivers[0] || null);
+      setEarnings(earningsList[0] || {
+        driver_email: me.email,
+        balance: 0, total_earned: 0, total_withdrawn: 0, pending_balance: 0,
+        total_deliveries: 0, avg_earnings_per_delivery: 0,
+      });
+      setTransactions(txns);
+
+      // Auto-refresh after Stripe onboarding return
+      if (new URLSearchParams(window.location.search).get('onboarded') === '1') {
+        toast.success('¡Cuenta de Stripe conectada! Ahora puedes recibir pagos reales.');
+        window.history.replaceState({}, '', '/driver-earnings');
       }
-    } catch (error) {
-      console.error('Error fetching earnings:', error);
-      toast.error('Error loading earnings');
-    } finally {
-      setLoading(false);
+    } catch (e) {
+      console.error(e);
+      toast.error('Error cargando ganancias');
+    } finally { setLoading(false); }
+  };
+
+  const startStripeOnboarding = async () => {
+    setOnboarding(true);
+    try {
+      const result = await base44.functions.invoke('createDriverConnectAccount', {});
+      if (result.data?.onboarding_url) {
+        window.location.href = result.data.onboarding_url;
+      } else {
+        throw new Error(result.data?.error || 'No se pudo iniciar onboarding');
+      }
+    } catch (e) {
+      toast.error('Error: ' + e.message);
+      setOnboarding(false);
     }
   };
 
   const handleWithdraw = async () => {
-    if (!withdrawAmount || parseFloat(withdrawAmount) < (earnings?.min_withdrawal || 50)) {
-      toast.error(`Minimum withdrawal: $${earnings?.min_withdrawal || 50}`);
-      return;
-    }
+    const amt = parseFloat(withdrawAmount);
+    if (!amt || amt <= 0) { toast.error('Cantidad inválida'); return; }
 
-    if (parseFloat(withdrawAmount) > earnings.balance) {
-      toast.error('Insufficient balance');
-      return;
-    }
-
+    setWithdrawing(true);
     try {
-      setWithdrawing(true);
-      const user = await base44.auth.me();
+      const result = await base44.functions.invoke('requestDriverPayout', { amount: amt });
+      const data = result.data;
 
-      // Create withdrawal transaction
-      await base44.entities.DriverTransaction.create({
-        driver_email: user.email,
-        amount: -Math.abs(parseFloat(withdrawAmount)),
-        type: 'withdrawal',
-        status: 'pending',
-        description: `Withdrawal to ${earnings.payment_method}`
-      });
+      if (data?.needs_onboarding) {
+        toast.error('Primero completa el onboarding de Stripe');
+        return;
+      }
+      if (!data?.success) throw new Error(data?.error || 'Falló el retiro');
 
-      // Update balance
-      await base44.entities.DriverEarnings.update(earnings.id, {
-        balance: earnings.balance - parseFloat(withdrawAmount),
-        total_withdrawn: earnings.total_withdrawn + parseFloat(withdrawAmount)
-      });
-
-      toast.success(`Withdrawal of $${withdrawAmount} requested`);
+      toast.success(`✅ Retiro enviado · $${amt.toFixed(2)} en camino a tu banco`);
       setWithdrawAmount('');
-      fetchEarningsData();
-    } catch (error) {
-      console.error('Withdrawal error:', error);
-      toast.error('Withdrawal failed');
-    } finally {
-      setWithdrawing(false);
-    }
+      await fetchData();
+    } catch (e) {
+      toast.error('Error: ' + e.message);
+    } finally { setWithdrawing(false); }
   };
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin">⏳</div></div>;
-  if (!earnings) return <div className="text-center py-10">No earnings data</div>;
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen pt-20"><Loader2 className="w-8 h-8 animate-spin text-strawberry" /></div>;
+  }
 
   const todayEarnings = transactions
-    .filter(t => new Date(t.created_date).toDateString() === new Date().toDateString())
-    .reduce((sum, t) => sum + (t.type === 'delivery' ? t.amount : 0), 0);
+    .filter(t => t.type === 'delivery' && new Date(t.created_date).toDateString() === new Date().toDateString())
+    .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+  const onboardingComplete = driver?.stripe_onboarding_complete && driver?.stripe_payouts_enabled;
+  const hasStripeAccount = !!driver?.stripe_account_id;
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background pt-20 pb-12 px-4">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8">Mis Ganancias</h1>
+        <h1 className="text-3xl md:text-4xl font-poppins font-black mb-2">Mis Ganancias 💰</h1>
+        <p className="text-muted-foreground mb-8">Pagos reales vía Stripe Connect</p>
 
-        {/* Main Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Saldo Disponible</p>
-                <p className="text-3xl font-bold text-strawberry">${earnings.balance?.toFixed(2)}</p>
+        {/* Stripe Connect Onboarding Banner */}
+        {!onboardingComplete && (
+          <Card className={`p-5 mb-6 border-2 ${hasStripeAccount ? 'border-amber-300 bg-amber-50 dark:bg-amber-900/20' : 'border-strawberry bg-strawberry/5'}`}>
+            <div className="flex items-start gap-3">
+              <AlertCircle className={`w-6 h-6 flex-shrink-0 ${hasStripeAccount ? 'text-amber-600' : 'text-strawberry'}`} />
+              <div className="flex-1">
+                <h3 className="font-bold mb-1">
+                  {hasStripeAccount ? 'Completa tu onboarding de Stripe' : 'Conecta tu cuenta bancaria con Stripe'}
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  {hasStripeAccount
+                    ? 'Termina la verificación para recibir tus pagos directamente en tu banco.'
+                    : 'Conecta tu cuenta bancaria de forma segura con Stripe para recibir pagos reales por cada entrega. Tarda 2 minutos.'}
+                </p>
+                <Button onClick={startStripeOnboarding} disabled={onboarding} className="bg-strawberry hover:bg-strawberry/90 text-white gap-2 rounded-xl">
+                  {onboarding ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
+                  {hasStripeAccount ? 'Continuar onboarding' : 'Conectar con Stripe'}
+                </Button>
               </div>
-              <Wallet className="w-10 h-10 text-strawberry opacity-20" />
             </div>
           </Card>
+        )}
 
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Hoy</p>
-                <p className="text-3xl font-bold text-accent">${todayEarnings.toFixed(2)}</p>
+        {onboardingComplete && (
+          <Card className="p-4 mb-6 border-green-300 bg-green-50 dark:bg-green-900/20">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-green-600" />
+              <div className="flex-1">
+                <p className="font-semibold text-sm">Cuenta Stripe conectada · Pagos activos</p>
+                <p className="text-xs text-muted-foreground">Los retiros llegan a tu banco en 1-2 días hábiles</p>
               </div>
-              <TrendingUp className="w-10 h-10 text-accent opacity-20" />
             </div>
           </Card>
+        )}
 
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Total Ganado</p>
-                <p className="text-3xl font-bold text-primary">${earnings.total_earned?.toFixed(2)}</p>
-              </div>
-              <DollarSign className="w-10 h-10 text-primary opacity-20" />
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs text-muted-foreground">Disponible</p>
+              <Wallet className="w-4 h-4 text-strawberry opacity-60" />
             </div>
+            <p className="text-2xl font-bold text-strawberry">${(earnings.balance || 0).toFixed(2)}</p>
           </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Entregas</p>
-                <p className="text-3xl font-bold">{earnings.total_deliveries}</p>
-              </div>
-              <Clock className="w-10 h-10 opacity-20" />
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs text-muted-foreground">Pendiente</p>
+              <Clock className="w-4 h-4 text-amber-500 opacity-60" />
             </div>
+            <p className="text-2xl font-bold text-amber-600">${(earnings.pending_balance || 0).toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">Liquida en 24h</p>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs text-muted-foreground">Hoy</p>
+              <TrendingUp className="w-4 h-4 text-green-600 opacity-60" />
+            </div>
+            <p className="text-2xl font-bold text-green-600">${todayEarnings.toFixed(2)}</p>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs text-muted-foreground">Total ganado</p>
+              <DollarSign className="w-4 h-4 opacity-60" />
+            </div>
+            <p className="text-2xl font-bold">${(earnings.total_earned || 0).toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">{earnings.total_deliveries || 0} entregas</p>
           </Card>
         </div>
 
-        {/* Withdrawal Section */}
-        <Card className="p-6 mb-8 bg-gradient-to-br from-secondary to-card">
-          <h2 className="text-xl font-bold mb-4">Retirar Ganancias</h2>
-          <div className="flex gap-4 items-end">
-            <div className="flex-1">
-              <label className="text-sm text-muted-foreground mb-2 block">Cantidad</label>
+        {/* Withdrawal */}
+        <Card className="p-6 mb-6 bg-gradient-to-br from-strawberry/10 to-card">
+          <div className="flex items-center gap-2 mb-4">
+            <Banknote className="w-5 h-5 text-strawberry" />
+            <h2 className="text-xl font-bold">Retirar a mi banco</h2>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 items-end">
+            <div className="flex-1 w-full">
+              <label className="text-xs text-muted-foreground mb-1 block">Cantidad (USD)</label>
               <input
                 type="number"
                 value={withdrawAmount}
                 onChange={(e) => setWithdrawAmount(e.target.value)}
-                placeholder="50"
+                placeholder={String(earnings.min_withdrawal || 50)}
                 min={earnings.min_withdrawal || 50}
-                max={earnings.balance}
-                className="w-full px-4 py-2 border border-input rounded-md"
+                max={earnings.balance || 0}
+                disabled={!onboardingComplete}
+                className="w-full px-4 py-2.5 border border-input rounded-xl bg-background disabled:opacity-50"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Mínimo: ${earnings.min_withdrawal || 50} | Disponible: ${earnings.balance?.toFixed(2)}
+                Mín: ${earnings.min_withdrawal || 50} · Disponible: ${(earnings.balance || 0).toFixed(2)}
               </p>
             </div>
             <Button
               onClick={handleWithdraw}
-              disabled={withdrawing || !withdrawAmount}
-              className="gap-2"
+              disabled={withdrawing || !withdrawAmount || !onboardingComplete || parseFloat(withdrawAmount) > (earnings.balance || 0) || parseFloat(withdrawAmount) < (earnings.min_withdrawal || 50)}
+              className="gap-2 bg-strawberry hover:bg-strawberry/90 text-white rounded-xl"
             >
-              <CreditCard className="w-4 h-4" />
-              {withdrawing ? 'Procesando...' : 'Retirar'}
+              {withdrawing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+              {withdrawing ? 'Procesando...' : 'Retirar a mi banco'}
             </Button>
           </div>
+          {!onboardingComplete && (
+            <p className="text-xs text-amber-600 mt-3">⚠️ Completa el onboarding de Stripe para habilitar retiros</p>
+          )}
         </Card>
 
         {/* Chart */}
-        <Card className="p-6 mb-8">
-          <h2 className="text-lg font-bold mb-4">Últimos 7 días</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={transactions.slice(0, 7).reverse()}>
+        <Card className="p-6 mb-6">
+          <h2 className="font-bold mb-4">Ganancias recientes</h2>
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={transactions.filter(t => t.type === 'delivery').slice(0, 14).reverse().map(t => ({
+              date: new Date(t.created_date).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }),
+              amount: t.amount,
+            }))}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="created_date" />
-              <YAxis />
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} />
               <Tooltip />
-              <Bar dataKey="amount" fill="hsl(var(--strawberry))" />
+              <Bar dataKey="amount" fill="hsl(var(--strawberry))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
 
-        {/* Transaction History */}
+        {/* Transactions */}
         <Card className="p-6">
-          <h2 className="text-lg font-bold mb-4">Historial de Transacciones</h2>
-          <div className="space-y-2">
+          <h2 className="font-bold mb-4">Historial de transacciones</h2>
+          <div className="space-y-1">
             {transactions.length === 0 ? (
-              <p className="text-muted-foreground">Sin transacciones aún</p>
-            ) : (
-              transactions.slice(0, 20).map(tx => (
-                <div key={tx.id} className="flex items-center justify-between p-3 border-b border-border">
-                  <div className="flex-1">
-                    <p className="font-medium capitalize">{tx.type}</p>
-                    {tx.order_id && <p className="text-xs text-muted-foreground">Pedido: {tx.order_id}</p>}
-                  </div>
-                  <div className="text-right">
-                    <p className={`font-bold ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {tx.amount > 0 ? '+' : ''}${tx.amount?.toFixed(2)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(tx.created_date).toLocaleDateString()}
-                    </p>
-                  </div>
+              <p className="text-muted-foreground text-sm text-center py-6">Aún no tienes transacciones</p>
+            ) : transactions.slice(0, 30).map(tx => (
+              <div key={tx.id} className="flex items-center justify-between p-3 border-b border-border last:border-0">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium capitalize text-sm">{tx.type === 'delivery' ? '🛵 Entrega' : tx.type === 'withdrawal' ? '🏦 Retiro' : tx.type === 'refund' ? '↩️ Reembolso' : tx.type}</p>
+                  {tx.description && <p className="text-xs text-muted-foreground truncate">{tx.description}</p>}
+                  {tx.order_id && !tx.description && <p className="text-xs text-muted-foreground truncate">Pedido {tx.order_id.slice(-6)}</p>}
                 </div>
-              ))
-            )}
+                <div className="text-right ml-3">
+                  <p className={`font-bold text-sm ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {tx.amount > 0 ? '+' : ''}${(tx.amount || 0).toFixed(2)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{new Date(tx.created_date).toLocaleDateString()}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </Card>
       </div>

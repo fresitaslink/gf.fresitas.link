@@ -151,13 +151,7 @@ export default function Checkout() {
         loyalty_points_earned: pointsEarned,
       });
 
-      // Add tip to driver earnings if provided
-      if (form.tip > 0) {
-        base44.functions.invoke('recordDeliveryEarnings', {
-          order_id: order.id,
-          tip_amount: form.tip,
-        }).catch(err => console.log('Tip recording failed:', err));
-      }
+      // Tip is recorded in recordDeliveryEarnings (called when delivered) — no double-recording here
 
       // Update profile stats
       if (user) {
@@ -453,7 +447,8 @@ export default function Checkout() {
                 {form.payment_method === 'tarjeta' && !stripePaymentData && (
                   <div className="border border-border rounded-2xl p-4 mt-2">
                     <StripePayment
-                      total={total}
+                      total={totalWithTip}
+                      customerEmail={user?.email}
                       onPaymentSuccess={(data) => { setStripePaymentData(data); toast.success('¡Pago con tarjeta autorizado! ✅'); }}
                       onPaymentError={(err) => toast.error(err)}
                     />

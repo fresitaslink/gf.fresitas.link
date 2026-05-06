@@ -109,6 +109,23 @@
     "account_holder_name": {
       "type": "string"
     },
+    "stripe_account_id": {
+      "type": "string",
+      "description": "Stripe Connect Express account ID for payouts"
+    },
+    "stripe_onboarding_complete": {
+      "type": "boolean",
+      "default": false,
+      "description": "Driver has finished Stripe Connect onboarding and can receive payouts"
+    },
+    "stripe_charges_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "stripe_payouts_enabled": {
+      "type": "boolean",
+      "default": false
+    },
     "nightly_mode": {
       "type": "boolean",
       "default": false,

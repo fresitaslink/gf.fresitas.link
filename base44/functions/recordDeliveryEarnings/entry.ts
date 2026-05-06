@@ -1,76 +1,68 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 /**
- * Record driver earnings when order is delivered
- * Called automatically when order status → delivered
- * Calculates fare based on distance + time + demand
+ * Record driver earnings when order is delivered.
+ * Idempotent. Includes 100% of customer tip.
  */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { order_id, driver_email, delivery_distance_km, delivery_time_minutes, is_rush } = await req.json();
+    const { order_id, driver_email, delivery_distance_km = 3, delivery_time_minutes = 20, is_rush = false, tip_amount } = await req.json();
 
     if (!order_id || !driver_email) {
       return Response.json({ error: 'order_id and driver_email required' }, { status: 400 });
     }
 
-    // IDEMPOTENCY: Check if earnings already recorded for this order
+    // IDEMPOTENCY
     const existingTx = await base44.asServiceRole.entities.DriverTransaction.filter({
-      order_id,
-      driver_email,
-      type: 'delivery'
+      order_id, driver_email, type: 'delivery'
     }, undefined, 1);
-
     if (existingTx.length > 0) {
-      console.log(`[EARNINGS] Already recorded for order ${order_id}, skipping duplicate`);
-      return Response.json({
-        success: true,
-        already_recorded: true,
-        earnings: existingTx[0].amount
-      });
+      return Response.json({ success: true, already_recorded: true, earnings: existingTx[0].amount });
     }
 
-    // Base fare calculation
-    const BASE_FARE = 3; // $3 per delivery
-    const KM_RATE = 0.50; // $0.50 per km
-    const TIME_RATE = 0.05; // $0.05 per minute (less important)
-    const RUSH_MULTIPLIER = is_rush ? 1.5 : 1.0; // 50% boost during peak hours
+    // Get order to pull tip if not passed in
+    let actualTip = tip_amount;
+    if (typeof actualTip === 'undefined') {
+      try {
+        const order = await base44.asServiceRole.entities.Order.get(order_id);
+        actualTip = order?.tip_amount || 0;
+      } catch { actualTip = 0; }
+    }
 
-    const earnings = (BASE_FARE + (delivery_distance_km * KM_RATE) + (delivery_time_minutes * TIME_RATE)) * RUSH_MULTIPLIER;
+    // Fare formula
+    const BASE_FARE = 3;
+    const KM_RATE = 0.50;
+    const TIME_RATE = 0.05;
+    const RUSH_MULTIPLIER = is_rush ? 1.5 : 1.0;
 
-    // Get or create driver earnings record
-    const existingEarnings = await base44.entities.DriverEarnings.filter(
-      { driver_email },
-      undefined,
-      1
-    );
+    const fare = (BASE_FARE + (delivery_distance_km * KM_RATE) + (delivery_time_minutes * TIME_RATE)) * RUSH_MULTIPLIER;
+    const earnings = fare + (actualTip || 0); // 100% of tip goes to driver
 
-    let driverEarningsId;
-    if (existingEarnings.length > 0) {
-      driverEarningsId = existingEarnings[0].id;
-      // Update existing
-      await base44.asServiceRole.entities.DriverEarnings.update(driverEarningsId, {
-        pending_balance: (existingEarnings[0].pending_balance || 0) + earnings,
-        total_earned: (existingEarnings[0].total_earned || 0) + earnings,
-        total_deliveries: (existingEarnings[0].total_deliveries || 0) + 1,
-        avg_earnings_per_delivery: ((existingEarnings[0].total_earned || 0) + earnings) / ((existingEarnings[0].total_deliveries || 0) + 1)
+    // Get or create earnings record
+    const existing = await base44.asServiceRole.entities.DriverEarnings.filter({ driver_email }, undefined, 1);
+
+    if (existing.length > 0) {
+      const e = existing[0];
+      await base44.asServiceRole.entities.DriverEarnings.update(e.id, {
+        pending_balance: (e.pending_balance || 0) + earnings,
+        total_earned: (e.total_earned || 0) + earnings,
+        total_deliveries: (e.total_deliveries || 0) + 1,
+        avg_earnings_per_delivery: ((e.total_earned || 0) + earnings) / ((e.total_deliveries || 0) + 1)
       });
     } else {
-      // Create new record
-      const driver = await base44.entities.Driver.filter({ user_email: driver_email }, undefined, 1);
-      const driverName = driver.length > 0 ? driver[0].full_name : 'Driver';
-      
+      const drivers = await base44.asServiceRole.entities.Driver.filter({ user_email: driver_email }, undefined, 1);
+      const driverName = drivers[0]?.full_name || 'Driver';
       await base44.asServiceRole.entities.DriverEarnings.create({
         driver_email,
         driver_name: driverName,
         pending_balance: earnings,
         total_earned: earnings,
         total_deliveries: 1,
-        avg_earnings_per_delivery: earnings
+        avg_earnings_per_delivery: earnings,
       });
     }
 
-    // Create transaction record for history
     await base44.asServiceRole.entities.DriverTransaction.create({
       driver_email,
       order_id,
@@ -79,23 +71,19 @@ Deno.serve(async (req) => {
       distance_km: delivery_distance_km,
       time_minutes: delivery_time_minutes,
       is_rush,
-      status: 'pending'
+      status: 'pending',
+      description: `Delivery · fare $${fare.toFixed(2)}${actualTip ? ` + tip $${actualTip.toFixed(2)}` : ''}`,
     });
 
-    console.log(`[EARNINGS] Driver ${driver_email} earned $${earnings.toFixed(2)} for order ${order_id}`);
+    console.log(`[EARNINGS] ${driver_email} · $${earnings.toFixed(2)} (fare $${fare.toFixed(2)} + tip $${(actualTip||0).toFixed(2)}) for order ${order_id}`);
 
     return Response.json({
       success: true,
-      driver_email,
       earnings: earnings.toFixed(2),
-      breakdown: {
-        base_fare: BASE_FARE,
-        distance_bonus: (delivery_distance_km * KM_RATE).toFixed(2),
-        rush_multiplier: is_rush ? '1.5x' : '1.0x'
-      }
+      breakdown: { base_fare: BASE_FARE, distance_bonus: (delivery_distance_km * KM_RATE).toFixed(2), tip: (actualTip||0).toFixed(2), rush_multiplier: is_rush ? '1.5x' : '1.0x' }
     });
   } catch (error) {
-    console.error('Earnings Error:', error);
+    console.error('[recordDeliveryEarnings ERROR]:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });

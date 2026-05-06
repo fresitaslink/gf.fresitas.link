@@ -11,6 +11,7 @@ import ProductSeoEditor from '@/components/admin/ProductSeoEditor';
 import ProductSeoGenerator from '@/components/admin/ProductSeoGenerator';
 import LiveOrdersPanel from '@/components/admin/LiveOrdersPanel';
 import IngredientManager from '@/components/admin/IngredientManager';
+import InventoryDashboard from '@/components/admin/InventoryDashboard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -312,6 +313,7 @@ export default function Admin() {
               <TabsTrigger value="mapa" className="flex-1 rounded-lg text-xs">🗺 Mapa</TabsTrigger>
               <TabsTrigger value="products" className="flex-1 rounded-lg text-xs">Productos</TabsTrigger>
               <TabsTrigger value="inventory" className="flex-1 rounded-lg text-xs">🥬 Inventario</TabsTrigger>
+              <TabsTrigger value="inv_dashboard" className="flex-1 rounded-lg text-xs">📦 Stock IA</TabsTrigger>
               <TabsTrigger value="reviews" className="flex-1 rounded-lg text-xs">Reseñas</TabsTrigger>
               <TabsTrigger value="chat" className="flex-1 rounded-lg text-xs">Chat</TabsTrigger>
               <TabsTrigger value="settings" className="flex-1 rounded-lg text-xs">Config</TabsTrigger>
@@ -359,6 +361,17 @@ export default function Admin() {
                   <p className="text-xs text-muted-foreground">Gestiona el stock. Al llegar a 0, los productos vinculados se desactivan automáticamente.</p>
                 </div>
                 <IngredientManager products={products} />
+              </div>
+            </TabsContent>
+
+            {/* Inventory Dashboard */}
+            <TabsContent value="inv_dashboard">
+              <div className="space-y-3">
+                <div>
+                  <h3 className="font-poppins font-bold text-lg">📦 Dashboard de Inventario Inteligente</h3>
+                  <p className="text-xs text-muted-foreground">Rastreo automático de uso por pedidos, alertas de stock bajo y control en tiempo real.</p>
+                </div>
+                <InventoryDashboard orders={orders} />
               </div>
             </TabsContent>
 

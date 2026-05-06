@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, RotateCcw, Star, MessageCircle, Package, Clock, CheckCircle, ChefHat, Truck, Home, XCircle, MapPin, Phone, ShoppingBag, CalendarClock } from 'lucide-react';
+import { ChevronDown, ChevronUp, RotateCcw, Star, MessageCircle, Package, Clock, CheckCircle, ChefHat, Truck, Home, XCircle, MapPin, Phone, ShoppingBag, CalendarClock, Receipt } from 'lucide-react';
+import OrderReceipt from '@/components/orders/OrderReceipt';
 import DriverTrackingMap from '@/components/orders/DriverTrackingMap';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -69,6 +70,7 @@ export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(null);
+  const [receiptOrder, setReceiptOrder] = useState(null);
 
   useEffect(() => {
     if (!user) { navigate('/'); return; }
@@ -138,6 +140,7 @@ export default function Orders() {
 
   return (
     <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
+      {receiptOrder && <OrderReceipt order={receiptOrder} onClose={() => setReceiptOrder(null)} />}
       <div className="max-w-3xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="font-poppins font-bold text-3xl text-foreground py-8">{t.myOrders}</h1>
@@ -239,6 +242,13 @@ export default function Orders() {
                               <Star className="w-3 h-3 mr-1" /> {t.leaveReview}
                             </Button>
                           )}
+                          <Button
+                            size="sm"
+                            className="rounded-full text-xs bg-green-600 hover:bg-green-700 text-white"
+                            onClick={() => setReceiptOrder(order)}
+                          >
+                            <Receipt className="w-3 h-3 mr-1" /> Recibo
+                          </Button>
                           <Button
                             size="sm"
                             variant="outline"

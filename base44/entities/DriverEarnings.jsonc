@@ -1,0 +1,70 @@
+{
+  "name": "DriverEarnings",
+  "type": "object",
+  "properties": {
+    "driver_email": {
+      "type": "string",
+      "description": "Driver's email (unique)"
+    },
+    "driver_name": {
+      "type": "string"
+    },
+    "balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Current available balance"
+    },
+    "total_earned": {
+      "type": "number",
+      "default": 0,
+      "description": "Lifetime total earnings"
+    },
+    "total_withdrawn": {
+      "type": "number",
+      "default": 0,
+      "description": "Total amount withdrawn"
+    },
+    "pending_balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Earnings pending from today's deliveries"
+    },
+    "last_payout_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "total_deliveries": {
+      "type": "number",
+      "default": 0
+    },
+    "avg_earnings_per_delivery": {
+      "type": "number",
+      "default": 0
+    },
+    "bank_account": {
+      "type": "string",
+      "description": "Last 4 digits or account reference"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "bank_transfer",
+        "paypal",
+        "stripe"
+      ]
+    },
+    "withdrawal_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "min_withdrawal": {
+      "type": "number",
+      "default": 50,
+      "description": "Minimum withdrawal amount"
+    }
+  },
+  "required": [
+    "driver_email",
+    "driver_name"
+  ]
+}

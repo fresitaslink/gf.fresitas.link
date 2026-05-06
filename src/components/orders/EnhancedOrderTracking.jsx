@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import GoogleMapTracker from './GoogleMapTracker';
 
 export default function EnhancedOrderTracking({ order }) {
   const [assignment, setAssignment] = useState(null);
@@ -175,14 +176,17 @@ export default function EnhancedOrderTracking({ order }) {
         </motion.div>
       )}
 
-      {/* Live Map Placeholder */}
-      <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/10 dark:to-blue-900/10 rounded-2xl border border-purple-200 dark:border-purple-800 h-48 flex items-center justify-center">
-        <div className="text-center">
-          <MapPin className="w-8 h-8 text-purple-600 mx-auto mb-2 opacity-50" />
-          <p className="text-sm text-muted-foreground">Mapa de seguimiento en vivo</p>
-          <p className="text-xs text-muted-foreground mt-1">Google Maps / Apple Maps API</p>
-        </div>
-      </div>
+      {/* Live Map with Google Maps */}
+      {driver?.current_lat && driver?.current_lng && order?.delivery_lat && order?.delivery_lng && (
+        <GoogleMapTracker
+          driverLat={driver.current_lat}
+          driverLng={driver.current_lng}
+          deliveryLat={order.delivery_lat}
+          deliveryLng={order.delivery_lng}
+          driverName={driver.full_name}
+          eta={assignment.estimated_duration_minutes}
+        />
+      )}
     </div>
   );
 }

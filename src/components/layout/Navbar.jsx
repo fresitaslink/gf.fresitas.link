@@ -5,7 +5,7 @@ import {
   ShoppingCart, User, Menu, X, Sun, Moon, Bot, Crown, Shield,
   Truck, ChevronDown, Home, Package, Heart, Star, MessageCircle,
   Users, BarChart2, Settings, Zap, Gift, FileText, Map, Layers,
-  BookOpen, Tag, Bell, LogIn
+  BookOpen, Tag, Bell, LogIn, DollarSign
 } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useCart } from '@/lib/CartContext';
@@ -155,6 +155,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
   }
   if (['admin', 'owner', 'delivery'].includes(user?.role)) {
     adminItems.push({ to: '/driver', label: 'App Repartidor', icon: Truck, iconColor: 'text-blue-500' });
+    adminItems.push({ to: '/driver-earnings', label: 'Mis Ganancias', icon: DollarSign, iconColor: 'text-green-500' });
   }
 
   const isAdmin = ['admin', 'owner', 'manager', 'delivery'].includes(user?.role);

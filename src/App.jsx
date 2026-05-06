@@ -39,6 +39,7 @@ import Challenges from './pages/Challenges';
 import RewardsStore from './pages/RewardsStore';
 import ContentManager from './pages/ContentManager';
 import SuperAdmin from './pages/SuperAdmin';
+import DriverEarnings from './pages/DriverEarnings';
 
 // Layout
 import Navbar from './components/layout/Navbar';
@@ -104,6 +105,7 @@ const AuthenticatedApp = () => {
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/mi-cuenta" element={<MiCuenta />} />
         <Route path="/driver" element={<DriverApp />} />
+        <Route path="/driver-earnings" element={<DriverEarnings />} />
         <Route path="/challenges" element={<Challenges />} />
         <Route path="/rewards" element={<RewardsStore />} />
         <Route path="/content" element={<ContentManager />} />

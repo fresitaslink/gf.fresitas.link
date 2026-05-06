@@ -1,0 +1,53 @@
+{
+  "name": "DriverTransaction",
+  "type": "object",
+  "properties": {
+    "driver_email": {
+      "type": "string"
+    },
+    "order_id": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "delivery",
+        "bonus",
+        "refund",
+        "withdrawal",
+        "adjustment"
+      ],
+      "description": "Type of transaction"
+    },
+    "distance_km": {
+      "type": "number"
+    },
+    "time_minutes": {
+      "type": "number"
+    },
+    "is_rush": {
+      "type": "boolean",
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "driver_email",
+    "amount",
+    "type"
+  ]
+}

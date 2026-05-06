@@ -14,6 +14,7 @@ import RealStats from '@/components/home/RealStats';
 import HowItWorks from '@/components/home/HowItWorks';
 import LoyaltyClubSection from '@/components/home/LoyaltyClubSection';
 import HomeBlogSection from '@/components/home/HomeBlogSection';
+import DeliveryTrustSection from '@/components/home/DeliveryTrustSection';
 import { toast } from 'sonner';
 
 export default function Home() {
@@ -212,6 +213,8 @@ export default function Home() {
       </section>
 
       <HowItWorks />
+
+      <DeliveryTrustSection />
 
       {/* Seasonal Specials */}
       {seasonalProducts.length > 0 && (

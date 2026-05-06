@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, RotateCcw, Star, MessageCircle, Package, Clock, CheckCircle, ChefHat, Truck, Home, XCircle, MapPin, Phone, ShoppingBag, CalendarClock, Receipt, AlertCircle, TrendingUp } from 'lucide-react';
 import OrderReceipt from '@/components/orders/OrderReceipt';
 import LiveDeliveryTracker from '@/components/orders/LiveDeliveryTracker';
+import EnhancedOrderTracking from '@/components/orders/EnhancedOrderTracking';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -191,9 +192,9 @@ export default function Orders() {
                         {/* Tracker */}
                          <OrderTracker status={order.status} />
 
-                         {/* Real-time driver map when on_the_way */}
-                         {order.status === 'on_the_way' && (
-                           <LiveDeliveryTracker order={order} />
+                         {/* Enhanced tracking with driver info, PIN verification, and live map */}
+                         {['confirmed', 'preparing', 'on_the_way', 'delivered'].includes(order.status) && (
+                           <EnhancedOrderTracking order={order} />
                          )}
 
                         {/* Items */}

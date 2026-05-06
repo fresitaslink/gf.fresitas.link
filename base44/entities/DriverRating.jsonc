@@ -1,0 +1,56 @@
+{
+  "name": "DriverRating",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string"
+    },
+    "driver_email": {
+      "type": "string"
+    },
+    "customer_email": {
+      "type": "string"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "comment": {
+      "type": "string"
+    },
+    "punctuality_rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "professionalism_rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "vehicle_cleanliness_rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "food_care_rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "reported": {
+      "type": "boolean",
+      "default": false
+    },
+    "report_reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "order_id",
+    "driver_email",
+    "customer_email",
+    "rating"
+  ]
+}

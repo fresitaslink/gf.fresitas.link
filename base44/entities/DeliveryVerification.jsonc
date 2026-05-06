@@ -1,0 +1,70 @@
+{
+  "name": "DeliveryVerification",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string"
+    },
+    "driver_email": {
+      "type": "string"
+    },
+    "customer_email": {
+      "type": "string"
+    },
+    "verification_pin": {
+      "type": "string",
+      "description": "4-digit PIN sent to customer"
+    },
+    "pin_entered": {
+      "type": "string"
+    },
+    "pin_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "pin_verified_at": {
+      "type": "string"
+    },
+    "driver_photo_url": {
+      "type": "string",
+      "description": "Photo taken at delivery location"
+    },
+    "driver_photo_timestamp": {
+      "type": "string"
+    },
+    "customer_signature_url": {
+      "type": "string"
+    },
+    "customer_notes": {
+      "type": "string"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "verified",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "verification_attempts": {
+      "type": "number",
+      "default": 0
+    },
+    "delivery_condition": {
+      "type": "string",
+      "enum": [
+        "perfect",
+        "minor_issue",
+        "damaged"
+      ],
+      "default": "perfect"
+    }
+  },
+  "required": [
+    "order_id",
+    "driver_email",
+    "customer_email"
+  ]
+}

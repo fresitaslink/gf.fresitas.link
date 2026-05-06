@@ -29,6 +29,7 @@ import OwnerPanel from './pages/OwnerPanel';
 import ManagerPanel from './pages/ManagerPanel';
 import Suscripciones from './pages/Suscripciones';
 import Logistica from './pages/Logistica';
+import DriverManagement from './pages/DriverManagement';
 import Blog from './pages/Blog';
 import BlogPostDetail from './pages/BlogPostDetail';
 import Analytics from './pages/Analytics';
@@ -96,6 +97,7 @@ const AuthenticatedApp = () => {
         <Route path="/manager" element={<ManagerPanel />} />
         <Route path="/suscripciones" element={<Suscripciones />} />
         <Route path="/logistica" element={<Logistica />} />
+        <Route path="/drivers" element={<DriverManagement />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPostDetail />} />
         <Route path="/producto/:slug" element={<Menu />} />

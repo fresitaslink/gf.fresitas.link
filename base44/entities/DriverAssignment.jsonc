@@ -1,0 +1,79 @@
+{
+  "name": "DriverAssignment",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string"
+    },
+    "driver_email": {
+      "type": "string"
+    },
+    "driver_name": {
+      "type": "string"
+    },
+    "driver_photo": {
+      "type": "string"
+    },
+    "driver_rating": {
+      "type": "number"
+    },
+    "assigned_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "assignment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "rejected",
+        "active",
+        "completed",
+        "cancelled"
+      ],
+      "default": "pending"
+    },
+    "acceptance_deadline": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Driver has 2 minutes to accept"
+    },
+    "pickup_lat": {
+      "type": "number"
+    },
+    "pickup_lng": {
+      "type": "number"
+    },
+    "delivery_lat": {
+      "type": "number"
+    },
+    "delivery_lng": {
+      "type": "number"
+    },
+    "estimated_distance_km": {
+      "type": "number"
+    },
+    "estimated_duration_minutes": {
+      "type": "number"
+    },
+    "assignment_method": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "manual",
+        "driver_selected"
+      ],
+      "default": "auto"
+    },
+    "notes_for_driver": {
+      "type": "string"
+    },
+    "assigned_by_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "order_id",
+    "driver_email"
+  ]
+}

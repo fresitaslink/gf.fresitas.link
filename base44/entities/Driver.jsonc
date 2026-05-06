@@ -1,0 +1,129 @@
+{
+  "name": "Driver",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Driver's email (login account)"
+    },
+    "full_name": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Driver's profile photo"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "is_available": {
+      "type": "boolean",
+      "default": false,
+      "description": "Currently accepting deliveries"
+    },
+    "current_lat": {
+      "type": "number"
+    },
+    "current_lng": {
+      "type": "number"
+    },
+    "last_location_update": {
+      "type": "string"
+    },
+    "vehicle_type": {
+      "type": "string",
+      "enum": [
+        "motorcycle",
+        "car",
+        "van"
+      ],
+      "default": "car"
+    },
+    "vehicle_plate": {
+      "type": "string"
+    },
+    "vehicle_color": {
+      "type": "string"
+    },
+    "vehicle_model": {
+      "type": "string"
+    },
+    "vehicle_photo_url": {
+      "type": "string"
+    },
+    "license_plate_photo": {
+      "type": "string"
+    },
+    "document_id": {
+      "type": "string"
+    },
+    "document_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "total_deliveries": {
+      "type": "number",
+      "default": 0
+    },
+    "average_rating": {
+      "type": "number",
+      "default": 5.0
+    },
+    "rating_count": {
+      "type": "number",
+      "default": 0
+    },
+    "total_earnings": {
+      "type": "number",
+      "default": 0
+    },
+    "current_order_id": {
+      "type": "string"
+    },
+    "active_orders_count": {
+      "type": "number",
+      "default": 0
+    },
+    "acceptance_rate": {
+      "type": "number",
+      "default": 100
+    },
+    "cancellation_rate": {
+      "type": "number",
+      "default": 0
+    },
+    "average_delivery_time": {
+      "type": "number",
+      "description": "Minutes"
+    },
+    "bank_account": {
+      "type": "string"
+    },
+    "bank_name": {
+      "type": "string"
+    },
+    "account_holder_name": {
+      "type": "string"
+    },
+    "nightly_mode": {
+      "type": "boolean",
+      "default": false,
+      "description": "Only accept deliveries after 8pm"
+    },
+    "max_distance_km": {
+      "type": "number",
+      "default": 50
+    },
+    "preferred_zone": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email",
+    "full_name"
+  ]
+}

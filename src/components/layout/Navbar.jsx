@@ -150,10 +150,11 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
   }
   if (['admin', 'owner', 'manager', 'delivery'].includes(user?.role)) {
     adminItems.push({ divider: true });
+    adminItems.push({ to: '/drivers', label: 'Conductores', icon: Truck, iconColor: 'text-orange-500' });
     adminItems.push({ to: '/logistica', label: 'Logística', icon: Map, iconColor: 'text-indigo-500' });
   }
   if (['admin', 'owner', 'delivery'].includes(user?.role)) {
-    adminItems.push({ to: '/driver', label: 'App Repartidor 🚗', icon: Truck, iconColor: 'text-blue-500' });
+    adminItems.push({ to: '/driver', label: 'App Repartidor', icon: Truck, iconColor: 'text-blue-500' });
   }
 
   const isAdmin = ['admin', 'owner', 'manager', 'delivery'].includes(user?.role);

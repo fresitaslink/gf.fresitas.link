@@ -37,6 +37,7 @@ import DriverApp from './pages/DriverApp';
 import Challenges from './pages/Challenges';
 import RewardsStore from './pages/RewardsStore';
 import ContentManager from './pages/ContentManager';
+import SuperAdmin from './pages/SuperAdmin';
 
 // Layout
 import Navbar from './components/layout/Navbar';
@@ -103,6 +104,7 @@ const AuthenticatedApp = () => {
         <Route path="/challenges" element={<Challenges />} />
         <Route path="/rewards" element={<RewardsStore />} />
         <Route path="/content" element={<ContentManager />} />
+        <Route path="/superadmin" element={<SuperAdmin />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <WillfyButton />

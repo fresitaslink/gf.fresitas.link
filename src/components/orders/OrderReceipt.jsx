@@ -59,8 +59,9 @@ export default function OrderReceipt({ order, onClose }) {
       doc.rect(0, 0, pw, 35, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(18);
-      doc.text('🍓 Fresitas G&F', pw / 2, 14, { align: 'center' });
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Fresitas G&F', pw / 2, 15, { align: 'center' });
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       doc.text('Recibo Oficial de Compra', pw / 2, 22, { align: 'center' });
@@ -136,7 +137,7 @@ export default function OrderReceipt({ order, onClose }) {
         doc.roundedRect(8, y, pw - 16, 12, 3, 3, 'F');
         doc.setTextColor(146, 64, 14);
         doc.setFont('helvetica', 'bold');
-        doc.text(`⭐ +${order.loyalty_points_earned} puntos Fresitas Club ganados`, pw / 2, y + 8, { align: 'center' });
+        doc.text(`+${order.loyalty_points_earned} puntos Fresitas Club ganados`, pw / 2, y + 8, { align: 'center' });
         y += 18;
       }
 
@@ -144,7 +145,7 @@ export default function OrderReceipt({ order, onClose }) {
       doc.setTextColor(180, 180, 180);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
-      doc.text('Gracias por elegir Fresitas G&F — Preparadas con amor 🍓', pw / 2, y, { align: 'center' });
+      doc.text('Gracias por elegir Fresitas G&F — Preparadas con amor', pw / 2, y, { align: 'center' });
 
       doc.save(`recibo_fresitas_${order.tracking_code}.pdf`);
     } catch (err) {

@@ -265,28 +265,46 @@ function BlogManager() {
   const blankPost = () => ({ title_es: '', content_es: '', excerpt_es: '', category: 'tips', is_published: false, author_name: '', cover_image: '' });
 
   const handleSave = async () => {
-    if (!form.title_es) { toast.error('El título es requerido'); return; }
+    if (!form.title_es || !form.content_es) { toast.error('Título y contenido son requeridos'); return; }
     setSaving(true);
     try {
+      const dataToSave = { ...form };
+      if (!dataToSave.slug) {
+        dataToSave.slug = form.title_es.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      }
+      if (form.is_published && !dataToSave.published_at) {
+        dataToSave.published_at = new Date().toISOString().split('T')[0];
+      }
+      if (!form.is_published) {
+        dataToSave.published_at = null;
+      }
       if (editingId === 'new') {
-        const slug = form.title_es.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-        const created = await base44.entities.BlogPost.create({ ...form, slug, published_at: form.is_published ? new Date().toISOString().split('T')[0] : null });
+        const created = await base44.entities.BlogPost.create(dataToSave);
         setPosts(prev => [created, ...prev]);
-        toast.success('Post creado ✅');
+        toast.success('📝 Post creado y ' + (form.is_published ? 'publicado ✅' : 'guardado como borrador'));
       } else {
-        await base44.entities.BlogPost.update(editingId, form);
-        setPosts(prev => prev.map(p => p.id === editingId ? { ...p, ...form } : p));
-        toast.success('Post actualizado ✅');
+        await base44.entities.BlogPost.update(editingId, dataToSave);
+        setPosts(prev => prev.map(p => p.id === editingId ? { ...p, ...dataToSave } : p));
+        toast.success('✅ Post actualizado' + (form.is_published ? ' y publicado' : ''));
       }
       setEditingId(null); setForm({});
+    } catch (err) {
+      toast.error('Error al guardar: ' + err.message);
     } finally { setSaving(false); }
   };
 
   const handlePublishToggle = async (post) => {
-    const update = { is_published: !post.is_published, published_at: !post.is_published ? new Date().toISOString().split('T')[0] : null };
-    await base44.entities.BlogPost.update(post.id, update);
-    setPosts(prev => prev.map(p => p.id === post.id ? { ...p, ...update } : p));
-    toast.success(!post.is_published ? '📢 Publicado' : '📝 Guardado como borrador');
+    try {
+      const update = { 
+        is_published: !post.is_published, 
+        published_at: !post.is_published ? new Date().toISOString().split('T')[0] : null 
+      };
+      await base44.entities.BlogPost.update(post.id, update);
+      setPosts(prev => prev.map(p => p.id === post.id ? { ...p, ...update } : p));
+      toast.success(!post.is_published ? '✅ Post publicado en vivo' : '📝 Guardado como borrador');
+    } catch (err) {
+      toast.error('Error: ' + err.message);
+    }
   };
 
   const handleDelete = async (post) => {

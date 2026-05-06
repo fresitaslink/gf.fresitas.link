@@ -188,15 +188,20 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
       <div className="max-w-7xl mx-auto px-3 sm:px-5">
         <div className="flex items-center h-14 gap-1">
 
-          {/* ── Logo ── */}
-          <Link to="/" className="flex items-center gap-1.5 flex-shrink-0 mr-2">
-            {logoUrl ? (
-              <img src={logoUrl} alt={storeName} className="h-8 w-auto object-contain" />
-            ) : (
+          {/* ── Logo + Store Name ── */}
+          <Link to="/" className="flex items-center gap-2 flex-shrink-0 mr-2">
+            {logoUrl && (
+              <img src={logoUrl} alt={storeName || 'Fresitas'} className="h-8 w-auto object-contain" />
+            )}
+            {/* Fallback text when no logo */}
+            {!logoUrl && (
               <>
                 <span className="text-lg sm:text-xl font-poppins font-black text-strawberry">Fresitas</span>
                 <span className="text-lg sm:text-xl font-poppins font-black text-chocolate hidden sm:inline">G&F</span>
               </>
+            )}
+            {logoUrl && storeName && (
+              <span className="hidden sm:inline text-sm font-poppins font-bold text-foreground">{storeName}</span>
             )}
           </Link>
 

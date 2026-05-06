@@ -8,11 +8,11 @@ import { base44 } from '@/api/base44Client';
 import { useLanguage } from '@/lib/LanguageContext';
 
 const CATEGORY_META = {
-  recetas:   { label_es: 'Recetas',   label_en: 'Recipes',   color: 'bg-pink-500',   light: 'bg-pink-50 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',  svgIcon: '🍓' },
-  tips:      { label_es: 'Tips',      label_en: 'Tips',      color: 'bg-green-500',  light: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300', svgIcon: '💡' },
-  noticias:  { label_es: 'Noticias',  label_en: 'News',      color: 'bg-blue-500',   light: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',   svgIcon: '📰' },
-  temporada: { label_es: 'Temporada', label_en: 'Seasonal',  color: 'bg-amber-500',  light: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300', svgIcon: '🌱' },
-  maridajes: { label_es: 'Maridajes', label_en: 'Pairings',  color: 'bg-purple-500', light: 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300', svgIcon: '✨' },
+  recetas:   { label_es: 'Recetas',   label_en: 'Recipes',   color: 'bg-pink-500',   light: 'bg-pink-50 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',  icon: '🍓' },
+  tips:      { label_es: 'Tips',      label_en: 'Tips',      color: 'bg-green-500',  light: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300', icon: '💡' },
+  noticias:  { label_es: 'Noticias',  label_en: 'News',      color: 'bg-blue-500',   light: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',   icon: '📰' },
+  temporada: { label_es: 'Temporada', label_en: 'Seasonal',  color: 'bg-amber-500',  light: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300', icon: '🌱' },
+  maridajes: { label_es: 'Maridajes', label_en: 'Pairings',  color: 'bg-purple-500', light: 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300', icon: '✨' },
 };
 
 function PostCard({ post, language, size = 'normal' }) {
@@ -35,7 +35,7 @@ function PostCard({ post, language, size = 'normal' }) {
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
             <div className="absolute top-5 left-5">
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white ${cat.color}`}>
-                {cat.svgIcon} {catLabel}
+                {cat.icon} {catLabel}
               </span>
             </div>
             <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
@@ -73,7 +73,7 @@ function PostCard({ post, language, size = 'normal' }) {
           )}
           <div className="absolute top-3 left-3">
             <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-white ${cat.color}`}>
-              {cat.svgIcon} {catLabel}
+              {cat.icon} {catLabel}
             </span>
           </div>
         </div>
@@ -128,7 +128,7 @@ export default function Blog() {
 
   const TABS = [
     { key: 'all', label_es: 'Todos', label_en: 'All', icon: '📖' },
-    ...Object.entries(CATEGORY_META).map(([key, m]) => ({ key, label_es: m.label_es, label_en: m.label_en, icon: m.svgIcon })),
+    ...Object.entries(CATEGORY_META).map(([key, m]) => ({ key, label_es: m.label_es, label_en: m.label_en, icon: m.icon })),
   ];
 
   return (

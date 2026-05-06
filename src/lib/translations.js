@@ -1,0 +1,296 @@
+// Complete translation system - NO GOOGLE DEPENDENCY
+// Spanish & English only, fully managed locally
+
+export const translations = {
+  es: {
+    // Navigation & Common
+    menu: 'Menú',
+    home: 'Inicio',
+    myAccount: 'Mi Cuenta',
+    myOrders: 'Mis Pedidos',
+    favorites: 'Favoritos',
+    cart: 'Carrito',
+    checkout: 'Pagar',
+    profile: 'Perfil',
+    logout: 'Salir',
+    login: 'Iniciar Sesión',
+    language: 'Idioma',
+    open: 'Abierto',
+    closed: 'Cerrado',
+
+    // Products & Menu
+    addToCart: 'Agregar al Carrito',
+    price: 'Precio',
+    category: 'Categoría',
+    description: 'Descripción',
+    newProduct: 'Nuevo Producto',
+    featured: 'Destacado',
+    outOfStock: 'Agotado',
+    sizes: 'Tamaños',
+    toppings: 'Toppings',
+    specialty: 'Especial',
+
+    // Orders
+    orderNumber: 'Número de Pedido',
+    orderDate: 'Fecha de Pedido',
+    status: 'Estado',
+    pending: 'Pendiente',
+    confirmed: 'Confirmado',
+    preparing: 'Preparando',
+    onTheWay: 'En Camino',
+    delivered: 'Entregado',
+    cancelled: 'Cancelado',
+    deliveryTime: 'Tiempo de Entrega',
+    total: 'Total',
+    subtotal: 'Subtotal',
+    deliveryFee: 'Costo de Envío',
+    discount: 'Descuento',
+
+    // Blog
+    blog: 'Blog',
+    allPosts: 'Todos los Posts',
+    recipes: 'Recetas',
+    tips: 'Tips',
+    news: 'Noticias',
+    seasonal: 'Temporada',
+    pairings: 'Maridajes',
+    readMore: 'Leer más',
+    readingTime: 'min de lectura',
+    author: 'Autor',
+    published: 'Publicado',
+    draft: 'Borrador',
+
+    // Reviews
+    reviews: 'Reseñas',
+    rating: 'Calificación',
+    comment: 'Comentario',
+    yourReview: 'Tu Reseña',
+    submitReview: 'Enviar Reseña',
+    uploadPhotos: 'Subir Fotos',
+    ratedBy: 'Calificado por',
+
+    // Rewards & Challenges
+    rewards: 'Premios',
+    challenges: 'Desafíos',
+    points: 'Puntos',
+    loyaltyPoints: 'Puntos de Lealtad',
+    redeem: 'Canjear',
+    redeemReward: 'Canjear Premio',
+    yourPoints: 'Tus Puntos',
+    availableRewards: 'Premios Disponibles',
+    completedChallenges: 'Desafíos Completados',
+    dailyChallenge: 'Desafío Diario',
+
+    // Subscription
+    subscription: 'Suscripción',
+    subscribe: 'Suscribirse',
+    subscriptionPlan: 'Plan de Suscripción',
+    weekly: 'Semanal',
+    biweekly: 'Quincenalmente',
+    monthly: 'Mensual',
+    nextDelivery: 'Próxima Entrega',
+    pauseSubscription: 'Pausar Suscripción',
+    resumeSubscription: 'Reanudar Suscripción',
+    cancelSubscription: 'Cancelar Suscripción',
+
+    // Admin & Management
+    admin: 'Admin',
+    adminPanel: 'Panel de Admin',
+    owner: 'Propietario',
+    ownerPanel: 'Panel del Propietario',
+    manager: 'Gerente',
+    managerPanel: 'Panel del Gerente',
+    contentManager: 'Gestor de Contenido',
+    analytics: 'Analítica',
+    inventory: 'Inventario',
+    settings: 'Configuración',
+    storeSettings: 'Configuración de la Tienda',
+
+    // Content Management
+    products: 'Productos',
+    blogs: 'Blogs',
+    promos: 'Promociones',
+    email: 'Correo',
+    emailTemplates: 'Plantillas de Correo',
+
+    // Forms & Actions
+    save: 'Guardar',
+    create: 'Crear',
+    edit: 'Editar',
+    delete: 'Eliminar',
+    cancel: 'Cancelar',
+    confirm: 'Confirmar',
+    close: 'Cerrar',
+    search: 'Buscar',
+    filter: 'Filtrar',
+    sort: 'Ordenar',
+
+    // Messages
+    success: 'Éxito',
+    error: 'Error',
+    warning: 'Advertencia',
+    info: 'Información',
+    loading: 'Cargando...',
+    noData: 'Sin datos',
+    noResults: 'Sin resultados',
+
+    // Payment
+    payment: 'Pago',
+    paymentMethod: 'Método de Pago',
+    cash: 'Efectivo',
+    card: 'Tarjeta',
+    transfer: 'Transferencia',
+    paymentStatus: 'Estado del Pago',
+    paid: 'Pagado',
+    unpaid: 'No Pagado',
+    refunded: 'Reembolsado',
+  },
+  en: {
+    // Navigation & Common
+    menu: 'Menu',
+    home: 'Home',
+    myAccount: 'My Account',
+    myOrders: 'My Orders',
+    favorites: 'Favorites',
+    cart: 'Cart',
+    checkout: 'Checkout',
+    profile: 'Profile',
+    logout: 'Logout',
+    login: 'Login',
+    language: 'Language',
+    open: 'Open',
+    closed: 'Closed',
+
+    // Products & Menu
+    addToCart: 'Add to Cart',
+    price: 'Price',
+    category: 'Category',
+    description: 'Description',
+    newProduct: 'New Product',
+    featured: 'Featured',
+    outOfStock: 'Out of Stock',
+    sizes: 'Sizes',
+    toppings: 'Toppings',
+    specialty: 'Specialty',
+
+    // Orders
+    orderNumber: 'Order Number',
+    orderDate: 'Order Date',
+    status: 'Status',
+    pending: 'Pending',
+    confirmed: 'Confirmed',
+    preparing: 'Preparing',
+    onTheWay: 'On the Way',
+    delivered: 'Delivered',
+    cancelled: 'Cancelled',
+    deliveryTime: 'Delivery Time',
+    total: 'Total',
+    subtotal: 'Subtotal',
+    deliveryFee: 'Delivery Fee',
+    discount: 'Discount',
+
+    // Blog
+    blog: 'Blog',
+    allPosts: 'All Posts',
+    recipes: 'Recipes',
+    tips: 'Tips',
+    news: 'News',
+    seasonal: 'Seasonal',
+    pairings: 'Pairings',
+    readMore: 'Read More',
+    readingTime: 'min read',
+    author: 'Author',
+    published: 'Published',
+    draft: 'Draft',
+
+    // Reviews
+    reviews: 'Reviews',
+    rating: 'Rating',
+    comment: 'Comment',
+    yourReview: 'Your Review',
+    submitReview: 'Submit Review',
+    uploadPhotos: 'Upload Photos',
+    ratedBy: 'Rated by',
+
+    // Rewards & Challenges
+    rewards: 'Rewards',
+    challenges: 'Challenges',
+    points: 'Points',
+    loyaltyPoints: 'Loyalty Points',
+    redeem: 'Redeem',
+    redeemReward: 'Redeem Reward',
+    yourPoints: 'Your Points',
+    availableRewards: 'Available Rewards',
+    completedChallenges: 'Completed Challenges',
+    dailyChallenge: 'Daily Challenge',
+
+    // Subscription
+    subscription: 'Subscription',
+    subscribe: 'Subscribe',
+    subscriptionPlan: 'Subscription Plan',
+    weekly: 'Weekly',
+    biweekly: 'Bi-weekly',
+    monthly: 'Monthly',
+    nextDelivery: 'Next Delivery',
+    pauseSubscription: 'Pause Subscription',
+    resumeSubscription: 'Resume Subscription',
+    cancelSubscription: 'Cancel Subscription',
+
+    // Admin & Management
+    admin: 'Admin',
+    adminPanel: 'Admin Panel',
+    owner: 'Owner',
+    ownerPanel: 'Owner Panel',
+    manager: 'Manager',
+    managerPanel: 'Manager Panel',
+    contentManager: 'Content Manager',
+    analytics: 'Analytics',
+    inventory: 'Inventory',
+    settings: 'Settings',
+    storeSettings: 'Store Settings',
+
+    // Content Management
+    products: 'Products',
+    blogs: 'Blogs',
+    promos: 'Promotions',
+    email: 'Email',
+    emailTemplates: 'Email Templates',
+
+    // Forms & Actions
+    save: 'Save',
+    create: 'Create',
+    edit: 'Edit',
+    delete: 'Delete',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    close: 'Close',
+    search: 'Search',
+    filter: 'Filter',
+    sort: 'Sort',
+
+    // Messages
+    success: 'Success',
+    error: 'Error',
+    warning: 'Warning',
+    info: 'Information',
+    loading: 'Loading...',
+    noData: 'No data',
+    noResults: 'No results',
+
+    // Payment
+    payment: 'Payment',
+    paymentMethod: 'Payment Method',
+    cash: 'Cash',
+    card: 'Card',
+    transfer: 'Transfer',
+    paymentStatus: 'Payment Status',
+    paid: 'Paid',
+    unpaid: 'Unpaid',
+    refunded: 'Refunded',
+  },
+};
+
+// Merge any missing keys with fallback
+export const t = (key, lang = 'es') => {
+  return translations[lang]?.[key] || translations['es']?.[key] || key;
+};

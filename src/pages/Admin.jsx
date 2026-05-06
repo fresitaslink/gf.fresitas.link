@@ -14,6 +14,7 @@ import IngredientManager from '@/components/admin/IngredientManager';
 import InventoryDashboard from '@/components/admin/InventoryDashboard';
 import RewardsManager from '@/components/admin/RewardsManager';
 import ChallengesManager from '@/components/admin/ChallengesManager';
+import ReviewManager from '@/components/admin/ReviewManager';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -399,42 +400,9 @@ export default function Admin() {
               </div>
             </TabsContent>
 
-            {/* Reviews */}
+            {/* Reviews — New Manager Component */}
             <TabsContent value="reviews">
-              <div className="space-y-4">
-                {reviews.map(review => (
-                  <div key={review.id} className="bg-card rounded-xl border border-border p-4">
-                    <div className="flex items-start gap-3 mb-2">
-                      <div>
-                        <p className="font-semibold text-sm">{review.customer_name}</p>
-                        <div className="flex gap-0.5">
-                          {[1,2,3,4,5].map(i => <Star key={i} className={`w-3 h-3 ${i <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-200'}`} />)}
-                        </div>
-                      </div>
-                    </div>
-                    {review.comment && <p className="text-sm text-muted-foreground mb-3">"{review.comment}"</p>}
-                    {review.reply ? (
-                      <div className="bg-strawberry/5 border border-strawberry/20 rounded-xl p-3 text-sm">
-                        <p className="font-medium text-xs text-strawberry mb-1">Tu respuesta:</p>
-                        <p>{review.reply}</p>
-                      </div>
-                    ) : (
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Responder esta reseña..."
-                          value={replyTexts[review.id] || ''}
-                          onChange={e => setReplyTexts(prev => ({ ...prev, [review.id]: e.target.value }))}
-                          className="rounded-xl text-sm"
-                        />
-                        <Button size="sm" className="bg-strawberry text-white hover:bg-strawberry/90 rounded-xl" onClick={() => handleReplyReview(review)}>
-                          Enviar
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {reviews.length === 0 && <p className="text-center text-muted-foreground py-8">No hay reseñas aún</p>}
-              </div>
+              <ReviewManager />
             </TabsContent>
 
             {/* Chat */}

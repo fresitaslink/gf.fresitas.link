@@ -21,7 +21,7 @@ export default function DriverAssignmentPanel({ orders = [] }) {
       base44.entities.Driver.list('-average_rating'),
       base44.entities.DriverAssignment.list('-created_date'),
     ]).then(([drv, assign]) => {
-      setDrivers(drv.filter(d => d.is_active && d.is_available));
+      setDrivers(drv.filter(d => d.is_active)); // Show all active drivers, available or not
       setAssignments(assign);
       const assignedIds = assign.map(a => a.order_id);
       setUnassignedOrders(orders.filter(o => !assignedIds.includes(o.id) && ['pending', 'confirmed'].includes(o.status)));

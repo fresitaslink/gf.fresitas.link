@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
     const activeAssignments = await base44.asServiceRole.entities.DriverAssignment.filter({ assignment_status: { $in: ['pending', 'accepted', 'active'] } });
 
     const eligibleDrivers = drivers
-      .filter(d => d.is_active && d.is_available)
+      .filter(d => d.is_active) // Accept both available and unavailable drivers
       .filter(d => {
         const currentOrders = activeAssignments.filter(a => a.driver_email === d.user_email).length;
         return currentOrders < 3;

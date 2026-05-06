@@ -6,6 +6,7 @@ import LiveDeliveryTracker from '@/components/orders/LiveDeliveryTracker';
 import EnhancedOrderTracking from '@/components/orders/EnhancedOrderTracking';
 import DeliveryChat from '@/components/orders/DeliveryChat';
 import CustomerReviewSection from '@/components/orders/CustomerReviewSection';
+import DriverRatingComponent from '@/components/orders/DriverRatingComponent';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -207,6 +208,19 @@ export default function Orders() {
                           {['confirmed', 'preparing', 'on_the_way', 'delivered'].includes(order.status) && (
                             <EnhancedOrderTracking order={order} />
                           )}
+
+                         {/* Driver Rating */}
+                         {order.status === 'delivered' && (
+                           <DriverRatingComponent 
+                             order={order}
+                             onRatingSubmit={() => {
+                               // Refresh order to check if rating was already submitted
+                               base44.entities.Order.get(order.id).then(updated => {
+                                 setOrders(prev => prev.map(o => o.id === order.id ? updated : o));
+                               });
+                             }}
+                           />
+                         )}
 
                          {/* Review Section */}
                          {['delivered', 'confirmed', 'preparing', 'on_the_way'].includes(order.status) && (

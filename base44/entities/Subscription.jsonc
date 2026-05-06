@@ -3,97 +3,88 @@
   "type": "object",
   "properties": {
     "user_email": {
-      "type": "string"
-    },
-    "customer_name": {
-      "type": "string"
+      "type": "string",
+      "description": "User email"
     },
     "plan": {
       "type": "string",
       "enum": [
         "basic",
         "premium",
-        "vip"
+        "elite"
       ],
-      "default": "basic"
-    },
-    "items": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "product_id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "quantity": {
-            "type": "number"
-          },
-          "price": {
-            "type": "number"
-          }
-        }
-      }
-    },
-    "delivery_address": {
-      "type": "string"
-    },
-    "delivery_day": {
-      "type": "string",
-      "enum": [
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-        "sunday"
-      ]
-    },
-    "frequency": {
-      "type": "string",
-      "enum": [
-        "weekly",
-        "biweekly",
-        "monthly"
-      ],
-      "default": "monthly"
+      "default": "basic",
+      "description": "Subscription plan"
     },
     "status": {
       "type": "string",
       "enum": [
         "active",
         "paused",
-        "cancelled"
+        "cancelled",
+        "expired"
       ],
       "default": "active"
     },
+    "price_monthly": {
+      "type": "number",
+      "description": "Monthly price in currency"
+    },
+    "free_delivery": {
+      "type": "boolean",
+      "default": false,
+      "description": "All orders have free delivery"
+    },
+    "priority_access": {
+      "type": "boolean",
+      "default": false,
+      "description": "Early access to promotions"
+    },
+    "points_multiplier": {
+      "type": "number",
+      "default": 1.0,
+      "description": "Points earned multiplier (1.5x, 2.0x, etc)"
+    },
     "discount_percent": {
       "type": "number",
-      "default": 10
+      "default": 0,
+      "description": "Extra percentage discount on all orders"
     },
-    "total_monthly": {
-      "type": "number"
-    },
-    "next_delivery": {
+    "started_at": {
       "type": "string",
-      "format": "date"
+      "format": "date-time"
     },
-    "stripe_subscription_id": {
-      "type": "string"
+    "renews_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Next renewal date"
     },
     "payment_method": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "stripe",
+        "paypal",
+        "bank_transfer"
+      ]
     },
-    "notes": {
-      "type": "string"
+    "stripe_subscription_id": {
+      "type": "string",
+      "description": "Stripe subscription ID for recurring billing"
+    },
+    "cancelled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "perks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of active perks (free_delivery, priority_support, exclusive_deals, etc)"
     }
   },
   "required": [
     "user_email",
-    "items",
-    "delivery_address"
+    "plan"
   ]
 }

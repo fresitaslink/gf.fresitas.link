@@ -1,0 +1,39 @@
+{
+  "name": "RewardRedemption",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "reward_id": {
+      "type": "string"
+    },
+    "reward_name": {
+      "type": "string"
+    },
+    "points_spent": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "processing",
+        "delivered",
+        "cancelled"
+      ],
+      "default": "pending"
+    },
+    "delivery_address": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email",
+    "reward_id",
+    "points_spent"
+  ]
+}

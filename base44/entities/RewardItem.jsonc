@@ -1,0 +1,40 @@
+{
+  "name": "RewardItem",
+  "type": "object",
+  "properties": {
+    "name_es": {
+      "type": "string"
+    },
+    "description_es": {
+      "type": "string"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "points_cost": {
+      "type": "number"
+    },
+    "stock": {
+      "type": "number",
+      "default": 10
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "producto",
+        "descuento",
+        "experiencia",
+        "merch"
+      ],
+      "default": "producto"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name_es",
+    "points_cost"
+  ]
+}

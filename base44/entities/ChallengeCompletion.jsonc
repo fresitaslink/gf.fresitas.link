@@ -1,0 +1,22 @@
+{
+  "name": "ChallengeCompletion",
+  "type": "object",
+  "properties": {
+    "challenge_id": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "points_awarded": {
+      "type": "number"
+    },
+    "completed_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "challenge_id",
+    "user_email"
+  ]
+}

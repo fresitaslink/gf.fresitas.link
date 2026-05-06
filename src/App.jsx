@@ -33,6 +33,10 @@ import Blog from './pages/Blog';
 import BlogPostDetail from './pages/BlogPostDetail';
 import Analytics from './pages/Analytics';
 import MiCuenta from './pages/MiCuenta';
+import DriverApp from './pages/DriverApp';
+import Challenges from './pages/Challenges';
+import RewardsStore from './pages/RewardsStore';
+import ContentManager from './pages/ContentManager';
 
 // Layout
 import Navbar from './components/layout/Navbar';
@@ -95,6 +99,10 @@ const AuthenticatedApp = () => {
         <Route path="/blog/:slug" element={<BlogPostDetail />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/mi-cuenta" element={<MiCuenta />} />
+        <Route path="/driver" element={<DriverApp />} />
+        <Route path="/challenges" element={<Challenges />} />
+        <Route path="/rewards" element={<RewardsStore />} />
+        <Route path="/content" element={<ContentManager />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <WillfyButton />

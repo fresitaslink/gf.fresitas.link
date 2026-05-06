@@ -41,6 +41,10 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
   if (user?.role === 'manager') navLinks.push({ to: '/manager', label: 'Manager' });
   if (user?.role === 'owner') navLinks.push({ to: '/owner', label: 'Owner' });
   if (['admin', 'owner', 'manager', 'delivery'].includes(user?.role)) navLinks.push({ to: '/logistica', label: 'Logística' });
+  if (['admin', 'owner', 'manager'].includes(user?.role)) navLinks.push({ to: '/content', label: 'Contenido' });
+  if (user?.role === 'delivery') navLinks.push({ to: '/driver', label: '🚗 App Repartidor' });
+  navLinks.push({ to: '/challenges', label: '🎯 Desafíos' });
+  navLinks.push({ to: '/rewards', label: '🎁 Premios' });
 
   return (
     <motion.nav

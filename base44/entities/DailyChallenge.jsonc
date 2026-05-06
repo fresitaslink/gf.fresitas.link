@@ -1,0 +1,51 @@
+{
+  "name": "DailyChallenge",
+  "type": "object",
+  "properties": {
+    "title_es": {
+      "type": "string"
+    },
+    "description_es": {
+      "type": "string"
+    },
+    "icon": {
+      "type": "string",
+      "default": "\ud83c\udf53"
+    },
+    "points_reward": {
+      "type": "number",
+      "default": 50
+    },
+    "challenge_type": {
+      "type": "string",
+      "enum": [
+        "order_before_time",
+        "order_product",
+        "order_amount",
+        "referral",
+        "review"
+      ],
+      "default": "order_before_time"
+    },
+    "condition_value": {
+      "type": "string",
+      "description": "e.g. '14:00' for time, product name, '$200' for amount"
+    },
+    "active_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "completions_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "title_es",
+    "points_reward"
+  ]
+}

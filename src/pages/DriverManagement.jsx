@@ -70,6 +70,15 @@ export default function DriverManagement() {
      return;
    }
 
+   // Auto-fix reserved/invalid domains (.local, .test, .invalid, .example, .localhost)
+   let cleanEmail = formData.user_email.trim().toLowerCase();
+   const invalidDomains = /@([^@]*\.)?(local|test|invalid|example|localhost)$/i;
+   if (invalidDomains.test(cleanEmail)) {
+     const localPart = cleanEmail.split('@')[0];
+     cleanEmail = `${localPart}@fresitasdrivers.com`;
+     toast.info(`Email ajustado a: ${cleanEmail}`);
+   }
+
    try {
      if (editingDriver) {
        // Update driver record (email cannot be changed)
@@ -85,11 +94,11 @@ export default function DriverManagement() {
        toast.success('Conductor actualizado');
      } else {
        // Step 1: Invite user with delivery role (creates valid user account)
-       await base44.users.inviteUser(formData.user_email, 'delivery');
+       await base44.users.inviteUser(cleanEmail, 'delivery');
 
        // Step 2: Create driver profile linked to the invited user
        await base44.entities.Driver.create({
-         user_email: formData.user_email,
+         user_email: cleanEmail,
          full_name: formData.full_name,
          phone: formData.phone,
          photo_url: formData.photo_url,
@@ -100,7 +109,7 @@ export default function DriverManagement() {
          is_active: true,
          is_available: false,
        });
-       toast.success(`Conductor ${formData.full_name} agregado e invitado con email: ${formData.user_email}`);
+       toast.success(`Conductor ${formData.full_name} agregado e invitado con email: ${cleanEmail}`);
      }
      setShowForm(false);
      setEditingDriver(null);

@@ -1185,6 +1185,7 @@ export default function SuperAdmin() {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('products');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     if (!user || !['admin', 'owner'].includes(user.role)) navigate('/');
@@ -1196,12 +1197,18 @@ export default function SuperAdmin() {
   const ActiveComponent = SECTION_COMPONENTS[activeSection] || (() => <div className="text-muted-foreground text-center py-16">Sección en desarrollo...</div>);
   const activeInfo = SECTIONS.find(s => s.id === activeSection);
 
+  const handleSectionSelect = (id) => {
+    setActiveSection(id);
+    setMobileNavOpen(false);
+  };
+
   return (
-    <div className="min-h-screen pt-16 bg-background flex">
-      {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-60' : 'w-14'} transition-all duration-200 flex-shrink-0 bg-card border-r border-border flex flex-col overflow-hidden`}>
-        {/* Logo */}
-        <div className="p-4 border-b border-border flex items-center gap-2">
+    <div className="min-h-screen pt-14 bg-background flex flex-col md:flex-row">
+
+      {/* ── Desktop Sidebar ── */}
+      <div className={`hidden md:flex ${sidebarOpen ? 'w-56' : 'w-14'} transition-all duration-200 flex-shrink-0 bg-card border-r border-border flex-col overflow-hidden sticky top-14 h-[calc(100vh-3.5rem)]`}>
+        {/* Header */}
+        <div className="p-3 border-b border-border flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-strawberry/10 flex items-center justify-center flex-shrink-0">
             <Crown className="w-4 h-4 text-gold" />
           </div>
@@ -1250,17 +1257,95 @@ export default function SuperAdmin() {
         )}
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="max-w-4xl mx-auto p-6">
+      {/* ── Mobile Top Bar ── */}
+      <div className="md:hidden flex items-center gap-2 px-3 py-2 bg-card border-b border-border sticky top-14 z-30">
+        <div className="w-6 h-6 rounded-lg bg-strawberry/10 flex items-center justify-center flex-shrink-0">
+          <Crown className="w-3.5 h-3.5 text-gold" />
+        </div>
+        <div className="flex-1 min-w-0">
+          {activeInfo && (
+            <div className="flex items-center gap-1.5">
+              <activeInfo.icon className="w-3.5 h-3.5 text-strawberry flex-shrink-0" />
+              <span className="font-semibold text-sm truncate">{activeInfo.label}</span>
+            </div>
+          )}
+        </div>
+        <button
+          onClick={() => setMobileNavOpen(v => !v)}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-muted rounded-xl text-xs font-semibold"
+        >
+          <Layers className="w-3.5 h-3.5" />
+          Secciones
+        </button>
+      </div>
+
+      {/* ── Mobile Section Picker (bottom sheet) ── */}
+      <AnimatePresence>
+        {mobileNavOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-black/50 md:hidden"
+              onClick={() => setMobileNavOpen(false)}
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border rounded-t-2xl max-h-[75vh] overflow-y-auto md:hidden"
+            >
+              <div className="flex items-center justify-between p-4 border-b border-border">
+                <h3 className="font-poppins font-bold text-sm">SuperAdmin · Secciones</h3>
+                <button onClick={() => setMobileNavOpen(false)} className="p-1.5 rounded-lg hover:bg-muted">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="p-3 space-y-3 pb-8">
+                {groups.map(group => (
+                  <div key={group}>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-1">{group}</p>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {SECTIONS.filter(s => s.group === group).map(s => (
+                        <button
+                          key={s.id}
+                          onClick={() => handleSectionSelect(s.id)}
+                          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium text-left transition-all ${
+                            activeSection === s.id
+                              ? 'bg-strawberry/10 text-strawberry border border-strawberry/30'
+                              : 'bg-muted text-foreground hover:bg-secondary'
+                          }`}
+                        >
+                          <s.icon className="w-4 h-4 flex-shrink-0" />
+                          <span className="truncate">{s.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── Main Content ── */}
+      <div className="flex-1 overflow-auto min-w-0">
+        <div className="max-w-4xl mx-auto p-4 sm:p-6">
           <motion.div key={activeSection} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
-            {/* Page Header */}
-            <div className="flex items-center gap-3 mb-6">
+            {/* Page Header — desktop only (mobile shows in top bar) */}
+            <div className="hidden md:flex items-center gap-3 mb-6">
               {activeInfo && <activeInfo.icon className="w-6 h-6 text-strawberry" />}
               <div>
                 <h1 className="font-poppins font-black text-2xl">{activeInfo?.label}</h1>
                 <p className="text-xs text-muted-foreground">{activeInfo?.group} · Fresitas G&F</p>
               </div>
+            </div>
+            {/* Mobile header */}
+            <div className="md:hidden mb-4">
+              <h1 className="font-poppins font-black text-xl">{activeInfo?.label}</h1>
             </div>
             <ActiveComponent />
           </motion.div>

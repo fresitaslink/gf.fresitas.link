@@ -11,12 +11,11 @@ import { useLanguage } from '@/lib/LanguageContext';
 import { useCart } from '@/lib/CartContext';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import NotificationDrawer from '@/components/layout/NotificationDrawer';
 
 // ── Dropdown Menu Component ─────────────────────────────────────────────────
-function NavDropdown({ label, icon: Icon, items, roleColor }) {
+function NavDropdown({ label, icon: Icon, items, align = 'left' }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const location = useLocation();
@@ -27,21 +26,23 @@ function NavDropdown({ label, icon: Icon, items, roleColor }) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  useEffect(() => { setOpen(false); }, [location.pathname]);
+
   const isAnyActive = items.some(i => i.to === location.pathname);
 
   return (
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(v => !v)}
-        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-all hover:bg-muted ${
+        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
           isAnyActive || open
             ? 'text-strawberry bg-strawberry/8'
-            : 'text-muted-foreground hover:text-foreground'
+            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
         }`}
       >
-        {Icon && <Icon className="w-3.5 h-3.5" />}
-        <span>{label}</span>
-        <ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} />
+        {Icon && <Icon className="w-3.5 h-3.5 flex-shrink-0" />}
+        <span className="truncate max-w-[100px]">{label}</span>
+        <ChevronDown className={`w-3 h-3 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       <AnimatePresence>
@@ -51,7 +52,7 @@ function NavDropdown({ label, icon: Icon, items, roleColor }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
             transition={{ duration: 0.12 }}
-            className="absolute top-full left-0 mt-1.5 w-52 bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden py-1.5"
+            className={`absolute top-full mt-1.5 w-52 bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden py-1.5 ${align === 'right' ? 'right-0' : 'left-0'}`}
           >
             {items.map((item, i) => {
               if (item.divider) return <div key={i} className="my-1 border-t border-border" />;
@@ -67,7 +68,7 @@ function NavDropdown({ label, icon: Icon, items, roleColor }) {
                   }`}
                 >
                   {item.icon && <item.icon className={`w-4 h-4 flex-shrink-0 ${item.iconColor || 'text-muted-foreground'}`} />}
-                  <span>{item.label}</span>
+                  <span className="flex-1">{item.label}</span>
                   {item.badge && <Badge className={`ml-auto text-xs ${item.badge.cls}`}>{item.badge.label}</Badge>}
                 </Link>
               );
@@ -94,7 +95,6 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close mobile menu on route change
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
   // ── Customer Links ─────────────────────────────────────────────────────────
@@ -130,16 +130,28 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
     adminItems.push({ divider: true });
     adminItems.push({ to: '/logistica', label: 'Logística', icon: Map, iconColor: 'text-indigo-500' });
   }
-  if (user?.role === 'delivery') {
+  if (['admin', 'owner', 'delivery'].includes(user?.role)) {
     adminItems.push({ to: '/driver', label: 'App Repartidor 🚗', icon: Truck, iconColor: 'text-blue-500' });
   }
-
-  // ── All mobile links flat ──────────────────────────────────────────────────
-  const allMobileLinks = [...customerItems, ...(adminItems.length > 0 ? [{ divider: true }, ...adminItems] : [])];
 
   const isAdmin = ['admin', 'owner', 'manager', 'delivery'].includes(user?.role);
   const roleIcon = user?.role === 'owner' ? Crown : user?.role === 'manager' ? Shield : user?.role === 'delivery' ? Truck : null;
   const roleColor = user?.role === 'owner' ? 'text-gold' : user?.role === 'manager' ? 'text-purple-500' : 'text-blue-500';
+
+  const adminLabel =
+    user?.role === 'owner' ? '👑 Owner' :
+    user?.role === 'manager' ? '🛡 Manager' :
+    user?.role === 'delivery' ? '🚗 Driver' :
+    '⚙️ Admin';
+
+  // All mobile links flat
+  const allMobileLinks = [
+    { to: '/', label: 'Inicio', icon: Home },
+    { to: '/menu', label: language === 'es' ? 'Menú' : 'Menu', icon: Package },
+    { divider: true },
+    ...customerItems,
+    ...(adminItems.length > 0 ? [{ divider: true }, ...adminItems] : []),
+  ];
 
   return (
     <motion.nav
@@ -155,35 +167,56 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
         <div className="flex items-center h-14 gap-1">
 
           {/* ── Logo ── */}
-          <Link to="/" className="flex items-center gap-1.5 group flex-shrink-0 mr-1">
-            <span className="text-xl font-poppins font-black text-strawberry">Fresitas</span>
-            <span className="text-xl font-poppins font-black text-chocolate hidden sm:inline">G&F</span>
+          <Link to="/" className="flex items-center gap-1.5 flex-shrink-0 mr-2">
+            <span className="text-lg sm:text-xl font-poppins font-black text-strawberry">Fresitas</span>
+            <span className="text-lg sm:text-xl font-poppins font-black text-chocolate hidden sm:inline">G&F</span>
           </Link>
 
           {/* ── Desktop Nav ── */}
-          <div className="hidden md:flex items-center gap-0.5 flex-1">
-            {/* Quick direct links */}
+          <div className="hidden lg:flex items-center gap-0.5 flex-1 min-w-0">
+            {/* Direct menu link */}
             <Link
               to="/menu"
-              className={`px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${location.pathname === '/menu' ? 'text-strawberry' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}
+              className={`px-2.5 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
+                location.pathname === '/menu' ? 'text-strawberry' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
             >
               {language === 'es' ? 'Menú' : 'Menu'}
             </Link>
 
             {/* Customer dropdown */}
-            <NavDropdown
-              label={language === 'es' ? 'Mi Cuenta' : 'My Account'}
-              icon={User}
-              items={customerItems}
-            />
+            {user && (
+              <NavDropdown
+                label={language === 'es' ? 'Mi Cuenta' : 'My Account'}
+                icon={User}
+                items={customerItems}
+              />
+            )}
 
             {/* Admin dropdown — only for staff */}
             {isAdmin && adminItems.length > 0 && (
               <NavDropdown
-                label={language === 'es' ? 'Panel' : 'Panel'}
-                icon={Settings}
+                label={adminLabel}
+                icon={null}
                 items={adminItems}
-                roleColor={roleColor}
+              />
+            )}
+          </div>
+
+          {/* Medium screens: show just dropdowns, no direct menu link */}
+          <div className="hidden md:flex lg:hidden items-center gap-0.5 flex-1 min-w-0">
+            {user && (
+              <NavDropdown
+                label={language === 'es' ? 'Cuenta' : 'Account'}
+                icon={User}
+                items={customerItems}
+              />
+            )}
+            {isAdmin && adminItems.length > 0 && (
+              <NavDropdown
+                label={adminLabel}
+                icon={null}
+                items={adminItems}
               />
             )}
           </div>
@@ -191,14 +224,14 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
           {/* ── Right Actions ── */}
           <div className="flex items-center gap-0.5 ml-auto">
 
-            {/* Store Status pill */}
+            {/* Store Status pill — hidden on small phones */}
             <div className={`hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
               storeOpen
                 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                 : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
             }`}>
               <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${storeOpen ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-              <span className="hidden lg:inline">{storeOpen ? t.open : t.closed}</span>
+              <span className="hidden lg:inline">{storeOpen ? (t.open || 'Abierto') : (t.closed || 'Cerrado')}</span>
             </div>
 
             {/* Language */}
@@ -257,16 +290,16 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-strawberry hover:bg-strawberry/90 text-white text-sm font-semibold rounded-xl transition-colors"
               >
                 <LogIn className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{t.login}</span>
+                <span className="hidden sm:inline">{t.login || 'Entrar'}</span>
               </button>
             )}
 
-            {/* Mobile hamburger */}
+            {/* Mobile hamburger — shown below md */}
             <button
               className="md:hidden p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
               onClick={() => setMobileOpen(v => !v)}
             >
-              {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -279,14 +312,42 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-background border-t border-border overflow-hidden"
+            className="md:hidden bg-background/98 backdrop-blur border-t border-border overflow-hidden"
           >
-            <div className="px-4 py-3 space-y-0.5 max-h-[75vh] overflow-y-auto">
-              {allMobileLinks.map((link, i) => {
-                if (link.divider) return <div key={i} className="my-2 border-t border-border" />;
+            <div className="px-3 py-3 space-y-0.5 max-h-[80vh] overflow-y-auto">
+              {/* Quick links at top */}
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <Link
+                  to="/menu"
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                    location.pathname === '/menu' ? 'bg-strawberry text-white' : 'bg-muted text-foreground'
+                  }`}
+                >
+                  <Package className="w-4 h-4" /> {language === 'es' ? 'Menú' : 'Menu'}
+                </Link>
+                <Link
+                  to="/cart"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold bg-muted text-foreground transition-colors"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  {language === 'es' ? 'Carrito' : 'Cart'}
+                  {itemCount > 0 && <Badge className="ml-auto bg-strawberry text-white text-xs">{itemCount}</Badge>}
+                </Link>
+              </div>
+
+              <div className="border-t border-border mb-2" />
+
+              {allMobileLinks.filter((_, i, arr) => {
+                // Remove duplicate leading dividers and dedup
+                return true;
+              }).map((link, i) => {
+                if (link.divider) return <div key={i} className="my-1.5 border-t border-border" />;
+                if (link.to === '/menu' || link.to === '/cart') return null; // already shown above
                 return (
                   <Link
-                    key={link.to}
+                    key={link.to + i}
                     to={link.to}
                     onClick={() => setMobileOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
@@ -296,17 +357,18 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
                     }`}
                   >
                     {link.icon && <link.icon className={`w-4 h-4 flex-shrink-0 ${link.iconColor || 'text-muted-foreground'}`} />}
-                    {link.label}
-                    {link.badge && <Badge className={`ml-auto text-xs ${link.badge.cls}`}>{link.badge.label}</Badge>}
+                    <span className="flex-1">{link.label}</span>
+                    {link.badge && <Badge className={`text-xs ${link.badge.cls}`}>{link.badge.label}</Badge>}
                   </Link>
                 );
               })}
+
               {!user && (
                 <button
-                  className="w-full flex items-center justify-center gap-2 mt-2 py-2.5 bg-strawberry text-white rounded-xl font-semibold text-sm"
-                  onClick={() => base44.auth.redirectToLogin()}
+                  className="w-full flex items-center justify-center gap-2 mt-3 py-3 bg-strawberry text-white rounded-xl font-semibold text-sm"
+                  onClick={() => { base44.auth.redirectToLogin(); setMobileOpen(false); }}
                 >
-                  <LogIn className="w-4 h-4" /> {t.login}
+                  <LogIn className="w-4 h-4" /> {t.login || 'Iniciar Sesión'}
                 </button>
               )}
             </div>

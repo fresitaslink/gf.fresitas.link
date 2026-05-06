@@ -35,9 +35,12 @@ export default function Menu() {
   const [favorites, setFavorites] = useState([]);
 
   useEffect(() => {
+    // Track menu visit for funnel analytics
+    const prev = parseInt(localStorage.getItem('fresitas_funnel_menu') || '0');
+    localStorage.setItem('fresitas_funnel_menu', String(prev + 1));
+
     base44.entities.Product.list().then(prods => {
       setProducts(prods);
-      // If producto slug specified, open modal
       const prodSlug = searchParams.get('producto');
       if (prodSlug) {
         const found = prods.find(p => p.slug === prodSlug);

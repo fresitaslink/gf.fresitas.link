@@ -68,6 +68,12 @@ export default function Checkout() {
     }
   }, [user]);
 
+  // Track checkout visit for funnel analytics (only once per mount)
+  useEffect(() => {
+    const prev = parseInt(localStorage.getItem('fresitas_funnel_checkout') || '0');
+    localStorage.setItem('fresitas_funnel_checkout', String(prev + 1));
+  }, []);
+
   if (items.length === 0 && !orderPlaced) {
     navigate('/cart');
     return null;

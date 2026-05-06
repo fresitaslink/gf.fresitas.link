@@ -17,17 +17,34 @@ export default function Cart() {
   const [appliedPromo, setAppliedPromo] = useState(null);
   const [promoLoading, setPromoLoading] = useState(false);
   const [settings, setSettings] = useState({ delivery_fee: 30, free_delivery_min: 200 });
+  const [subscription, setSubscription] = useState(null);
 
   useEffect(() => {
     base44.entities.StoreSettings.list().then(s => { if (s[0]) setSettings(s[0]); });
+    base44.auth.me().then(u => {
+      if (u) {
+        base44.entities.Subscription.filter({ user_email: u.email }).then(subs => {
+          const active = subs.find(s => s.status === 'active');
+          setSubscription(active || null);
+        });
+      }
+    }).catch(() => {});
+    // Track cart visit for funnel
+    const prev = parseInt(localStorage.getItem('fresitas_funnel_cart') || '0');
+    localStorage.setItem('fresitas_funnel_cart', String(prev + 1));
   }, []);
 
-  const deliveryFee = subtotal >= settings.free_delivery_min ? 0 : settings.delivery_fee;
-  const discount = appliedPromo
+  // Subscription free delivery override
+  const hasFreeDelivery = subscription?.plan === 'premium' || subscription?.plan === 'vip';
+  const subDiscountPct = subscription?.discount_percent || 0;
+  const deliveryFee = hasFreeDelivery ? 0 : subtotal >= settings.free_delivery_min ? 0 : settings.delivery_fee;
+  const promoDiscount = appliedPromo
     ? appliedPromo.discount_type === 'percent'
       ? (subtotal * appliedPromo.discount_value) / 100
       : appliedPromo.discount_value
     : 0;
+  const subDiscount = subDiscountPct > 0 ? (subtotal * subDiscountPct) / 100 : 0;
+  const discount = promoDiscount + subDiscount;
   const total = subtotal + deliveryFee - discount;
 
   const handleApplyPromo = async () => {
@@ -167,26 +184,47 @@ export default function Cart() {
                 )}
               </div>
 
+              {/* Subscription badge */}
+              {subscription && (
+               <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 rounded-xl p-3 flex items-center gap-2 text-sm">
+                 <span className="text-lg">👑</span>
+                 <div>
+                   <p className="font-semibold text-amber-800 dark:text-amber-300 text-xs">
+                     Plan {subscription.plan?.charAt(0).toUpperCase() + subscription.plan?.slice(1)} activo
+                   </p>
+                   <p className="text-xs text-amber-700 dark:text-amber-400">
+                     {subDiscountPct}% descuento aplicado{hasFreeDelivery ? ' · Envío gratis' : ''}
+                   </p>
+                 </div>
+               </div>
+              )}
+
               {/* Order Summary */}
               <div className="bg-card rounded-2xl border border-border p-4 space-y-3">
-                <h3 className="font-semibold">{t.orderSummary}</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">{t.subtotal}</span>
-                    <span>${subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">{t.deliveryFee}</span>
-                    <span className={deliveryFee === 0 ? 'text-green-600 font-medium' : ''}>
-                      {deliveryFee === 0 ? t.free : `$${deliveryFee}`}
-                    </span>
-                  </div>
-                  {discount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>{t.discount}</span>
-                      <span>-${discount.toFixed(2)}</span>
-                    </div>
-                  )}
+               <h3 className="font-semibold">{t.orderSummary}</h3>
+               <div className="space-y-2 text-sm">
+                 <div className="flex justify-between">
+                   <span className="text-muted-foreground">{t.subtotal}</span>
+                   <span>${subtotal.toFixed(2)}</span>
+                 </div>
+                 <div className="flex justify-between">
+                   <span className="text-muted-foreground">{t.deliveryFee}</span>
+                   <span className={deliveryFee === 0 ? 'text-green-600 font-medium' : ''}>
+                     {deliveryFee === 0 ? t.free : `$${deliveryFee}`}
+                   </span>
+                 </div>
+                 {subDiscount > 0 && (
+                   <div className="flex justify-between text-amber-600">
+                     <span>Descuento membresía ({subDiscountPct}%)</span>
+                     <span>-${subDiscount.toFixed(2)}</span>
+                   </div>
+                 )}
+                 {promoDiscount > 0 && (
+                   <div className="flex justify-between text-green-600">
+                     <span>{t.discount}</span>
+                     <span>-${promoDiscount.toFixed(2)}</span>
+                   </div>
+                 )}
                   <div className="border-t border-border pt-2 flex justify-between font-bold text-base">
                     <span>{t.total}</span>
                     <span className="text-strawberry">${total.toFixed(2)}</span>

@@ -8,6 +8,7 @@ import OrdersMap from '@/components/admin/OrdersMap';
 import CSVImport from '@/components/admin/CSVImport';
 import EmailTemplatesConfig from '@/components/admin/EmailTemplatesConfig';
 import ProductSeoEditor from '@/components/admin/ProductSeoEditor';
+import ProductSeoGenerator from '@/components/admin/ProductSeoGenerator';
 import LiveOrdersPanel from '@/components/admin/LiveOrdersPanel';
 import IngredientManager from '@/components/admin/IngredientManager';
 import { Button } from '@/components/ui/button';
@@ -319,6 +320,7 @@ export default function Admin() {
               <TabsTrigger value="import" className="flex-1 rounded-lg text-xs">Importar CSV</TabsTrigger>
               <TabsTrigger value="email_templates" className="flex-1 rounded-lg text-xs">Emails</TabsTrigger>
               <TabsTrigger value="seo" className="flex-1 rounded-lg text-xs">SEO</TabsTrigger>
+              <TabsTrigger value="seo_gen" className="flex-1 rounded-lg text-xs">SEO IA</TabsTrigger>
             </TabsList>
 
             {/* Live Orders Panel */}
@@ -514,6 +516,16 @@ export default function Admin() {
                 <ProductSeoEditor
                   products={products}
                   onProductsChange={(id, edit) => setProducts(prev => prev.map(p => p.id === id ? { ...p, ...edit } : p))}
+                />
+              </div>
+            </TabsContent>
+
+            {/* SEO Generator with AI */}
+            <TabsContent value="seo_gen">
+              <div className="bg-card rounded-2xl border border-border p-6">
+                <ProductSeoGenerator
+                  products={products}
+                  onProductsChange={(id, changes) => setProducts(prev => prev.map(p => p.id === id ? { ...p, ...changes } : p))}
                 />
               </div>
             </TabsContent>

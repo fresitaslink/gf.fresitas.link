@@ -261,25 +261,35 @@ export default function DriverApp() {
     loadOrders();
     startTracking();
 
-    // Real-time subscription
+    // Real-time subscription — filter to only this driver's orders (or all for staff)
+    const isStaff = ['admin', 'owner', 'manager'].includes(user?.role);
+    const isMine = (d) => isStaff || d?.assigned_driver_email === user.email;
+
     const unsub = base44.entities.Order.subscribe((event) => {
       setLastUpdate(new Date());
       if (event.type === 'create') {
         const d = event.data;
-        if (d && ['confirmed', 'preparing', 'on_the_way'].includes(d.status)) {
+        if (d && isMine(d) && ['confirmed', 'preparing', 'on_the_way'].includes(d.status)) {
           setOrders(prev => {
             if (prev.find(o => o.id === d.id)) return prev;
-            toast('🆕 ¡Nuevo pedido!', { description: `#${d.tracking_code} — ${d.customer_name}`, duration: 6000 });
+            toast('¡Nuevo pedido asignado!', { description: `#${d.tracking_code} — ${d.customer_name}`, duration: 6000 });
             return [d, ...prev].sort((a, b) => (PRIORITY[a.status] ?? 9) - (PRIORITY[b.status] ?? 9));
           });
         }
       }
       if (event.type === 'update' && event.data) {
         const d = event.data;
+        if (!isMine(d)) {
+          // Order was reassigned away from this driver — remove it
+          setOrders(prev => prev.filter(o => o.id !== d.id));
+          return;
+        }
         setOrders(prev => {
-          const updated = prev.map(o => o.id === d.id ? d : o)
-            .filter(o => ['confirmed', 'preparing', 'on_the_way'].includes(o.status));
-          return updated.sort((a, b) => (PRIORITY[a.status] ?? 9) - (PRIORITY[b.status] ?? 9));
+          const exists = prev.find(o => o.id === d.id);
+          const next = exists ? prev.map(o => o.id === d.id ? d : o) : [...prev, d];
+          return next
+            .filter(o => ['confirmed', 'preparing', 'on_the_way'].includes(o.status))
+            .sort((a, b) => (PRIORITY[a.status] ?? 9) - (PRIORITY[b.status] ?? 9));
         });
       }
       if (event.type === 'delete') {
@@ -304,7 +314,11 @@ export default function DriverApp() {
 
   const loadOrders = async () => {
     setLoading(true);
-    const all = await base44.entities.Order.list('-created_date', 200);
+    // Only show orders ASSIGNED TO THIS DRIVER (admin/owner/manager see all for monitoring)
+    const isStaff = ['admin', 'owner', 'manager'].includes(user?.role);
+    const all = isStaff
+      ? await base44.entities.Order.list('-created_date', 200)
+      : await base44.entities.Order.filter({ assigned_driver_email: user.email }, '-created_date', 200);
     const active = all
       .filter(o => ['confirmed', 'preparing', 'on_the_way'].includes(o.status))
       .sort((a, b) => (PRIORITY[a.status] ?? 9) - (PRIORITY[b.status] ?? 9));

@@ -19,11 +19,15 @@ export default function DeliveryVerificationModal({ order, onComplete }) {
   const fileRef = useRef(null);
 
   const handleVerifyPin = () => {
-    if (pinInput.trim() === order.verification_pin) {
-      toast.success('PIN verificado ✓');
+    if (!order.verification_pin) {
+      toast.error('Este pedido no tiene PIN configurado. Contacta al admin.');
+      return;
+    }
+    if (pinInput.trim() === String(order.verification_pin).trim()) {
+      toast.success('PIN verificado');
       setStep('photo');
     } else {
-      toast.error('PIN incorrecto');
+      toast.error('PIN incorrecto. Pídele al cliente que lo confirme en su app.');
       setPinInput('');
     }
   };
@@ -57,18 +61,27 @@ export default function DeliveryVerificationModal({ order, onComplete }) {
         driver_last_location_update: new Date().toISOString()
       });
 
-      // Update delivery verification
-      await base44.asServiceRole.entities.DeliveryVerification.update(
-        (await base44.asServiceRole.entities.DeliveryVerification.filter({ order_id: order.id }))[0]?.id,
-        {
-          pin_verified: true,
-          verification_status: 'verified',
-          driver_photo_url: uploadRes.file_url,
-          driver_photo_timestamp: new Date().toISOString()
-        }
-      );
+      // Update or create delivery verification
+      const existing = await base44.asServiceRole.entities.DeliveryVerification.filter({ order_id: order.id });
+      const verificationData = {
+        pin_verified: true,
+        verification_status: 'verified',
+        driver_photo_url: uploadRes.file_url,
+        driver_photo_timestamp: new Date().toISOString(),
+      };
+      if (existing[0]) {
+        await base44.asServiceRole.entities.DeliveryVerification.update(existing[0].id, verificationData);
+      } else {
+        await base44.asServiceRole.entities.DeliveryVerification.create({
+          order_id: order.id,
+          driver_email: order.assigned_driver_email,
+          customer_email: order.user_email || '',
+          verification_pin: order.verification_pin,
+          ...verificationData,
+        });
+      }
 
-      toast.success('✅ ¡Entrega completada!');
+      toast.success('¡Entrega completada!');
       setStep('verified');
       setTimeout(() => onComplete?.(), 2000);
     } catch (err) {
@@ -98,16 +111,14 @@ export default function DeliveryVerificationModal({ order, onComplete }) {
             </p>
             <Input
               type="text"
+              inputMode="numeric"
               placeholder="Código de 4 dígitos"
               value={pinInput}
-              onChange={(e) => setPinInput(e.target.value.slice(0, 4))}
+              onChange={(e) => setPinInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
               maxLength="4"
               className="text-center text-2xl tracking-widest font-bold"
               autoFocus
             />
-            <p className="text-xs text-muted-foreground text-center">
-              Código correcto: {order.verification_pin}
-            </p>
             <Button
               onClick={handleVerifyPin}
               disabled={pinInput.length !== 4}

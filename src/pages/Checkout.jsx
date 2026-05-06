@@ -32,6 +32,8 @@ export default function Checkout() {
   const [subscription, setSubscription] = useState(null);
   const [stripePaymentData, setStripePaymentData] = useState(null);
   const [settings, setSettings] = useState({ delivery_fee: 30, free_delivery_min: 200, whatsapp_number: '525512345678' });
+  const [pointsToRedeem, setPointsToRedeem] = useState(0);
+  const [availablePoints, setAvailablePoints] = useState(0);
 
   const [form, setForm] = useState({
     customer_name: user?.full_name || '',
@@ -51,6 +53,7 @@ export default function Checkout() {
       ]).then(([profiles, subs]) => {
         if (profiles[0]) {
           setProfile(profiles[0]);
+          setAvailablePoints(profiles[0].loyalty_points || 0);
           setForm(prev => ({
             ...prev,
             customer_name: profiles[0].display_name || user.full_name || '',
@@ -71,9 +74,13 @@ export default function Checkout() {
 
   // Apply subscription discount if active
   const subDiscount = subscription ? subtotal * (subscription.discount_percent || 10) / 100 : 0;
-  const totalDiscount = discount + subDiscount;
-  const total = cartTotal ? cartTotal - subDiscount : subtotal + (subtotal >= settings.free_delivery_min ? 0 : settings.delivery_fee) - totalDiscount;
+  // Points: 100 points = $10 discount
+  const pointsDiscount = Math.min(pointsToRedeem / 10, subtotal * 0.5); // max 50% of subtotal
+  const totalDiscount = discount + subDiscount + pointsDiscount;
+  const total = cartTotal ? cartTotal - subDiscount - pointsDiscount : subtotal + (subtotal >= settings.free_delivery_min ? 0 : settings.delivery_fee) - totalDiscount;
   const actualDeliveryFee = subtotal >= settings.free_delivery_min ? 0 : (deliveryFee || settings.delivery_fee);
+  // Earn 1 point per $10 spent
+  const pointsEarned = Math.floor(total / 10);
 
   const handlePlaceOrder = async () => {
     setLoading(true);
@@ -111,24 +118,34 @@ export default function Checkout() {
         promo_code: promo?.code || '',
         subscription_id: subscription?.id || '',
         tracking_code: trackingCode,
-        loyalty_points_earned: Math.floor(total),
+        loyalty_points_earned: pointsEarned,
       });
 
       // Update profile stats
       if (user) {
         const profiles = await base44.entities.CustomerProfile.filter({ user_email: user.email });
         if (profiles[0]) {
+          const newPoints = (profiles[0].loyalty_points || 0) + pointsEarned - pointsToRedeem;
           await base44.entities.CustomerProfile.update(profiles[0].id, {
-            loyalty_points: (profiles[0].loyalty_points || 0) + Math.floor(total),
+            loyalty_points: Math.max(0, newPoints),
             total_orders: (profiles[0].total_orders || 0) + 1,
           });
           await base44.entities.LoyaltyTransaction.create({
             user_email: user.email,
-            points: Math.floor(total),
+            points: pointsEarned,
             type: 'earned',
-            description: `Pedido #${trackingCode}`,
+            description: `Pedido #${trackingCode} — $${total.toFixed(0)} gastados`,
             order_id: order.id,
           });
+          if (pointsToRedeem > 0) {
+            await base44.entities.LoyaltyTransaction.create({
+              user_email: user.email,
+              points: -pointsToRedeem,
+              type: 'redeemed',
+              description: `Canje de ${pointsToRedeem} puntos — $${pointsDiscount.toFixed(0)} de descuento`,
+              order_id: order.id,
+            });
+          }
         }
 
         // Create notification
@@ -338,6 +355,38 @@ export default function Checkout() {
             {step === 2 && (
               <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
                 <h2 className="font-poppins font-bold text-xl">{t.payment}</h2>
+
+                {/* Loyalty Points Redemption */}
+                {availablePoints >= 100 && (
+                  <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">⭐</span>
+                        <div>
+                          <p className="font-semibold text-sm">Tus Puntos: {availablePoints}</p>
+                          <p className="text-xs text-muted-foreground">100 pts = $10 de descuento</p>
+                        </div>
+                      </div>
+                      <p className="font-bold text-amber-600 text-sm">-${pointsDiscount.toFixed(0)}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="range"
+                        min={0}
+                        max={Math.min(availablePoints, Math.floor(subtotal * 0.5) * 10)}
+                        step={100}
+                        value={pointsToRedeem}
+                        onChange={e => setPointsToRedeem(Number(e.target.value))}
+                        className="flex-1 accent-amber-500"
+                      />
+                      <span className="text-sm font-bold text-amber-700 w-16 text-right">{pointsToRedeem} pts</span>
+                    </div>
+                    {pointsToRedeem > 0 && (
+                      <p className="text-xs text-green-700 dark:text-green-400 mt-1">✅ Ahorras ${pointsDiscount.toFixed(0)} en este pedido</p>
+                    )}
+                  </div>
+                )}
+
                 {subscription && (
                   <div className="flex items-center gap-2 bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-xl p-3 text-sm">
                     <Zap className="w-4 h-4 text-green-600 flex-shrink-0" />
@@ -402,8 +451,10 @@ export default function Checkout() {
                   <div className="flex justify-between"><span className="text-muted-foreground">{t.subtotal}</span><span>${subtotal.toFixed(2)}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">{t.deliveryFee}</span><span>{actualDeliveryFee === 0 ? t.free : `$${actualDeliveryFee}`}</span></div>
                   {discount > 0 && <div className="flex justify-between text-green-600"><span>{t.discount} (promo)</span><span>-${discount.toFixed(2)}</span></div>}
-                  {subDiscount > 0 && <div className="flex justify-between text-green-600"><span>Descuento suscripción ({subscription?.discount_percent}%)</span><span>-${subDiscount.toFixed(2)}</span></div>}
+                  {subDiscount > 0 && <div className="flex justify-between text-green-600"><span>Desc. suscripción ({subscription?.discount_percent}%)</span><span>-${subDiscount.toFixed(2)}</span></div>}
+                  {pointsDiscount > 0 && <div className="flex justify-between text-amber-600"><span>⭐ Puntos canjeados ({pointsToRedeem} pts)</span><span>-${pointsDiscount.toFixed(2)}</span></div>}
                   <div className="flex justify-between font-bold text-base border-t pt-2"><span>{t.total}</span><span className="text-strawberry">${total.toFixed(2)}</span></div>
+                  <div className="flex justify-between text-xs text-amber-600 mt-1"><span>⭐ Puntos que ganarás</span><span>+{pointsEarned} pts</span></div>
                 </div>
                 <div className="bg-muted rounded-xl p-3 text-sm space-y-1">
                   <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" /><span>{form.customer_address}</span></div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Star, Upload, Check } from 'lucide-react';
+import { Star, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { base44 } from '@/api/base44Client';
@@ -33,20 +33,46 @@ export default function Reviews() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const order = location.state?.order;
+  const [searchParams] = useSearchParams();
+  const [order, setOrder] = useState(location.state?.order || null);
+  const [loadingOrder, setLoadingOrder] = useState(false);
 
   const [reviews, setReviews] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!user || !order) { navigate('/orders'); return; }
-    const initial = {};
-    order.items?.forEach(item => {
-      if (item.product_id) initial[item.product_id] = { rating: 5, comment: '', photoFile: null };
-    });
-    setReviews(initial);
-  }, [order]);
+    if (!user) { navigate('/'); return; }
+
+    const orderId = searchParams.get('order_id');
+
+    if (!order && orderId) {
+      // Load from URL param (email link flow)
+      setLoadingOrder(true);
+      base44.entities.Order.filter({ user_email: user.email }).then(orders => {
+        const found = orders.find(o => o.id === orderId);
+        if (found) {
+          setOrder(found);
+          const initial = {};
+          found.items?.forEach(item => {
+            if (item.product_id) initial[item.product_id] = { rating: 5, comment: '' };
+          });
+          setReviews(initial);
+        } else {
+          toast.error('Pedido no encontrado');
+          navigate('/orders');
+        }
+      }).finally(() => setLoadingOrder(false));
+    } else if (order) {
+      const initial = {};
+      order.items?.forEach(item => {
+        if (item.product_id) initial[item.product_id] = { rating: 5, comment: '' };
+      });
+      setReviews(initial);
+    } else {
+      navigate('/orders');
+    }
+  }, [user, order]);
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -73,6 +99,14 @@ export default function Reviews() {
       setSubmitting(false);
     }
   };
+
+  if (loadingOrder) {
+    return (
+      <div className="min-h-screen pt-20 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-strawberry" />
+      </div>
+    );
+  }
 
   if (submitted) {
     return (

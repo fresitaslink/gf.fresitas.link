@@ -1,33 +1,40 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Circle, Sparkles, AtSign, Loader2, Bot, Brain } from 'lucide-react';
+import { Send, Circle, Sparkles, Loader2, Brain, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { base44 } from '@/api/base44Client';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useAuth } from '@/lib/AuthContext';
+import { useStore } from '@/lib/StoreContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import ChatBubble from '@/components/chat/ChatBubble';
+import ReactMarkdown from 'react-markdown';
 import AvatarUpload from '@/components/chat/AvatarUpload';
 
-const WILLFY_INTRO = "¡Hola! 🍓 Soy **Willfy**, el asistente inteligente de Fresitas G&F. Puedo ayudarte con el menú, rastrear pedidos, consultar tus puntos de lealtad, gestionar tu suscripción y mucho más. ¿En qué te ayudo hoy?";
+const WILLFY_AVATAR = (
+  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+    style={{ background: 'linear-gradient(135deg, hsl(var(--strawberry)), #e91e8c)' }}>
+    <Brain className="w-4 h-4 text-white" />
+  </div>
+);
 
 export default function Chat() {
   const { t, language } = useLanguage();
   const { user } = useAuth();
+  const { isOpen: isStoreOpen } = useStore();
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
-  const [settings, setSettings] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [willfyLoading, setWillfyLoading] = useState(false);
   const [conversation, setConversation] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
+  const [willfyError, setWillfyError] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const unsubscribeRef = useRef(null);
+  const conversationRef = useRef(null);
 
   useEffect(() => {
     if (!user) { navigate('/'); return; }
@@ -37,45 +44,72 @@ export default function Chat() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, willfyLoading]);
+  }, [messages, isTyping]);
 
   const loadData = async () => {
-    const [settingsData, profilesData, msgsData] = await Promise.all([
-      base44.entities.StoreSettings.list(),
-      base44.entities.CustomerProfile.filter({ user_email: user.email }),
-      base44.entities.ChatMessage.filter({ user_email: user.email }, 'created_date', 80),
-    ]);
+    try {
+      const [profilesData] = await Promise.all([
+        base44.entities.CustomerProfile.filter({ user_email: user.email }),
+      ]);
+      if (profilesData[0]) setProfile(profilesData[0]);
 
-    if (settingsData[0]) setSettings(settingsData[0]);
-    if (profilesData[0]) setProfile(profilesData[0]);
+      // Load or create Willfy conversation
+      const convList = await base44.agents.listConversations({ agent_name: 'willfy' });
+      let conv = convList?.find(c => c.metadata?.user_email === user.email);
 
-    if (msgsData.length === 0) {
+      if (!conv) {
+        conv = await base44.agents.createConversation({
+          agent_name: 'willfy',
+          metadata: {
+            user_email: user.email,
+            name: profilesData[0]?.display_name || user.full_name,
+            role: user.role,
+            language,
+          },
+        });
+      } else {
+        // Load full conversation with messages
+        conv = await base44.agents.getConversation(conv.id);
+      }
+
+      setConversation(conv);
+      conversationRef.current = conv;
+
+      // Map agent messages to display format
+      const agentMsgs = (conv.messages || []).map((m, i) => ({
+        id: `agent_${i}`,
+        role: m.role,
+        content: m.content,
+        created_date: m.created_at || new Date().toISOString(),
+      }));
+      setMessages(agentMsgs);
+
+      // Subscribe to real-time updates
+      const unsub = base44.agents.subscribeToConversation(conv.id, (data) => {
+        const updated = (data.messages || []).map((m, i) => ({
+          id: `agent_${i}`,
+          role: m.role,
+          content: m.content,
+          created_date: m.created_at || new Date().toISOString(),
+          tool_calls: m.tool_calls,
+        }));
+        setMessages(updated);
+        setIsTyping(false);
+      });
+      unsubscribeRef.current = unsub;
+
+    } catch (err) {
+      console.error('Chat load error:', err);
+      // Fallback: show greeting only
       setMessages([{
         id: 'greeting',
-        message: WILLFY_INTRO,
-        is_admin: true,
-        is_willfy: true,
-        sender_name: 'Willfy',
-        sender_role: 'willfy',
-        user_email: user.email,
+        role: 'assistant',
+        content: language === 'es'
+          ? '¡Hola! 🍓 Soy **Willfy**, tu asistente de Fresitas G&F. ¿En qué te puedo ayudar hoy?'
+          : 'Hi! 🍓 I\'m **Willfy**, your Fresitas G&F assistant. How can I help you today?',
         created_date: new Date().toISOString(),
       }]);
-    } else {
-      setMessages(msgsData);
     }
-
-    const unsubscribe = base44.entities.ChatMessage.subscribe((event) => {
-      if (event.data?.user_email === user.email) {
-        if (event.type === 'create') {
-          setMessages(prev => prev.find(m => m.id === event.id) ? prev : [...prev, event.data]);
-        } else if (event.type === 'delete') {
-          setMessages(prev => prev.filter(m => m.id !== event.id));
-        } else if (event.type === 'update') {
-          setMessages(prev => prev.map(m => m.id === event.id ? event.data : m));
-        }
-      }
-    });
-    unsubscribeRef.current = unsubscribe;
   };
 
   const handleAvatarUpload = async (url) => {
@@ -97,96 +131,82 @@ export default function Chat() {
     const text = input.trim();
     setInput('');
     setSending(true);
+    setWillfyError(false);
+    setIsTyping(true);
+
+    // Optimistically add user message
+    const tempId = `temp_${Date.now()}`;
+    setMessages(prev => [...prev, {
+      id: tempId,
+      role: 'user',
+      content: text,
+      created_date: new Date().toISOString(),
+    }]);
 
     try {
-      const msg = await base44.entities.ChatMessage.create({
-        user_email: user.email,
-        message: text,
-        is_admin: false,
-        sender_name: profile?.display_name || user.full_name || user.email,
-        sender_avatar: profile?.avatar_url || null,
-        sender_role: user.role || 'user',
-      });
-      setMessages(prev => prev.find(m => m.id === msg.id) ? prev : [...prev, msg]);
+      let conv = conversationRef.current;
+      if (!conv) {
+        conv = await base44.agents.createConversation({
+          agent_name: 'willfy',
+          metadata: { user_email: user.email, name: profile?.display_name || user.full_name, role: user.role, language },
+        });
+        setConversation(conv);
+        conversationRef.current = conv;
 
-      // Willfy responds to ALL messages automatically
-      await handleWillfyResponse(text);
+        // Subscribe
+        const unsub = base44.agents.subscribeToConversation(conv.id, (data) => {
+          const updated = (data.messages || []).map((m, i) => ({
+            id: `agent_${i}`,
+            role: m.role,
+            content: m.content,
+            created_date: m.created_at || new Date().toISOString(),
+            tool_calls: m.tool_calls,
+          }));
+          setMessages(updated);
+          setIsTyping(false);
+        });
+        unsubscribeRef.current = unsub;
+      }
+
+      const updated = await base44.agents.addMessage(conv, { role: 'user', content: text });
+      conversationRef.current = updated;
+      setConversation(updated);
+
+      // Messages updated via subscription, but also update directly
+      const updatedMsgs = (updated.messages || []).map((m, i) => ({
+        id: `agent_${i}`,
+        role: m.role,
+        content: m.content,
+        created_date: m.created_at || new Date().toISOString(),
+        tool_calls: m.tool_calls,
+      }));
+      setMessages(updatedMsgs);
+      setIsTyping(false);
+
+    } catch (err) {
+      console.error('Willfy error:', err);
+      setWillfyError(true);
+      setIsTyping(false);
+      // Remove temp message on error
+      setMessages(prev => prev.filter(m => m.id !== tempId));
+      toast.error(language === 'es' ? 'Willfy no pudo responder, intenta de nuevo' : 'Willfy could not respond, try again');
     } finally {
       setSending(false);
     }
   };
 
-  const handleWillfyResponse = async (userText) => {
-    setWillfyLoading(true);
-    setIsTyping(true);
-
-    try {
-      let conv = conversation;
-      if (!conv) {
-        conv = await base44.agents.createConversation({
-          agent_name: 'willfy',
-          metadata: {
-            user_email: user.email,
-            name: profile?.display_name || user.full_name,
-            role: user.role,
-            language: language,
-          },
-        });
-        setConversation(conv);
-      }
-
-      // Build enriched context message
-      const contextualText = userText;
-      const updated = await base44.agents.addMessage(conv, { role: 'user', content: contextualText });
-      setConversation(updated);
-
-      const lastAssistant = [...updated.messages].reverse().find(m => m.role === 'assistant');
-      const responseText = lastAssistant?.content || (language === 'es' ? '¡Con gusto te ayudo! 🍓' : 'Happy to help! 🍓');
-
-      await base44.entities.ChatMessage.create({
-        user_email: user.email,
-        message: responseText,
-        is_admin: true,
-        is_willfy: true,
-        sender_name: 'Willfy',
-        sender_role: 'willfy',
-      });
-    } catch (err) {
-      console.error('Willfy error:', err);
-      toast.error(language === 'es' ? 'Willfy no pudo responder' : 'Willfy could not respond');
-    } finally {
-      setWillfyLoading(false);
-      setIsTyping(false);
-    }
-  };
-
-  const handleReact = async (msgId, reaction) => {
-    const msg = messages.find(m => m.id === msgId);
-    if (!msg || msg.id === 'greeting') return;
-    const current = msg.reactions || [];
-    const updated = current.includes(reaction) ? current.filter(r => r !== reaction) : [...current, reaction];
-    setMessages(prev => prev.map(m => m.id === msgId ? { ...m, reactions: updated } : m));
-    if (msg.id !== 'greeting') {
-      await base44.entities.ChatMessage.update(msgId, { reactions: updated }).catch(() => {});
-    }
-  };
-
-  const handleDelete = async (msgId) => {
-    setMessages(prev => prev.filter(m => m.id !== msgId));
-    await base44.entities.ChatMessage.delete(msgId).catch(() => {});
+  const handleRetry = () => {
+    setWillfyError(false);
+    loadData();
   };
 
   const quickReplies = language === 'es'
     ? ['¿Qué hay en el menú?', 'Ver mis pedidos', 'Mis puntos de lealtad', 'Quiero suscribirme']
-    : ['What\'s on the menu?', 'Track my order', 'My loyalty points', 'Subscribe'];
-
-  const handleQuickReply = (text) => {
-    setInput(text);
-    inputRef.current?.focus();
-  };
+    : ["What's on the menu?", 'Track my order', 'My loyalty points', 'Subscribe'];
 
   if (!user) return null;
-  const isStoreOpen = settings?.is_open !== false;
+
+  const userInitial = (profile?.display_name || user.full_name || user.email || '?')[0].toUpperCase();
 
   return (
     <div className="min-h-screen pt-16 flex flex-col bg-background" style={{ height: '100dvh' }}>
@@ -210,13 +230,10 @@ export default function Chat() {
             </div>
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
               <Circle className={`w-2 h-2 fill-current ${isStoreOpen ? 'text-green-500' : 'text-gray-400'}`} />
-              {isStoreOpen
-                ? (language === 'es' ? 'En línea · Fresitas G&F' : 'Online · Fresitas G&F')
-                : (language === 'es' ? 'Fuera de horario' : 'Outside hours')}
+              {isStoreOpen ? (language === 'es' ? 'En línea · Fresitas G&F' : 'Online · Fresitas G&F') : (language === 'es' ? 'Fuera de horario' : 'Outside hours')}
             </p>
           </div>
         </div>
-
         <div className="flex items-center gap-2">
           <p className="text-xs text-muted-foreground hidden sm:block">{profile?.display_name || user.full_name}</p>
           <AvatarUpload
@@ -229,64 +246,98 @@ export default function Chat() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-3"
+      <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-4"
         style={{ background: 'linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--cream)) 100%)' }}>
 
         <AnimatePresence initial={false}>
-          {messages.map((msg) => (
-            <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, y: 12, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-            >
-              <ChatBubble
-                msg={msg}
-                isOwn={!msg.is_admin && !msg.is_willfy}
-                viewerRole={user.role}
-                onReact={handleReact}
-                onDelete={handleDelete}
-              />
-            </motion.div>
-          ))}
+          {messages.map((msg) => {
+            const isUser = msg.role === 'user';
+            return (
+              <motion.div
+                key={msg.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className={`flex gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}
+              >
+                {!isUser && WILLFY_AVATAR}
+                <div className={`max-w-[80%] ${isUser ? 'items-end flex flex-col' : ''}`}>
+                  <div className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                    isUser
+                      ? 'bg-strawberry text-white rounded-br-sm'
+                      : 'bg-card border border-border rounded-bl-sm shadow-sm'
+                  }`}>
+                    {isUser ? (
+                      <p>{msg.content}</p>
+                    ) : (
+                      <ReactMarkdown
+                        className="prose prose-sm max-w-none dark:prose-invert [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                        components={{
+                          a: ({ children, href }) => <a href={href} className="text-strawberry underline" target="_blank" rel="noopener noreferrer">{children}</a>,
+                          p: ({ children }) => <p className="my-1">{children}</p>,
+                          ul: ({ children }) => <ul className="my-1 ml-4 list-disc">{children}</ul>,
+                          li: ({ children }) => <li className="my-0.5">{children}</li>,
+                          strong: ({ children }) => <strong className="font-bold">{children}</strong>,
+                          code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                        }}
+                      >
+                        {msg.content || ''}
+                      </ReactMarkdown>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1 px-1">
+                    {new Date(msg.created_date).toLocaleTimeString(language === 'es' ? 'es-MX' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+                {isUser && (
+                  <div className="w-8 h-8 rounded-full bg-strawberry/10 border border-strawberry/20 flex items-center justify-center flex-shrink-0">
+                    {profile?.avatar_url
+                      ? <img src={profile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+                      : <span className="text-xs font-bold text-strawberry">{userInitial}</span>
+                    }
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
 
         {/* Typing indicator */}
         <AnimatePresence>
-          {willfyLoading && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              className="flex items-end gap-2 pl-2"
-            >
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, hsl(var(--strawberry)), #e91e8c)' }}>
-                <Brain className="w-4 h-4 text-white" />
-              </div>
+          {isTyping && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex items-end gap-2">
+              {WILLFY_AVATAR}
               <div className="bg-card border border-border rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs text-muted-foreground mr-1">{language === 'es' ? 'Willfy está pensando' : 'Willfy is thinking'}</span>
-                  <span className="w-1.5 h-1.5 bg-strawberry rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-1.5 h-1.5 bg-strawberry rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-1.5 h-1.5 bg-strawberry rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  {[0, 150, 300].map(delay => (
+                    <span key={delay} className="w-1.5 h-1.5 bg-strawberry rounded-full animate-bounce" style={{ animationDelay: `${delay}ms` }} />
+                  ))}
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
+        {/* Error state */}
+        {willfyError && (
+          <div className="flex justify-center">
+            <Button variant="outline" size="sm" onClick={handleRetry} className="rounded-full text-xs gap-1.5 border-strawberry/40 text-strawberry">
+              <RefreshCw className="w-3 h-3" /> {language === 'es' ? 'Reintentar' : 'Retry'}
+            </Button>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick replies — show only when conversation is fresh */}
-      {messages.length <= 2 && !willfyLoading && (
+      {/* Quick replies */}
+      {messages.length <= 2 && !isTyping && (
         <div className="flex-shrink-0 px-4 py-2 flex gap-2 overflow-x-auto scrollbar-hide bg-background/80 backdrop-blur-sm">
           {quickReplies.map((reply) => (
             <button
               key={reply}
-              onClick={() => handleQuickReply(reply)}
+              onClick={() => { setInput(reply); inputRef.current?.focus(); }}
               className="flex-shrink-0 text-xs px-3 py-1.5 rounded-full border border-strawberry/40 text-strawberry bg-strawberry/5 hover:bg-strawberry hover:text-white transition-all duration-200 font-medium"
             >
               {reply}
@@ -312,25 +363,20 @@ export default function Chat() {
               placeholder={language === 'es' ? 'Escribe tu mensaje a Willfy…' : 'Message Willfy…'}
               className="flex-1 rounded-2xl border-border focus:border-strawberry resize-none min-h-[44px] max-h-32 py-3 pr-3 text-sm"
               rows={1}
-              disabled={sending || willfyLoading}
+              disabled={sending || isTyping}
             />
           </div>
           <Button
             onClick={handleSend}
-            disabled={!input.trim() || sending || willfyLoading}
-            className="bg-strawberry hover:bg-strawberry/90 text-white rounded-full w-11 h-11 p-0 flex-shrink-0 shadow-md transition-all duration-200 hover:scale-105 active:scale-95"
+            disabled={!input.trim() || sending || isTyping}
+            className="bg-strawberry hover:bg-strawberry/90 text-white rounded-full w-11 h-11 p-0 flex-shrink-0 shadow-md"
           >
-            {sending || willfyLoading
-              ? <Loader2 className="w-4 h-4 animate-spin" />
-              : <Send className="w-4 h-4" />
-            }
+            {sending || isTyping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </Button>
         </div>
         {!isStoreOpen && (
           <p className="text-xs text-muted-foreground text-center mt-1.5">
-            {language === 'es'
-              ? settings?.closed_message_es || '⏰ Estamos cerrados. Willfy responde 24/7.'
-              : "⏰ We're closed. Willfy replies 24/7."}
+            ⏰ {language === 'es' ? 'Estamos cerrados. Willfy responde 24/7.' : "We're closed. Willfy replies 24/7."}
           </p>
         )}
       </div>

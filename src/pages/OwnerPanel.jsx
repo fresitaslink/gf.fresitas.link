@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Settings, Tag, Crown, Shield, ShoppingBag, BarChart2, Palette, Globe, Bell, Save, Plus, Trash2, Edit2, Check, X, RefreshCw, Loader2, Mail, Key, ToggleLeft, Star, Zap } from 'lucide-react';
+import { Users, Settings, Tag, Crown, Shield, ShoppingBag, BarChart2, Palette, Globe, Bell, Save, Plus, Trash2, Edit2, Check, X, RefreshCw, Loader2, Mail, Key, ToggleLeft, Star, Zap, Map } from 'lucide-react';
+import DeliveryHeatmap from '@/components/owner/DeliveryHeatmap';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -94,11 +95,13 @@ export default function OwnerPanel() {
   };
 
   const handleChangeRole = async (targetUser, newRole) => {
-    await base44.auth.updateMe({ role: newRole });
-    // Use service-level to update another user — we update via entity
-    await base44.entities.User.update(targetUser.id, { role: newRole });
-    setUsers(prev => prev.map(u => u.id === targetUser.id ? { ...u, role: newRole } : u));
-    toast.success(`Rol de ${targetUser.full_name || targetUser.email} cambiado a ${newRole}`);
+    try {
+      await base44.entities.User.update(targetUser.id, { role: newRole });
+      setUsers(prev => prev.map(u => u.id === targetUser.id ? { ...u, role: newRole } : u));
+      toast.success(`Rol de ${targetUser.full_name || targetUser.email} cambiado a ${newRole}`);
+    } catch (e) {
+      toast.error('Error al cambiar rol: ' + e.message);
+    }
   };
 
   const handleInviteUser = async () => {
@@ -260,6 +263,7 @@ export default function OwnerPanel() {
               <TabsTrigger value="subscriptions" className="rounded-lg text-xs flex items-center gap-1"><Zap className="w-3 h-3" /> Suscripciones</TabsTrigger>
               <TabsTrigger value="settings" className="rounded-lg text-xs flex items-center gap-1"><Settings className="w-3 h-3" /> Configuración</TabsTrigger>
               <TabsTrigger value="store" className="rounded-lg text-xs flex items-center gap-1"><Globe className="w-3 h-3" /> Tienda</TabsTrigger>
+              <TabsTrigger value="heatmap" className="rounded-lg text-xs flex items-center gap-1"><Map className="w-3 h-3" /> Mapa Demanda</TabsTrigger>
             </TabsList>
 
             {/* USERS & ROLES */}
@@ -596,6 +600,19 @@ export default function OwnerPanel() {
                   {savingSettings ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                   Guardar Configuración
                 </Button>
+              </div>
+            </TabsContent>
+
+            {/* HEATMAP */}
+            <TabsContent value="heatmap">
+              <div className="bg-card rounded-2xl border border-border p-6">
+                <h3 className="font-poppins font-semibold text-lg mb-4 flex items-center gap-2">
+                  <Map className="w-5 h-5 text-strawberry" /> Mapa de Calor — Zonas de Demanda
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Visualiza dónde se concentran los pedidos para optimizar rutas y tiempos de entrega.
+                </p>
+                <DeliveryHeatmap />
               </div>
             </TabsContent>
 

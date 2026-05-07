@@ -5,7 +5,7 @@ import {
   ShoppingCart, User, Menu, X, Sun, Moon, Bot, Crown, Shield,
   Truck, ChevronDown, Home, Package, Heart, Star, MessageCircle,
   Users, BarChart2, Settings, Zap, Gift, FileText, Map, Layers,
-  BookOpen, Tag, Bell, LogIn, DollarSign
+  BookOpen, Tag, Bell, LogIn, DollarSign, ChefHat
 } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useCart } from '@/lib/CartContext';
@@ -138,6 +138,10 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
   const adminItems = [];
   if (['admin', 'owner', 'manager'].includes(user?.role)) {
     adminItems.push({ to: '/admin', label: 'Admin Panel', icon: Settings, iconColor: 'text-blue-500' });
+    adminItems.push({ to: '/kds', label: 'Cocina (KDS)', icon: ChefHat, iconColor: 'text-orange-500' });
+  }
+  if (user?.role === 'kitchen') {
+    adminItems.push({ to: '/kds', label: 'Display Cocina', icon: ChefHat, iconColor: 'text-orange-500' });
   }
   if (['admin', 'owner'].includes(user?.role)) {
     adminItems.push({ to: '/superadmin', label: 'SuperAdmin', icon: Zap, iconColor: 'text-gold' });
@@ -161,7 +165,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
     adminItems.push({ to: '/driver-earnings', label: 'Mis Ganancias', icon: DollarSign, iconColor: 'text-green-500' });
   }
 
-  const isAdmin = ['admin', 'owner', 'manager', 'delivery'].includes(user?.role);
+  const isAdmin = ['admin', 'owner', 'manager', 'delivery', 'kitchen'].includes(user?.role);
   const roleIcon = user?.role === 'owner' ? Crown : user?.role === 'manager' ? Shield : user?.role === 'delivery' ? Truck : null;
   const roleColor = user?.role === 'owner' ? 'text-gold' : user?.role === 'manager' ? 'text-purple-500' : 'text-blue-500';
 

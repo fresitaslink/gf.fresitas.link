@@ -71,11 +71,13 @@
         "pending",
         "confirmed",
         "preparing",
+        "ready",
         "on_the_way",
         "delivered",
         "cancelled"
       ],
-      "default": "pending"
+      "default": "pending",
+      "description": "ready = kitchen finished, awaiting driver pickup"
     },
     "payment_method": {
       "type": "string",
@@ -168,6 +170,11 @@
       "type": "boolean",
       "default": false,
       "description": "Whether 5-minute arrival notification was already sent"
+    },
+    "kitchen_ready_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When kitchen marked the order ready for pickup"
     },
     "rating": {
       "type": "number"

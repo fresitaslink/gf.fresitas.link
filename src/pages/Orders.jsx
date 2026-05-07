@@ -9,6 +9,7 @@ import CustomerReviewSection from '@/components/orders/CustomerReviewSection';
 import DriverRatingComponent from '@/components/orders/DriverRatingComponent';
 import LiveCustomerTracking from '@/components/orders/LiveCustomerTracking';
 import CustomerLiveTracker from '@/components/orders/CustomerLiveTracker';
+import ETABadge from '@/components/orders/ETABadge';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -180,6 +181,9 @@ export default function Orders() {
                       <Badge className={`text-xs ${STATUS_COLORS[order.status]}`}>
                         {t.orderStatus[order.status] || order.status}
                       </Badge>
+                      {['confirmed', 'preparing', 'ready', 'on_the_way'].includes(order.status) && order.delivery_lat && (
+                        <ETABadge orderId={order.id} compact />
+                      )}
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {order.items?.length} {language === 'es' ? 'artículo(s)' : 'item(s)'} · ${order.total?.toFixed(2)}

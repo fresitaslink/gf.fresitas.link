@@ -16,6 +16,8 @@ import OptimizedRouteOverlay from '@/components/driver/OptimizedRouteOverlay';
 import RealtimeChatWidget from '@/components/orders/RealtimeChatWidget';
 import DeliveryVerificationModal from '@/components/driver/DeliveryVerificationModal';
 import DriverAvailabilityToggle from '@/components/driver/DriverAvailabilityToggle';
+import MultiStopRoutePanel from '@/components/driver/MultiStopRoutePanel';
+import ETABadge from '@/components/orders/ETABadge';
 
 const STATUS_COLORS = {
   confirmed:  'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
@@ -113,7 +115,7 @@ function OrderCard({ order, driverLocation, onStartDelivery, onMarkDelivered, de
                 )}
               </div>
 
-              {/* Address */}
+              {/* Address + ETA */}
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-strawberry flex-shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
@@ -126,6 +128,15 @@ function OrderCard({ order, driverLocation, onStartDelivery, onMarkDelivered, de
                     {driverLocation ? 'Ruta desde mi ubicación →' : 'Abrir en Google Maps →'}
                   </button>
                 </div>
+                {driverLocation && order.delivery_lat && order.delivery_lng && (
+                  <ETABadge
+                    driverLat={driverLocation.lat}
+                    driverLng={driverLocation.lng}
+                    destLat={order.delivery_lat}
+                    destLng={order.delivery_lng}
+                    compact
+                  />
+                )}
               </div>
 
               {/* Embedded map if coords available - using full react-leaflet */}
@@ -454,6 +465,13 @@ export default function DriverApp() {
       <div className="max-w-lg mx-auto px-4 mt-3">
         <DriverAvailabilityToggle user={user} />
       </div>
+
+      {/* Multi-stop route optimizer */}
+      {user.role === 'delivery' && orders.length >= 2 && (
+        <div className="max-w-lg mx-auto px-4 mt-3">
+          <MultiStopRoutePanel driverEmail={user.email} orders={orders} />
+        </div>
+      )}
 
       {/* Live indicator */}
       <div className="max-w-lg mx-auto px-4 mt-3">

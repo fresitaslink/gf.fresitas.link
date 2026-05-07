@@ -15,6 +15,7 @@ import DriverLiveMap from '@/components/driver/DriverLiveMap';
 import OptimizedRouteOverlay from '@/components/driver/OptimizedRouteOverlay';
 import RealtimeChatWidget from '@/components/orders/RealtimeChatWidget';
 import DeliveryVerificationModal from '@/components/driver/DeliveryVerificationModal';
+import DriverAvailabilityToggle from '@/components/driver/DriverAvailabilityToggle';
 
 const STATUS_COLORS = {
   confirmed:  'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
@@ -447,6 +448,11 @@ export default function DriverApp() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Availability toggle */}
+      <div className="max-w-lg mx-auto px-4 mt-3">
+        <DriverAvailabilityToggle user={user} />
       </div>
 
       {/* Live indicator */}

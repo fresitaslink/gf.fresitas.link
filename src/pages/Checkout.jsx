@@ -13,7 +13,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import DeliveryMap from '@/components/checkout/DeliveryMap';
-import StripePayment from '@/components/checkout/StripePayment';
+import SavedCardsPicker from '@/components/checkout/SavedCardsPicker';
 import ScheduledDelivery from '@/components/checkout/ScheduledDelivery';
 import TipSelector from '@/components/checkout/TipSelector';
 
@@ -446,7 +446,7 @@ export default function Checkout() {
                 </div>
                 {form.payment_method === 'tarjeta' && !stripePaymentData && (
                   <div className="border border-border rounded-2xl p-4 mt-2">
-                    <StripePayment
+                    <SavedCardsPicker
                       total={totalWithTip}
                       customerEmail={user?.email}
                       onPaymentSuccess={(data) => { setStripePaymentData(data); toast.success('¡Pago con tarjeta autorizado! ✅'); }}

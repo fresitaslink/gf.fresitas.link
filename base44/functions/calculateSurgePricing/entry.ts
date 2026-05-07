@@ -1,77 +1,81 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+/**
+ * Calculate dynamic surge pricing for a delivery location.
+ * Uses thresholds and multipliers from StoreSettings (admin-controlled).
+ */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const { delivery_lat, delivery_lng, base_fee = 30 } = await req.json();
-
     if (!delivery_lat || !delivery_lng) {
       return Response.json({ error: 'Coordinates required' }, { status: 400 });
     }
 
-    // Get all pending orders
-    const allOrders = await base44.entities.Order.list('-created_date', 500);
-    const pendingOrders = allOrders.filter(o => ['pending', 'confirmed', 'preparing'].includes(o.status));
+    // Pull dynamic settings (admin-controlled)
+    const settingsList = await base44.asServiceRole.entities.StoreSettings.list();
+    const s = settingsList[0] || {};
+    const surgeEnabled = s.surge_enabled !== false; // default true
+    const tLow  = s.surge_threshold_low  ?? 4;
+    const tMed  = s.surge_threshold_med  ?? 7;
+    const tHigh = s.surge_threshold_high ?? 11;
+    const mLow  = s.surge_multiplier_low  ?? 1.25;
+    const mMed  = s.surge_multiplier_med  ?? 1.5;
+    const mHigh = s.surge_multiplier_high ?? 2.0;
+    const peakMult = s.peak_hour_multiplier ?? 1.15;
 
-    // Calculate heatmap grid (0.01 degrees ≈ 1km)
+    // If surge globally disabled, return base fee
+    if (!surgeEnabled) {
+      return Response.json({
+        success: true, base_fee, surge_factor: 1.0,
+        final_delivery_fee: base_fee, surge_amount: 0,
+        is_surge: false, demand_level: 'BAJA',
+        nearby_orders: 0, time_period: 'normal',
+      });
+    }
+
+    // Count pending orders nearby
+    const allOrders = await base44.asServiceRole.entities.Order.list('-created_date', 500);
+    const pending = allOrders.filter(o => ['pending', 'confirmed', 'preparing'].includes(o.status));
+
     const gridSize = 0.01;
-    const deliveryBucket = {
-      lat: Math.floor(delivery_lat / gridSize),
-      lng: Math.floor(delivery_lng / gridSize)
-    };
+    const targetLat = Math.floor(delivery_lat / gridSize);
+    const targetLng = Math.floor(delivery_lng / gridSize);
 
-    // Count orders in nearby buckets (3x3 grid around delivery location)
     let nearbyOrders = 0;
-    for (let dlat = -1; dlat <= 1; dlat++) {
-      for (let dlng = -1; dlng <= 1; dlng++) {
-        const checkBucket = {
-          lat: deliveryBucket.lat + dlat,
-          lng: deliveryBucket.lng + dlng
-        };
-
-        nearbyOrders += pendingOrders.filter(order => {
-          if (!order.delivery_lat || !order.delivery_lng) return false;
-          const bucket = {
-            lat: Math.floor(order.delivery_lat / gridSize),
-            lng: Math.floor(order.delivery_lng / gridSize)
-          };
-          return bucket.lat === checkBucket.lat && bucket.lng === checkBucket.lng;
-        }).length;
-      }
+    for (const o of pending) {
+      if (!o.delivery_lat || !o.delivery_lng) continue;
+      const dLat = Math.abs(Math.floor(o.delivery_lat / gridSize) - targetLat);
+      const dLng = Math.abs(Math.floor(o.delivery_lng / gridSize) - targetLng);
+      if (dLat <= 1 && dLng <= 1) nearbyOrders++;
     }
 
-    // Surge calculation: based on demand concentration
-    // 0-3 orders: 1.0x (no surge)
-    // 4-6 orders: 1.25x
-    // 7-10 orders: 1.5x
-    // 11+ orders: 2.0x
+    // Demand-based surge
     let surgeFactor = 1.0;
-    if (nearbyOrders >= 11) surgeFactor = 2.0;
-    else if (nearbyOrders >= 7) surgeFactor = 1.5;
-    else if (nearbyOrders >= 4) surgeFactor = 1.25;
+    let demandLevel = 'BAJA';
+    if (nearbyOrders >= tHigh) { surgeFactor = mHigh; demandLevel = 'CRÍTICA'; }
+    else if (nearbyOrders >= tMed)  { surgeFactor = mMed;  demandLevel = 'ALTA'; }
+    else if (nearbyOrders >= tLow)  { surgeFactor = mLow;  demandLevel = 'MEDIA'; }
 
-    // Also consider time of day (peak hours multiplier)
+    // Peak hours
     const hour = new Date().getHours();
-    let timeFactor = 1.0;
-    if ((hour >= 11 && hour <= 14) || (hour >= 18 && hour <= 20)) {
-      timeFactor = 1.15; // +15% during lunch and dinner
-    }
+    const isPeak = (hour >= 11 && hour <= 14) || (hour >= 18 && hour <= 20);
+    const timeFactor = isPeak ? peakMult : 1.0;
 
-    // Combined surge
-    const finalSurge = surgeFactor * timeFactor;
-    const surgeDeliveryFee = Math.round(base_fee * finalSurge * 100) / 100;
-    const surgeAmount = surgeDeliveryFee - base_fee;
+    const finalFactor = surgeFactor * timeFactor;
+    const finalFee = Math.round(base_fee * finalFactor * 100) / 100;
+    const surgeAmount = finalFee - base_fee;
 
     return Response.json({
       success: true,
       base_fee,
-      surge_factor: finalSurge,
-      final_delivery_fee: surgeDeliveryFee,
+      surge_factor: finalFactor,
+      final_delivery_fee: finalFee,
       surge_amount: surgeAmount,
-      demand_level: nearbyOrders >= 11 ? 'CRÍTICA' : nearbyOrders >= 7 ? 'ALTA' : nearbyOrders >= 4 ? 'MEDIA' : 'BAJA',
+      demand_level: demandLevel,
       nearby_orders: nearbyOrders,
-      is_surge: finalSurge > 1.0,
-      time_period: (hour >= 11 && hour <= 14) ? 'lunch' : (hour >= 18 && hour <= 20) ? 'dinner' : 'normal'
+      is_surge: finalFactor > 1.0,
+      time_period: (hour >= 11 && hour <= 14) ? 'lunch' : (hour >= 18 && hour <= 20) ? 'dinner' : 'normal',
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

@@ -8,6 +8,7 @@ import DeliveryChat from '@/components/orders/DeliveryChat';
 import CustomerReviewSection from '@/components/orders/CustomerReviewSection';
 import DriverRatingComponent from '@/components/orders/DriverRatingComponent';
 import LiveCustomerTracking from '@/components/orders/LiveCustomerTracking';
+import CustomerLiveTracker from '@/components/orders/CustomerLiveTracker';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -205,8 +206,11 @@ export default function Orders() {
                         {/* Tracker */}
                          <OrderTracker status={order.status} />
 
-                         {/* Live customer tracking map */}
-                         {['on_the_way', 'preparing', 'confirmed'].includes(order.status) && (
+                         {/* Live customer tracking map (full live map for on_the_way) */}
+                         {order.status === 'on_the_way' && (
+                           <CustomerLiveTracker order={order} />
+                         )}
+                         {['preparing', 'confirmed'].includes(order.status) && (
                            <LiveCustomerTracking order={order} />
                          )}
 

@@ -57,45 +57,73 @@
       "default": false
     },
     "email_template_confirmed_es": {
-      "type": "string",
-      "description": "Email body for 'confirmed' status in Spanish"
+      "type": "string"
     },
     "email_template_preparing_es": {
-      "type": "string",
-      "description": "Email body for 'preparing' status in Spanish"
+      "type": "string"
     },
     "email_template_on_the_way_es": {
-      "type": "string",
-      "description": "Email body for 'on_the_way' status in Spanish"
+      "type": "string"
     },
     "email_template_delivered_es": {
-      "type": "string",
-      "description": "Email body for 'delivered' status in Spanish"
+      "type": "string"
     },
     "email_template_cancelled_es": {
-      "type": "string",
-      "description": "Email body for 'cancelled' status in Spanish"
+      "type": "string"
     },
     "whatsapp_template_confirmed": {
-      "type": "string",
-      "description": "WhatsApp message for 'confirmed' status"
+      "type": "string"
     },
     "whatsapp_template_on_the_way": {
-      "type": "string",
-      "description": "WhatsApp message for 'on_the_way' status"
+      "type": "string"
     },
     "whatsapp_template_delivered": {
-      "type": "string",
-      "description": "WhatsApp message for 'delivered' status"
+      "type": "string"
     },
     "referral_points": {
       "type": "number",
-      "default": 50,
-      "description": "Points awarded on each side for a successful referral"
+      "default": 50
     },
     "referral_enabled": {
       "type": "boolean",
       "default": true
+    },
+    "surge_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable surge pricing globally"
+    },
+    "surge_threshold_low": {
+      "type": "number",
+      "default": 4,
+      "description": "Pending orders to trigger 1.25x surge"
+    },
+    "surge_threshold_med": {
+      "type": "number",
+      "default": 7,
+      "description": "Pending orders to trigger 1.5x surge"
+    },
+    "surge_threshold_high": {
+      "type": "number",
+      "default": 11,
+      "description": "Pending orders to trigger 2.0x surge"
+    },
+    "surge_multiplier_low": {
+      "type": "number",
+      "default": 1.25
+    },
+    "surge_multiplier_med": {
+      "type": "number",
+      "default": 1.5
+    },
+    "surge_multiplier_high": {
+      "type": "number",
+      "default": 2.0
+    },
+    "peak_hour_multiplier": {
+      "type": "number",
+      "default": 1.15,
+      "description": "Multiplier during lunch (11-14) and dinner (18-20)"
     }
   },
   "required": []

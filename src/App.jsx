@@ -50,6 +50,7 @@ import ScheduledOrders from './pages/ScheduledOrders';
 import AnalyticsAdvanced from './pages/AnalyticsAdvanced';
 import DriverRouteHistory from './pages/DriverRouteHistory';
 import DriverEarningsReport from './pages/DriverEarningsReport';
+import PricingAnalysis from './pages/PricingAnalysis';
 
 // Layout
 import Navbar from './components/layout/Navbar';
@@ -127,6 +128,7 @@ const AuthenticatedApp = () => {
         <Route path="/analytics-advanced" element={<AnalyticsAdvanced />} />
         <Route path="/driver-routes" element={<DriverRouteHistory />} />
         <Route path="/driver-earnings-report" element={<DriverEarningsReport />} />
+        <Route path="/pricing" element={<PricingAnalysis />} />
         <Route path="/rewards" element={<RewardsStore />} />
         <Route path="/content" element={<ContentManager />} />
         <Route path="/superadmin" element={<SuperAdmin />} />

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Phone, Package, CheckCircle2, Loader2, Navigation, Clock, User } from 'lucide-react';
+import { MapPin, Phone, Package, CheckCircle2, Loader2, Navigation, Clock, User, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import DeliveryVerificationModal from '@/components/driver/DeliveryVerificationModal';
 
 const STATUS_LABELS = { preparing: '🍳 En Preparación', on_the_way: '🚗 En Camino', delivered: '✅ Entregado' };
 const STATUS_COLORS = {
@@ -21,6 +23,10 @@ export default function Logistica() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [delivering, setDelivering] = useState({});
+  const [verifyingOrder, setVerifyingOrder] = useState(null);
+  const [overrideOrder, setOverrideOrder] = useState(null);
+  const [overrideReason, setOverrideReason] = useState('');
+  const [submittingOverride, setSubmittingOverride] = useState(false);
 
   useEffect(() => {
     if (!user) { navigate('/'); return; }
@@ -45,34 +51,53 @@ export default function Logistica() {
     setLoading(false);
   };
 
-  const handleMarkDelivered = async (order) => {
-    setDelivering(d => ({ ...d, [order.id]: true }));
-    try {
-      // Mark as delivered
-      await base44.entities.Order.update(order.id, { status: 'delivered' });
+  // Drivers/owners use the same verification flow (PIN + photo) as the driver app.
+  const handleMarkDelivered = (order) => {
+    setVerifyingOrder(order);
+  };
 
-      // Trigger loyalty flow for customer
+  // Owner/admin override: marks delivered WITHOUT PIN/photo, but logs reason for fraud audit.
+  // Reserved for emergencies (driver phone died, customer not at door, etc).
+  const handleOverrideDelivered = async () => {
+    if (!overrideReason.trim() || overrideReason.trim().length < 10) {
+      toast.error('La razón debe tener al menos 10 caracteres (es un registro de auditoría)');
+      return;
+    }
+    setSubmittingOverride(true);
+    try {
+      const order = overrideOrder;
+      await base44.entities.Order.update(order.id, { status: 'delivered' });
+      // Audit record — non-verified delivery, who did it, why
+      await base44.entities.DeliveryVerification.create({
+        order_id: order.id,
+        driver_email: order.assigned_driver_email || '',
+        customer_email: order.user_email || '',
+        verification_pin: order.verification_pin || '',
+        pin_verified: false,
+        verification_status: 'failed',
+        delivery_condition: 'minor_issue',
+        customer_notes: `OVERRIDE por ${user.email} (${user.role}): ${overrideReason.trim()}`,
+      });
       if (order.user_email) {
-        // Send final notification to customer (points were already awarded at checkout)
         await base44.entities.Notification.create({
           user_email: order.user_email,
-          title_es: '¡Tu pedido llegó! 🍓',
-          title_en: 'Your order arrived! 🍓',
-          message_es: `Tu pedido #${order.tracking_code} fue entregado. ¡Disfrútalo! ⭐`,
-          message_en: `Order #${order.tracking_code} delivered. Enjoy! ⭐`,
+          title_es: 'Tu pedido fue marcado como entregado',
+          title_en: 'Your order was marked as delivered',
+          message_es: `Pedido #${order.tracking_code} cerrado por ${user.role}. Si no lo recibiste, contáctanos.`,
+          message_en: `Order #${order.tracking_code} closed by ${user.role}. If you didn't receive it, contact us.`,
           type: 'order_update',
           link: '/orders',
         });
-        // Email notification
         base44.functions.invoke('sendOrderEmail', { order_id: order.id, event_type: 'status_update' }).catch(() => {});
       }
-
       setOrders(prev => prev.filter(o => o.id !== order.id));
-      toast.success(`✅ Pedido #${order.tracking_code} marcado como entregado.`);
+      toast.success(`Pedido #${order.tracking_code} cerrado por override (registrado para auditoría)`);
+      setOverrideOrder(null);
+      setOverrideReason('');
     } catch (err) {
       toast.error('Error: ' + err.message);
     } finally {
-      setDelivering(d => ({ ...d, [order.id]: false }));
+      setSubmittingOverride(false);
     }
   };
 

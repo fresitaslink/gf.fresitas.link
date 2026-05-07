@@ -18,16 +18,30 @@ export default function DeliveryVerificationModal({ order, onComplete }) {
   const [loading, setLoading] = useState(false);
   const fileRef = useRef(null);
 
-  const handleVerifyPin = () => {
-    if (!order.verification_pin) {
-      toast.error('Este pedido no tiene PIN configurado. Contacta al admin.');
-      return;
+  const handleVerifyPin = async () => {
+    let expectedPin = order.verification_pin ? String(order.verification_pin).trim() : null;
+
+    // If the order has no PIN yet (older order), generate one server-side now
+    if (!expectedPin) {
+      try {
+        const newPin = String(Math.floor(1000 + Math.random() * 9000));
+        await base44.asServiceRole.entities.Order.update(order.id, { verification_pin: newPin });
+        expectedPin = newPin;
+        toast.info(`PIN generado: ${newPin}. Pídele al cliente que actualice su app y verifique.`);
+        return;
+      } catch (e) {
+        toast.error('No se pudo generar PIN. Contacta al admin.');
+        return;
+      }
     }
-    if (pinInput.trim() === String(order.verification_pin).trim()) {
-      toast.success('PIN verificado');
+
+    // Lenient comparison: pad with zeros, strip non-digits
+    const normalize = (s) => String(s).replace(/\D/g, '').padStart(4, '0').slice(-4);
+    if (normalize(pinInput) === normalize(expectedPin)) {
+      toast.success('PIN verificado ✅');
       setStep('photo');
     } else {
-      toast.error('PIN incorrecto. Pídele al cliente que lo confirme en su app.');
+      toast.error('PIN incorrecto. Pídele al cliente que confirme el código en su app.');
       setPinInput('');
     }
   };

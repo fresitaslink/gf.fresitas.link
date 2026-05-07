@@ -145,6 +145,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
     adminItems.push({ to: '/analytics', label: 'Analytics', icon: BarChart2, iconColor: 'text-purple-500' });
     adminItems.push({ to: '/pricing', label: 'Precios & Surge', icon: DollarSign, iconColor: 'text-strawberry' });
     adminItems.push({ to: '/stock', label: 'Predicción Stock', icon: Package, iconColor: 'text-orange-500' });
+    adminItems.push({ to: '/recipes', label: 'Recetas', icon: Layers, iconColor: 'text-orange-500' });
     adminItems.push({ to: '/content', label: 'Contenido', icon: Layers, iconColor: 'text-green-500' });
   }
   if (user?.role === 'manager') {

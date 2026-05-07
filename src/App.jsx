@@ -52,6 +52,7 @@ import DriverRouteHistory from './pages/DriverRouteHistory';
 import DriverEarningsReport from './pages/DriverEarningsReport';
 import PricingAnalysis from './pages/PricingAnalysis';
 import StockPrediction from './pages/StockPrediction';
+import RecipeAdmin from './pages/RecipeAdmin';
 
 // Layout
 import Navbar from './components/layout/Navbar';
@@ -132,6 +133,7 @@ const AuthenticatedApp = () => {
         <Route path="/pricing" element={<PricingAnalysis />} />
         <Route path="/stock" element={<StockPrediction />} />
         <Route path="/stock-prediction" element={<StockPrediction />} />
+        <Route path="/recipes" element={<RecipeAdmin />} />
         <Route path="/rewards" element={<RewardsStore />} />
         <Route path="/content" element={<ContentManager />} />
         <Route path="/superadmin" element={<SuperAdmin />} />

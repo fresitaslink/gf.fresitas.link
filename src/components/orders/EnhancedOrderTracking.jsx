@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import GoogleMapTracker from './GoogleMapTracker';
+import LiveDeliveryMap from './LiveDeliveryMap';
 
 /**
  * Customer-facing order tracking panel.
@@ -17,6 +17,8 @@ export default function EnhancedOrderTracking({ order }) {
   const [driver, setDriver] = useState(null);
   const [verification, setVerification] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Live driver position (refreshed via Driver subscription as the driver moves)
+  const [livePos, setLivePos] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -26,7 +28,12 @@ export default function EnhancedOrderTracking({ order }) {
         // Fetch driver profile from assigned_driver_email (live source)
         if (order.assigned_driver_email) {
           const drv = await base44.entities.Driver.filter({ user_email: order.assigned_driver_email });
-          if (active && drv.length > 0) setDriver(drv[0]);
+          if (active && drv.length > 0) {
+            setDriver(drv[0]);
+            if (drv[0].current_lat && drv[0].current_lng) {
+              setLivePos({ lat: drv[0].current_lat, lng: drv[0].current_lng });
+            }
+          }
         }
 
         // Fetch delivery verification record (for photo proof)
@@ -41,15 +48,26 @@ export default function EnhancedOrderTracking({ order }) {
     fetchData();
 
     // Subscribe to verification updates (for photo)
-    const unsub = base44.entities.DeliveryVerification.subscribe((event) => {
+    const unsubVerif = base44.entities.DeliveryVerification.subscribe((event) => {
       if (event.data?.order_id === order.id) {
         setVerification(event.data);
       }
     });
 
+    // Subscribe to Driver updates → real-time location for THIS driver
+    const unsubDriver = base44.entities.Driver.subscribe((event) => {
+      if (event.data?.user_email && event.data.user_email === order.assigned_driver_email) {
+        setDriver(event.data);
+        if (event.data.current_lat && event.data.current_lng) {
+          setLivePos({ lat: event.data.current_lat, lng: event.data.current_lng });
+        }
+      }
+    });
+
     return () => {
       active = false;
-      unsub();
+      unsubVerif();
+      unsubDriver();
     };
   }, [order.id, order.assigned_driver_email]);
 
@@ -192,14 +210,15 @@ export default function EnhancedOrderTracking({ order }) {
         </motion.div>
       )}
 
-      {/* Live Map */}
-      {driver?.current_lat && driver?.current_lng && order?.delivery_lat && order?.delivery_lng && (
-        <GoogleMapTracker
-          driverLat={driver.current_lat}
-          driverLng={driver.current_lng}
+      {/* Live Map - shown while driver is on the way */}
+      {livePos && order?.delivery_lat && order?.delivery_lng && order.status !== 'delivered' && (
+        <LiveDeliveryMap
+          driverLat={livePos.lat}
+          driverLng={livePos.lng}
           deliveryLat={order.delivery_lat}
           deliveryLng={order.delivery_lng}
           driverName={driverName}
+          driverPhoto={driverPhoto}
         />
       )}
     </div>

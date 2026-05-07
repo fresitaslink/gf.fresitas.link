@@ -89,6 +89,10 @@ export default function SavedCardsPicker({ total, customerEmail, orderId, onPaym
 
   const handlePaySaved = async () => {
     if (!selectedCardId) return;
+    if (total < 10) {
+      toast.error('Mínimo $10 MXN para pago con tarjeta. Usa efectivo o transferencia.');
+      return;
+    }
     setProcessing(true);
     try {
       const result = await base44.functions.invoke('chargeWithSavedCard', {
@@ -113,6 +117,10 @@ export default function SavedCardsPicker({ total, customerEmail, orderId, onPaym
   const handlePayNew = async () => {
     if (!stripe || !cardElement) return;
     if (cardholderName.trim().length < 2) { toast.error('Ingresa el nombre en la tarjeta'); return; }
+    if (total < 10) {
+      toast.error('Mínimo $10 MXN para pago con tarjeta. Usa efectivo o transferencia.');
+      return;
+    }
 
     setProcessing(true);
     try {

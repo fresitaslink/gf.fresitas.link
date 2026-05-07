@@ -18,6 +18,15 @@ Deno.serve(async (req) => {
     if (!amount || amount <= 0) return Response.json({ error: 'Invalid amount' }, { status: 400 });
     if (!payment_method_id) return Response.json({ error: 'payment_method_id required (must be tokenized client-side)' }, { status: 400 });
 
+    // Stripe minimum: ~$0.50 USD. For MXN that's ~$10 MXN. Reject early with a friendly message.
+    if (currency === 'mxn' && amount < 1000) {
+      return Response.json({
+        success: false,
+        error: 'El monto mínimo para pagar con tarjeta es $10 MXN. Para órdenes menores, usa efectivo o transferencia.',
+        code: 'amount_too_small',
+      }, { status: 400 });
+    }
+
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeKey) return Response.json({ error: 'Stripe not configured' }, { status: 500 });
 
@@ -48,7 +57,18 @@ Deno.serve(async (req) => {
 
     if (pi.error) {
       console.error('[STRIPE ERROR]:', pi.error);
-      return Response.json({ success: false, error: pi.error.message, code: pi.error.code }, { status: 400 });
+      // Translate common errors to friendly Spanish
+      const friendlyMessages = {
+        'amount_too_small': 'El monto es muy pequeño. Mínimo: $10 MXN para pago con tarjeta.',
+        'card_declined': pi.error.decline_code === 'insufficient_funds'
+          ? 'Tarjeta rechazada: fondos insuficientes.'
+          : 'Tu tarjeta fue rechazada por el banco. Intenta otra tarjeta.',
+        'expired_card': 'Tu tarjeta está vencida.',
+        'incorrect_cvc': 'CVC incorrecto. Verifica los 3 dígitos al reverso.',
+        'processing_error': 'Error procesando tu tarjeta. Intenta de nuevo en unos segundos.',
+      };
+      const friendly = friendlyMessages[pi.error.code] || pi.error.message;
+      return Response.json({ success: false, error: friendly, code: pi.error.code, decline_code: pi.error.decline_code }, { status: 400 });
     }
 
     if (pi.status === 'requires_action') {

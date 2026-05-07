@@ -27,7 +27,22 @@
     },
     "loyalty_points": {
       "type": "number",
-      "default": 0
+      "default": 0,
+      "description": "Current redeemable points balance"
+    },
+    "lifetime_points": {
+      "type": "number",
+      "default": 0,
+      "description": "Total points ever earned (never decreases \u2014 drives tier level)"
+    },
+    "current_level": {
+      "type": "string",
+      "default": "novata",
+      "description": "Current Fresitas level key (novata, amigable, estrella, vip, leyenda)"
+    },
+    "level_unlocked_dates": {
+      "type": "object",
+      "description": "Map of level_key -> ISO date when first unlocked"
     },
     "total_orders": {
       "type": "number",

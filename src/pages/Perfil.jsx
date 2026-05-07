@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { User, MapPin, Bell, Plus, Trash2, Gift, Star, BellRing, CalendarDays, CheckCircle2, BarChart2, Crown, Shield, Zap, Award, Heart } from 'lucide-react';
 import { LoyaltyLevelCard, BadgesGrid } from '@/components/loyalty/LoyaltyLevel';
+import LevelProgressBar from '@/components/loyalty/LevelProgressBar';
+import MyPerksList from '@/components/loyalty/MyPerksList';
+import ReferralLinkCard from '@/components/profile/ReferralLinkCard';
 import MisRecompensas from '@/components/loyalty/MisRecompensas';
 import PushNotificationButton from '@/components/ui/PushNotificationButton';
 import AvatarUpload from '@/components/chat/AvatarUpload';
@@ -27,6 +30,8 @@ export default function Perfil() {
   const [saving, setSaving] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [loyaltyHistory, setLoyaltyHistory] = useState([]);
+  const [storeSettings, setStoreSettings] = useState({});
+  const [completedReferrals, setCompletedReferrals] = useState(0);
   const [newAddress, setNewAddress] = useState({ label: '', address: '', is_default: false });
   const [addingAddress, setAddingAddress] = useState(false);
 
@@ -43,7 +48,9 @@ export default function Perfil() {
       base44.entities.CustomerProfile.filter({ user_email: user.email }),
       base44.entities.Notification.filter({ user_email: user.email }, '-created_date', 20),
       base44.entities.LoyaltyTransaction.filter({ user_email: user.email }, '-created_date', 20),
-    ]).then(([profiles, notifs, loyalty]) => {
+      base44.entities.StoreSettings.list(),
+      base44.entities.ReferralRecord.filter({ referrer_email: user.email, status: 'completed' }),
+    ]).then(([profiles, notifs, loyalty, settings, refs]) => {
       if (profiles[0]) {
         setProfile(profiles[0]);
         setForm({
@@ -55,6 +62,8 @@ export default function Perfil() {
       }
       setNotifications(notifs);
       setLoyaltyHistory(loyalty);
+      setStoreSettings(settings[0] || {});
+      setCompletedReferrals(refs.length);
     }).finally(() => setLoading(false));
   }, [user]);
 
@@ -151,14 +160,28 @@ export default function Perfil() {
             </div>
           </div>
 
+          {/* Compact level progress (always visible) */}
+          {profile && (
+            <div className="bg-card rounded-2xl border border-border p-4 mb-4">
+              <LevelProgressBar
+                lifetimePoints={profile.lifetime_points || profile.loyalty_points || 0}
+                language={language}
+                compact
+              />
+            </div>
+          )}
+
           <Tabs defaultValue="profile">
             <TabsList className="w-full rounded-xl mb-6 bg-muted flex-wrap h-auto">
               <TabsTrigger value="profile" className="flex-1 rounded-lg text-xs">{t.editProfile}</TabsTrigger>
               <TabsTrigger value="nivel" className="flex-1 rounded-lg text-xs flex items-center gap-1">
                 <Crown className="w-3 h-3" /> Mi Nivel
               </TabsTrigger>
+              <TabsTrigger value="referidos" className="flex-1 rounded-lg text-xs flex items-center gap-1">
+                <Gift className="w-3 h-3" /> Referidos
+              </TabsTrigger>
               <TabsTrigger value="recompensas" className="flex-1 rounded-lg text-xs flex items-center gap-1">
-                <Gift className="w-3 h-3" /> Recompensas
+                <Award className="w-3 h-3" /> Recompensas
               </TabsTrigger>
               <TabsTrigger value="addresses" className="flex-1 rounded-lg text-xs">{t.savedAddresses}</TabsTrigger>
               <TabsTrigger value="loyalty" className="flex-1 rounded-lg text-xs">{t.loyaltyPoints}</TabsTrigger>
@@ -202,10 +225,27 @@ export default function Perfil() {
 
             {/* Nivel Tab */}
             <TabsContent value="nivel">
-              <div className="space-y-4">
-                <LoyaltyLevelCard points={profile?.loyalty_points || 0} totalOrders={profile?.total_orders || 0} />
+              <div className="space-y-5">
+                <LevelProgressBar
+                  lifetimePoints={profile?.lifetime_points || profile?.loyalty_points || 0}
+                  language={language}
+                />
+                <MyPerksList
+                  lifetimePoints={profile?.lifetime_points || profile?.loyalty_points || 0}
+                  language={language}
+                />
                 <BadgesGrid totalOrders={profile?.total_orders || 0} points={profile?.loyalty_points || 0} />
               </div>
+            </TabsContent>
+
+            {/* Referidos Tab */}
+            <TabsContent value="referidos">
+              <ReferralLinkCard
+                user={user}
+                settings={storeSettings}
+                completedCount={completedReferrals}
+                language={language}
+              />
             </TabsContent>
 
             {/* Recompensas Tab */}

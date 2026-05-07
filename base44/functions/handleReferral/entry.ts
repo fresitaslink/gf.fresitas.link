@@ -84,7 +84,10 @@ Deno.serve(async (req) => {
     if (referrerProfiles[0]) {
       await base44.asServiceRole.entities.CustomerProfile.update(referrerProfiles[0].id, {
         loyalty_points: (referrerProfiles[0].loyalty_points || 0) + REFERRAL_POINTS,
+        lifetime_points: (referrerProfiles[0].lifetime_points || referrerProfiles[0].loyalty_points || 0) + REFERRAL_POINTS,
       });
+      // Trigger level perks
+      base44.asServiceRole.functions.invoke('applyLevelPerks', { profile_id: referrerProfiles[0].id }).catch(() => {});
       await base44.asServiceRole.entities.LoyaltyTransaction.create({
         user_email: referrer_email,
         points: REFERRAL_POINTS,
@@ -108,7 +111,10 @@ Deno.serve(async (req) => {
     if (newUserProfiles[0]) {
       await base44.asServiceRole.entities.CustomerProfile.update(newUserProfiles[0].id, {
         loyalty_points: (newUserProfiles[0].loyalty_points || 0) + REFERRAL_POINTS,
+        lifetime_points: (newUserProfiles[0].lifetime_points || newUserProfiles[0].loyalty_points || 0) + REFERRAL_POINTS,
       });
+      // Trigger level perks
+      base44.asServiceRole.functions.invoke('applyLevelPerks', { profile_id: newUserProfiles[0].id }).catch(() => {});
       await base44.asServiceRole.entities.LoyaltyTransaction.create({
         user_email: new_user_email,
         points: REFERRAL_POINTS,

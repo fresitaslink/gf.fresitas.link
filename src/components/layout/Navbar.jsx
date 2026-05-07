@@ -130,7 +130,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
     { to: '/referral', label: language === 'es' ? 'Referir Amigos' : 'Refer Friends', icon: Users },
     { to: '/blog', label: 'Blog', icon: BookOpen },
     { divider: true },
-    { to: '/challenges', label: language === 'es' ? 'Desafíos' : 'Challenges', icon: Zap, iconColor: 'text-amber-500', badge: { label: '🔥', cls: 'bg-amber-100 text-amber-700' } },
+    { to: '/challenges', label: language === 'es' ? 'Desafíos' : 'Challenges', icon: Zap, iconColor: 'text-amber-500' },
     { to: '/rewards', label: language === 'es' ? 'Premios & Puntos' : 'Rewards', icon: Gift, iconColor: 'text-pink-500' },
   ];
 
@@ -140,7 +140,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
     adminItems.push({ to: '/admin', label: 'Admin Panel', icon: Settings, iconColor: 'text-blue-500' });
   }
   if (['admin', 'owner'].includes(user?.role)) {
-    adminItems.push({ to: '/superadmin', label: 'SuperAdmin ⚡', icon: Crown, iconColor: 'text-gold' });
+    adminItems.push({ to: '/superadmin', label: 'SuperAdmin', icon: Zap, iconColor: 'text-gold' });
     adminItems.push({ to: '/owner', label: 'Owner Panel', icon: Crown, iconColor: 'text-amber-500' });
     adminItems.push({ to: '/analytics', label: 'Analytics', icon: BarChart2, iconColor: 'text-purple-500' });
     adminItems.push({ to: '/pricing', label: 'Precios & Surge', icon: DollarSign, iconColor: 'text-strawberry' });
@@ -153,7 +153,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
   }
   if (['admin', 'owner', 'manager', 'delivery'].includes(user?.role)) {
     adminItems.push({ divider: true });
-    adminItems.push({ to: '/drivers', label: 'Conductores', icon: Truck, iconColor: 'text-orange-500' });
+    adminItems.push({ to: '/drivers', label: user?.role === 'delivery' ? 'Mi Equipo' : 'Conductores', icon: Truck, iconColor: 'text-orange-500' });
     adminItems.push({ to: '/logistica', label: 'Logística', icon: Map, iconColor: 'text-indigo-500' });
   }
   if (['admin', 'owner', 'delivery'].includes(user?.role)) {
@@ -166,10 +166,10 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
   const roleColor = user?.role === 'owner' ? 'text-gold' : user?.role === 'manager' ? 'text-purple-500' : 'text-blue-500';
 
   const adminLabel =
-    user?.role === 'owner' ? '👑 Owner' :
-    user?.role === 'manager' ? '🛡 Manager' :
-    user?.role === 'delivery' ? '🚗 Driver' :
-    '⚙️ Admin';
+    user?.role === 'owner' ? 'Owner' :
+    user?.role === 'manager' ? 'Manager' :
+    user?.role === 'delivery' ? 'Driver' :
+    'Admin';
 
   // All mobile links flat
   const allMobileLinks = [
@@ -235,7 +235,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
             {isAdmin && adminItems.length > 0 && (
               <NavDropdown
                 label={adminLabel}
-                icon={null}
+                icon={roleIcon || Settings}
                 items={adminItems}
               />
             )}
@@ -253,7 +253,7 @@ export default function Navbar({ darkMode, toggleDarkMode, storeOpen }) {
             {isAdmin && adminItems.length > 0 && (
               <NavDropdown
                 label={adminLabel}
-                icon={null}
+                icon={roleIcon || Settings}
                 items={adminItems}
               />
             )}

@@ -51,7 +51,9 @@ export default function ReferralLinkCard({ user, settings, completedCount = 0, l
     <div className="bg-gradient-to-br from-strawberry/10 via-pink-50 to-purple-50 dark:from-strawberry/20 dark:via-pink-900/10 dark:to-purple-900/10 rounded-2xl border border-strawberry/30 p-5 space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-strawberry rounded-2xl flex items-center justify-center text-2xl">🎁</div>
+          <div className="w-12 h-12 bg-strawberry rounded-2xl flex items-center justify-center text-white">
+            <Gift className="w-6 h-6" />
+          </div>
           <div>
             <h3 className="font-poppins font-bold flex items-center gap-2">
               {language === 'es' ? 'Invita y gana' : 'Invite & earn'}

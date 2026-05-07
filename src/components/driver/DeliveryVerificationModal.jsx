@@ -25,7 +25,7 @@ export default function DeliveryVerificationModal({ order, onComplete }) {
     if (!expectedPin) {
       try {
         const newPin = String(Math.floor(1000 + Math.random() * 9000));
-        await base44.asServiceRole.entities.Order.update(order.id, { verification_pin: newPin });
+        await base44.entities.Order.update(order.id, { verification_pin: newPin });
         expectedPin = newPin;
         toast.info(`PIN generado: ${newPin}. Pídele al cliente que actualice su app y verifique.`);
         return;
@@ -64,19 +64,17 @@ export default function DeliveryVerificationModal({ order, onComplete }) {
 
     setLoading(true);
     try {
-      // Upload photo
-      const uploadRes = await base44.asServiceRole.integrations.Core.UploadFile({
-        file: photoFile
-      });
+      // Upload photo (frontend SDK — driver is authenticated)
+      const uploadRes = await base44.integrations.Core.UploadFile({ file: photoFile });
 
       // Mark as delivered
-      await base44.asServiceRole.entities.Order.update(order.id, {
+      await base44.entities.Order.update(order.id, {
         status: 'delivered',
         driver_last_location_update: new Date().toISOString()
       });
 
       // Update or create delivery verification
-      const existing = await base44.asServiceRole.entities.DeliveryVerification.filter({ order_id: order.id });
+      const existing = await base44.entities.DeliveryVerification.filter({ order_id: order.id });
       const verificationData = {
         pin_verified: true,
         verification_status: 'verified',
@@ -84,9 +82,9 @@ export default function DeliveryVerificationModal({ order, onComplete }) {
         driver_photo_timestamp: new Date().toISOString(),
       };
       if (existing[0]) {
-        await base44.asServiceRole.entities.DeliveryVerification.update(existing[0].id, verificationData);
+        await base44.entities.DeliveryVerification.update(existing[0].id, verificationData);
       } else {
-        await base44.asServiceRole.entities.DeliveryVerification.create({
+        await base44.entities.DeliveryVerification.create({
           order_id: order.id,
           driver_email: order.assigned_driver_email,
           customer_email: order.user_email || '',

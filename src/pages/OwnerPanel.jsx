@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Settings, Tag, Crown, Shield, ShoppingBag, BarChart2, Palette, Globe, Bell, Save, Plus, Trash2, Edit2, Check, X, RefreshCw, Loader2, Mail, Key, ToggleLeft, Star, Zap, Map } from 'lucide-react';
+import { Users, Settings, Tag, Crown, Shield, ShoppingBag, BarChart2, Palette, Globe, Bell, Save, Plus, Trash2, Edit2, Check, X, RefreshCw, Loader2, Mail, Key, ToggleLeft, Star, Zap, Map, Truck } from 'lucide-react';
 import DeliveryHeatmap from '@/components/owner/DeliveryHeatmap';
 import StoreBrandingEditor from '@/components/owner/StoreBrandingEditor';
 import { Button } from '@/components/ui/button';
@@ -325,14 +325,14 @@ export default function OwnerPanel() {
                           <SelectContent>
                           <SelectItem value="user">Comprador</SelectItem>
                           <SelectItem value="manager">Manager</SelectItem>
-                          <SelectItem value="delivery">Repartidor 🚗</SelectItem>
+                          <SelectItem value="delivery">Repartidor</SelectItem>
                           <SelectItem value="admin">Admin</SelectItem>
                           <SelectItem value="owner">Owner</SelectItem>
                           </SelectContent>
                         </Select>
                         {(u.role === 'owner' || u.role === 'admin') && <Crown className="w-4 h-4 text-gold flex-shrink-0" />}
                         {u.role === 'manager' && <Shield className="w-4 h-4 text-purple-500 flex-shrink-0" />}
-                        {u.role === 'delivery' && <span className="text-sm flex-shrink-0">🚗</span>}
+                        {u.role === 'delivery' && <Truck className="w-4 h-4 text-blue-500 flex-shrink-0" />}
                       </div>
                     ))}
                   </div>

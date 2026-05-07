@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Users, TrendingUp, Award, Truck, Plus, Edit, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
+import { MapPin, Users, TrendingUp, Award, Truck, Plus, Edit, Trash2, CheckCircle, AlertCircle, Star, Package, Phone } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import DriverAssignmentPanel from '@/components/admin/DriverAssignmentPanel';
 import AutoDispatchPanel from '@/components/admin/AutoDispatchPanel';
-import LiveTrackingDashboard from '@/components/admin/LiveTrackingDashboard';
 import DriverSetupGuide from '@/components/admin/DriverSetupGuide';
 
 export default function DriverManagement() {
@@ -35,16 +34,21 @@ export default function DriverManagement() {
     vehicle_color: '',
   });
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [activeTab, setActiveTab] = useState('dispatch');
+
+  // Drivers get a READ-ONLY view of their team. Staff (admin/owner/manager) get full management.
+  const isStaff = user && ['admin', 'owner', 'manager'].includes(user.role);
+  const isDriver = user?.role === 'delivery';
 
   useEffect(() => {
-    if (!user || !['admin', 'owner', 'manager'].includes(user.role)) {
+    if (!user || (!isStaff && !isDriver)) {
       navigate('/');
       return;
     }
 
     Promise.all([
       base44.entities.Driver.list('-average_rating'),
-      base44.entities.Order.list('-created_date', 50),
+      isStaff ? base44.entities.Order.list('-created_date', 50) : Promise.resolve([]),
     ]).then(([drv, ord]) => {
       setDrivers(drv);
       setOrders(ord);
@@ -143,16 +147,30 @@ export default function DriverManagement() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="font-poppins font-bold text-3xl">Gestión de Conductores</h1>
-              <p className="text-muted-foreground text-sm">Fleet management en tiempo real</p>
+              <h1 className="font-poppins font-bold text-3xl">{isDriver ? 'Mi Equipo de Repartidores' : 'Gestión de Conductores'}</h1>
+              <p className="text-muted-foreground text-sm">{isDriver ? 'Tu perfil y compañeros del equipo' : 'Fleet management en tiempo real'}</p>
             </div>
-            <Button onClick={() => setShowForm(!showForm)} className="bg-strawberry text-white hover:bg-strawberry/90">
-              <Plus className="w-4 h-4 mr-2" /> Agregar Conductor
-            </Button>
+            {isStaff && (
+              <Button
+                onClick={() => {
+                  setActiveTab('drivers');
+                  setEditingDriver(null);
+                  setPhotoPreview(null);
+                  setFormData({ full_name: '', phone: '', user_email: '', photo_url: '', vehicle_type: 'car', vehicle_plate: '', vehicle_model: '', vehicle_color: '' });
+                  setShowForm(true);
+                  setTimeout(() => {
+                    document.getElementById('driver-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }, 100);
+                }}
+                className="bg-strawberry text-white hover:bg-strawberry/90"
+              >
+                <Plus className="w-4 h-4 mr-2" /> Agregar Conductor
+              </Button>
+            )}
           </div>
 
-          {/* Setup Guide */}
-          <DriverSetupGuide />
+          {/* Setup Guide — only for staff */}
+          {isStaff && <DriverSetupGuide />}
 
           {/* Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -187,7 +205,9 @@ export default function DriverManagement() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Calificación Promedio</p>
-                  <p className="font-bold text-lg">⭐ {avgRating}</p>
+                  <p className="font-bold text-lg flex items-center gap-1">
+                    <Star className="w-4 h-4 fill-amber-400 text-amber-400" /> {avgRating}
+                  </p>
                 </div>
               </div>
             </div>
@@ -199,39 +219,39 @@ export default function DriverManagement() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Entregas Hoy</p>
-                  <p className="font-bold text-lg">12</p>
+                  <p className="font-bold text-lg">
+                    {orders.filter(o => o.status === 'delivered' && new Date(o.updated_date || o.created_date).toDateString() === new Date().toDateString()).length}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <Tabs defaultValue="dispatch" className="w-full">
-            <TabsList className="w-full mb-4 bg-muted flex-wrap h-auto">
-              <TabsTrigger value="dispatch">Despacho Automático</TabsTrigger>
-              <TabsTrigger value="tracking">Rastreo en Vivo</TabsTrigger>
-              <TabsTrigger value="assignment">Asignación Manual</TabsTrigger>
-              <TabsTrigger value="drivers">Conductores</TabsTrigger>
-            </TabsList>
+          <Tabs value={isDriver ? 'drivers' : activeTab} onValueChange={setActiveTab} className="w-full">
+            {isStaff && (
+              <TabsList className="w-full mb-4 bg-muted flex-wrap h-auto">
+                <TabsTrigger value="dispatch">Despacho Automático</TabsTrigger>
+                <TabsTrigger value="assignment">Asignación Manual</TabsTrigger>
+                <TabsTrigger value="drivers">Conductores</TabsTrigger>
+              </TabsList>
+            )}
 
-            {/* Auto Dispatch */}
-            <TabsContent value="dispatch">
-              <AutoDispatchPanel orders={orders} drivers={drivers} />
-            </TabsContent>
+            {/* Staff-only tabs */}
+            {isStaff && (
+              <>
+                <TabsContent value="dispatch">
+                  <AutoDispatchPanel orders={orders} drivers={drivers} />
+                </TabsContent>
+                <TabsContent value="assignment">
+                  <DriverAssignmentPanel orders={orders} />
+                </TabsContent>
+              </>
+            )}
 
-            {/* Live Tracking */}
-            <TabsContent value="tracking">
-              <LiveTrackingDashboard orders={orders} />
-            </TabsContent>
-
-            {/* Assignment Panel */}
-            <TabsContent value="assignment">
-              <DriverAssignmentPanel orders={orders} />
-            </TabsContent>
-
-            {/* Drivers List */}
+            {/* Drivers List — visible to staff AND drivers */}
             <TabsContent value="drivers" className="space-y-3">
-              {showForm && (
-                  <div className="bg-card rounded-2xl border border-border p-6 space-y-4 mb-6">
+              {isStaff && showForm && (
+                  <div id="driver-form" className="bg-card rounded-2xl border border-border p-6 space-y-4 mb-6">
                      <h3 className="font-semibold">{editingDriver ? 'Editar Conductor' : 'Nuevo Conductor'}</h3>
                      <div className="space-y-3">
                        <div>
@@ -279,25 +299,35 @@ export default function DriverManagement() {
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">{driver.vehicle_model} • {driver.vehicle_plate}</p>
-                      <div className="flex gap-3 text-xs mt-2 text-muted-foreground">
-                        <span>⭐ {driver.average_rating?.toFixed(1)} ({driver.rating_count})</span>
-                        <span>📦 {driver.total_deliveries} entregas</span>
-                        <span>📞 {driver.phone}</span>
+                      <div className="flex gap-3 text-xs mt-2 text-muted-foreground flex-wrap">
+                        <span className="inline-flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {driver.average_rating?.toFixed(1)} ({driver.rating_count})
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <Package className="w-3 h-3" /> {driver.total_deliveries} entregas
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <Phone className="w-3 h-3" /> {driver.phone}
+                        </span>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => {
-                        setEditingDriver(driver);
-                        setFormData({ full_name: driver.full_name, phone: driver.phone, user_email: driver.user_email, photo_url: driver.photo_url || '', vehicle_type: driver.vehicle_type, vehicle_plate: driver.vehicle_plate, vehicle_model: driver.vehicle_model, vehicle_color: driver.vehicle_color });
-                        setPhotoPreview(driver.photo_url);
-                        setShowForm(true);
-                      }}>
-                        <Edit className="w-3 h-3" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleDelete(driver.id)}>
-                        <Trash2 className="w-3 h-3 text-red-600" />
-                      </Button>
-                    </div>
+                    {isStaff ? (
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => {
+                          setEditingDriver(driver);
+                          setFormData({ full_name: driver.full_name, phone: driver.phone, user_email: driver.user_email, photo_url: driver.photo_url || '', vehicle_type: driver.vehicle_type, vehicle_plate: driver.vehicle_plate, vehicle_model: driver.vehicle_model, vehicle_color: driver.vehicle_color });
+                          setPhotoPreview(driver.photo_url);
+                          setShowForm(true);
+                        }}>
+                          <Edit className="w-3 h-3" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleDelete(driver.id)}>
+                          <Trash2 className="w-3 h-3 text-red-600" />
+                        </Button>
+                      </div>
+                    ) : driver.user_email === user.email && (
+                      <Badge className="bg-strawberry/10 text-strawberry border border-strawberry/30 text-xs">Tú</Badge>
+                    )}
                   </div>
                 </motion.div>
               ))}

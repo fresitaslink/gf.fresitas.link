@@ -13,6 +13,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Cannot refer yourself' }, { status: 400 });
     }
 
+    // Reject reserved/test domains so demo data never enters production
+    const reservedDomains = /@([^@]*\.)?(local|test|invalid|example|localhost)$/i;
+    if (reservedDomains.test(referrer_email) || reservedDomains.test(new_user_email)) {
+      return Response.json({ error: 'Reserved domain emails are not allowed', skipped: true }, { status: 400 });
+    }
+
     // Check if this user was already referred (prevent double-rewarding)
     const existingReferrals = await base44.asServiceRole.entities.ReferralRecord.filter({ referred_email: new_user_email });
     const alreadyCompleted = existingReferrals.find(r => r.status === 'completed');

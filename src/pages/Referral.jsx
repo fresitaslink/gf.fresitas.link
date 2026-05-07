@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Copy, Share2, Gift, Users, CheckCircle, TrendingUp, Star, Trophy, QrCode, Ticket, Crown, Zap } from 'lucide-react';
+import { Copy, Share2, Gift, Users, CheckCircle, TrendingUp, Star, Trophy, QrCode, Ticket, Crown, Zap, Send, ShoppingBag, Award, Sparkles } from 'lucide-react';
+import RealQRCode from '@/components/referral/RealQRCode';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -21,50 +22,6 @@ const TIER_CONFIG = [
 
 function getTier(count) {
   return TIER_CONFIG.find(t => count >= t.min && count < t.max) || TIER_CONFIG[0];
-}
-
-function QRCodeDisplay({ value }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    if (!ref.current || !value) return;
-    const size = 160;
-    const canvas = ref.current;
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    // Simple QR-like visual using canvas (decorative)
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, size, size);
-    ctx.fillStyle = '#E8294A';
-    // Position markers
-    [[0,0],[size-40,0],[0,size-40]].forEach(([x,y]) => {
-      ctx.fillRect(x+4, y+4, 32, 32);
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(x+9, y+9, 22, 22);
-      ctx.fillStyle = '#E8294A';
-      ctx.fillRect(x+13, y+13, 14, 14);
-      ctx.fillStyle = '#E8294A';
-    });
-    // Data modules (hash-based pattern)
-    const hash = value.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    for (let i = 0; i < 12; i++) {
-      for (let j = 0; j < 12; j++) {
-        if (((hash * (i + 1) * (j + 1)) % 3) === 0) {
-          ctx.fillRect(44 + i * 9, 44 + j * 9, 7, 7);
-        }
-      }
-    }
-    // Center text
-    ctx.fillStyle = 'rgba(255,255,255,0.95)';
-    ctx.fillRect(55, 60, 50, 40);
-    ctx.fillStyle = '#E8294A';
-    ctx.font = 'bold 8px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('🍓', size/2, 78);
-    ctx.fillText(value.substring(0,4), size/2, 90);
-    ctx.fillText(value.substring(4), size/2, 100);
-  }, [value]);
-  return <canvas ref={ref} className="rounded-xl shadow-md" style={{ imageRendering: 'pixelated' }} />;
 }
 
 export default function Referral() {
@@ -160,10 +117,12 @@ export default function Referral() {
           {/* Hero */}
           <div className="text-center py-8">
             <motion.div
-              animate={{ rotate: [0, -10, 10, -10, 0] }}
+              animate={{ rotate: [0, -8, 8, -8, 0] }}
               transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
-              className="text-5xl mb-4"
-            >🎁</motion.div>
+              className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-strawberry to-pink-500 flex items-center justify-center shadow-lg"
+            >
+              <Gift className="w-8 h-8 text-white" />
+            </motion.div>
             <h1 className="font-poppins font-black text-3xl text-foreground mb-2">
               {language === 'es' ? 'Programa de Referidos' : 'Referral Program'}
             </h1>
@@ -178,7 +137,7 @@ export default function Referral() {
           <div className={`${tier.bg} border border-border rounded-2xl p-4`}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">{tier.emoji}</span>
+                <Trophy className={`w-6 h-6 ${tier.color}`} />
                 <div>
                   <p className={`font-poppins font-bold text-sm ${tier.color}`}>{tier.label}</p>
                   <p className="text-xs text-muted-foreground">{completedReferrals.length} referidos completados</p>
@@ -270,8 +229,10 @@ export default function Referral() {
                   exit={{ opacity: 0, height: 0 }}
                   className="flex flex-col items-center gap-2"
                 >
-                  <QRCodeDisplay value={referralCode} />
-                  <p className="text-xs text-muted-foreground">Muestra este QR a tus amigos</p>
+                  <RealQRCode value={referralLink} size={180} />
+                  <p className="text-xs text-muted-foreground">
+                    {language === 'es' ? 'Escanea con la cámara para abrir tu enlace' : 'Scan with camera to open your link'}
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -327,12 +288,13 @@ export default function Referral() {
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${
                       i === 0 ? 'bg-gold text-white' : i === 1 ? 'bg-gray-300 text-gray-700' : i === 2 ? 'bg-amber-700 text-white' : 'bg-muted text-muted-foreground'
                     }`}>
-                      {i === 0 ? '👑' : i + 1}
+                      {i === 0 ? <Crown className="w-3.5 h-3.5" /> : i + 1}
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 flex items-center gap-1.5">
                       <p className="text-sm font-medium truncate">
-                        {r.email === user?.email ? `${r.email} (Tú) ⭐` : r.email.replace(/(.{2}).*@/, '$1***@')}
+                        {r.email === user?.email ? `${r.email} (${language === 'es' ? 'Tú' : 'You'})` : r.email.replace(/(.{2}).*@/, '$1***@')}
                       </p>
+                      {r.email === user?.email && <Star className="w-3 h-3 text-amber-500 fill-amber-500 flex-shrink-0" />}
                     </div>
                     <Badge className={`text-xs ${i === 0 ? 'bg-gold/20 text-amber-700' : 'bg-muted text-muted-foreground'}`}>
                       {r.count} refs
@@ -377,21 +339,23 @@ export default function Referral() {
             <h3 className="font-poppins font-bold mb-4">{language === 'es' ? '¿Cómo funciona?' : 'How it works?'}</h3>
             <div className="space-y-4">
               {[
-                { step: '1', emoji: '📲', text: language === 'es' ? 'Comparte tu código único o enlace con amigos por WhatsApp, Instagram o en persona' : 'Share your unique code or link with friends' },
-                { step: '2', emoji: '🛍️', text: language === 'es' ? 'Tu amigo se registra y hace su PRIMER pedido usando tu código' : 'Your friend signs up and places their first order using your code' },
-                { step: '3', emoji: '🎁', text: language === 'es' ? `¡Ambos reciben ${settings.referral_points || 50} puntos Y un cupón de 10% automáticamente!` : `You both receive ${settings.referral_points || 50} points AND a 10% coupon automatically!` },
-                { step: '4', emoji: '🏆', text: language === 'es' ? 'Sube de nivel según tus referidos: Novata → Estrella → Leyenda' : 'Level up based on your referrals: Beginner → Star → Legend' },
+                { step: '1', Icon: Send, iconColor: 'text-blue-500', text: language === 'es' ? 'Comparte tu código único o enlace con amigos por WhatsApp, Instagram o en persona' : 'Share your unique code or link with friends' },
+                { step: '2', Icon: ShoppingBag, iconColor: 'text-purple-500', text: language === 'es' ? 'Tu amigo se registra y hace su PRIMER pedido usando tu código' : 'Your friend signs up and places their first order using your code' },
+                { step: '3', Icon: Gift, iconColor: 'text-strawberry', text: language === 'es' ? `Ambos reciben ${settings.referral_points || 50} puntos y un cupón de 10% automáticamente` : `You both receive ${settings.referral_points || 50} points AND a 10% coupon automatically` },
+                { step: '4', Icon: Award, iconColor: 'text-amber-500', text: language === 'es' ? 'Sube de nivel según tus referidos: Novata → Estrella → Leyenda' : 'Level up based on your referrals: Beginner → Star → Legend' },
               ].map(item => (
                 <div key={item.step} className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-strawberry text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{item.step}</div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    <span className="mr-1">{item.emoji}</span>{item.text}
-                  </p>
+                  <div className="flex items-start gap-2 flex-1">
+                    <item.Icon className={`w-4 h-4 ${item.iconColor} flex-shrink-0 mt-0.5`} />
+                    <p className="text-sm text-muted-foreground leading-relaxed">{item.text}</p>
+                  </div>
                 </div>
               ))}
             </div>
-            <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl text-xs text-amber-700 dark:text-amber-400">
-              💡 {language === 'es' ? '100 puntos = $10 de descuento · El cupón de referido se aplica automáticamente en el siguiente pedido' : '100 points = $10 off · Referral coupon applied automatically on next order'}
+            <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl text-xs text-amber-700 dark:text-amber-400 flex items-start gap-2">
+              <Sparkles className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span>{language === 'es' ? '100 puntos = $10 de descuento · El cupón de referido se aplica automáticamente en el siguiente pedido' : '100 points = $10 off · Referral coupon applied automatically on next order'}</span>
             </div>
           </div>
 

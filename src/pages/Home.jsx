@@ -82,14 +82,16 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      {/* Announcement Banner */}
-      {settings?.announcement_es && (
+      {/* Announcement Banner — only renders when text exists & store status changes/promo is active */}
+      {settings?.announcement_es?.trim() && (
         <motion.div
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-strawberry text-white text-center py-2.5 px-4 text-sm font-medium"
+          exit={{ y: -50, opacity: 0 }}
+          className="bg-strawberry text-white text-center py-2 px-4 text-sm font-medium flex items-center justify-center gap-2"
         >
-          {language === 'es' ? settings.announcement_es : (settings.announcement_en || settings.announcement_es)}
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>{language === 'es' ? settings.announcement_es : (settings.announcement_en?.trim() || settings.announcement_es)}</span>
         </motion.div>
       )}
 

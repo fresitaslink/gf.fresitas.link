@@ -863,9 +863,9 @@ function UsersSection() {
                 <SelectContent>
                   <SelectItem value="user">Comprador</SelectItem>
                   <SelectItem value="manager">Manager</SelectItem>
-                  <SelectItem value="delivery">Repartidor 🚗</SelectItem>
+                  <SelectItem value="delivery">Repartidor</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="owner">Owner 👑</SelectItem>
+                  <SelectItem value="owner">Owner</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1083,23 +1083,25 @@ function EmailsSection() {
         </Link>
       </div>
       <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
-        <h4 className="font-semibold text-sm">📋 Emails automáticos configurados</h4>
+        <h4 className="font-semibold text-sm flex items-center gap-2">
+          <FileText className="w-4 h-4 text-strawberry" /> Emails automáticos configurados
+        </h4>
         {[
-          { icon: '📦', label: 'Confirmación de pedido', desc: 'Se envía cuando el pedido pasa a "Confirmado"' },
-          { icon: '🍳', label: 'En preparación', desc: 'Se envía cuando el pedido pasa a "Preparando"' },
-          { icon: '🚗', label: 'En camino', desc: 'Se envía cuando el pedido pasa a "En Camino"' },
-          { icon: '✅', label: 'Pedido entregado', desc: 'Se envía cuando el pedido se marca "Entregado"' },
-          { icon: '🎁', label: 'Referido completado', desc: 'Se envía a ambas partes cuando se completa un referido' },
-          { icon: '⚠️', label: 'Alerta de stock bajo', desc: 'Se envía al admin cuando ingredientes están bajos' },
-          { icon: '⭐', label: 'Solicitud de reseña', desc: 'Se envía automáticamente 1 día después de entrega' },
+          { Icon: Package, color: 'text-blue-500', label: 'Confirmación de pedido', desc: 'Se envía cuando el pedido pasa a "Confirmado"' },
+          { Icon: Clock, color: 'text-orange-500', label: 'En preparación', desc: 'Se envía cuando el pedido pasa a "Preparando"' },
+          { Icon: Map, color: 'text-purple-500', label: 'En camino', desc: 'Se envía cuando el pedido pasa a "En Camino"' },
+          { Icon: CheckCircle2, color: 'text-green-500', label: 'Pedido entregado', desc: 'Se envía cuando el pedido se marca "Entregado"' },
+          { Icon: Gift, color: 'text-pink-500', label: 'Referido completado', desc: 'Se envía a ambas partes cuando se completa un referido' },
+          { Icon: AlertTriangle, color: 'text-amber-500', label: 'Alerta de stock bajo', desc: 'Se envía al admin cuando ingredientes están bajos' },
+          { Icon: Star, color: 'text-amber-400', label: 'Solicitud de reseña', desc: 'Se envía automáticamente 1 día después de entrega' },
         ].map(e => (
           <div key={e.label} className="flex items-start gap-3 p-3 bg-muted rounded-xl">
-            <span className="text-lg">{e.icon}</span>
-            <div>
+            <e.Icon className={`w-5 h-5 ${e.color} flex-shrink-0 mt-0.5`} />
+            <div className="flex-1 min-w-0">
               <p className="font-medium text-sm">{e.label}</p>
               <p className="text-xs text-muted-foreground">{e.desc}</p>
             </div>
-            <Badge className="ml-auto text-xs bg-green-100 text-green-700 flex-shrink-0">Activo</Badge>
+            <Badge className="text-xs bg-green-100 text-green-700 flex-shrink-0">Activo</Badge>
           </div>
         ))}
       </div>
@@ -1248,9 +1250,15 @@ export default function SuperAdmin() {
         {sidebarOpen && (
           <div className="p-3 border-t border-border space-y-1">
             <p className="text-xs text-muted-foreground font-semibold px-2 mb-1">Ir a...</p>
-            {[{ to: '/admin', label: '⚙️ Admin Panel' }, { to: '/analytics', label: '📊 Analytics' }, { to: '/logistica', label: '🚗 Logística' }, { to: '/owner', label: '👑 Owner Panel' }].map(l => (
+            {[
+              { to: '/admin', label: 'Admin Panel', Icon: Settings },
+              { to: '/analytics', label: 'Analytics', Icon: BarChart2 },
+              { to: '/logistica', label: 'Logística', Icon: Map },
+              { to: '/owner', label: 'Owner Panel', Icon: Crown },
+            ].map(l => (
               <Link key={l.to} to={l.to} className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-                {l.label}
+                <l.Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{l.label}</span>
               </Link>
             ))}
           </div>

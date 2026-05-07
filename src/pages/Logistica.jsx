@@ -203,36 +203,45 @@ export default function Logistica() {
                   </div>
 
                   {/* Actions */}
-                  <div className="px-4 pb-4 flex gap-2">
-                    {order.status === 'preparing' && (
-                      <Button
-                        onClick={() => handleStartDelivery(order)}
-                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white rounded-xl gap-2"
+                  <div className="px-4 pb-4 flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      {order.status === 'preparing' && (
+                        <Button
+                          onClick={() => handleStartDelivery(order)}
+                          className="flex-1 bg-purple-600 hover:bg-purple-700 text-white rounded-xl gap-2"
+                        >
+                          <Navigation className="w-4 h-4" /> Salir a Entregar
+                        </Button>
+                      )}
+                      {order.status === 'on_the_way' && (
+                        <Button
+                          onClick={() => handleMarkDelivered(order)}
+                          disabled={delivering[order.id]}
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-xl gap-2 font-bold"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                          Verificar y Entregar (PIN + Foto)
+                        </Button>
+                      )}
+                      <a
+                        href={`https://wa.me/${order.customer_phone?.replace(/\D/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center w-11 h-9 bg-green-500 hover:bg-green-600 text-white rounded-xl"
+                        aria-label="WhatsApp"
                       >
-                        <Navigation className="w-4 h-4" /> Salir a Entregar
-                      </Button>
-                    )}
-                    {order.status === 'on_the_way' && (
-                      <Button
-                        onClick={() => handleMarkDelivered(order)}
-                        disabled={delivering[order.id]}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-xl gap-2 font-bold"
+                        <Phone className="w-4 h-4" />
+                      </a>
+                    </div>
+                    {/* Owner/admin override — only for staff, not for delivery role */}
+                    {order.status === 'on_the_way' && ['admin', 'owner', 'manager'].includes(user.role) && (
+                      <button
+                        onClick={() => setOverrideOrder(order)}
+                        className="text-xs text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1 self-end"
                       >
-                        {delivering[order.id]
-                          ? <Loader2 className="w-4 h-4 animate-spin" />
-                          : <CheckCircle2 className="w-4 h-4" />
-                        }
-                        Marcar como Entregado
-                      </Button>
+                        <ShieldAlert className="w-3 h-3" /> Cerrar sin verificación (override)
+                      </button>
                     )}
-                    <a
-                      href={`https://wa.me/${order.customer_phone?.replace(/\D/g, '')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center w-11 h-9 bg-green-500 hover:bg-green-600 text-white rounded-xl text-lg"
-                    >
-                      💬
-                    </a>
                   </div>
                 </motion.div>
               ))}
@@ -240,6 +249,102 @@ export default function Logistica() {
           </div>
         )}
       </div>
+
+      {/* Verification Modal — same flow as driver */}
+      {verifyingOrder && (
+        <DeliveryVerificationModal
+          order={verifyingOrder}
+          onComplete={() => {
+            setOrders(prev => prev.filter(o => o.id !== verifyingOrder.id));
+            setVerifyingOrder(null);
+            // Send post-delivery notification + email
+            if (verifyingOrder.user_email) {
+              base44.entities.Notification.create({
+                user_email: verifyingOrder.user_email,
+                title_es: '¡Tu pedido llegó!',
+                title_en: 'Your order arrived!',
+                message_es: `Tu pedido #${verifyingOrder.tracking_code} fue entregado. ¡Disfrútalo!`,
+                message_en: `Order #${verifyingOrder.tracking_code} delivered. Enjoy!`,
+                type: 'order_update',
+                link: '/orders',
+              }).catch(() => {});
+              base44.functions.invoke('sendOrderEmail', { order_id: verifyingOrder.id, event_type: 'status_update' }).catch(() => {});
+            }
+          }}
+        />
+      )}
+
+      {/* Override Modal — only available to admin/owner/manager */}
+      <AnimatePresence>
+        {overrideOrder && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => !submittingOverride && setOverrideOrder(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-card rounded-2xl border border-border max-w-md w-full p-6 space-y-4"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
+                  <ShieldAlert className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="font-poppins font-bold">Cerrar pedido sin verificación</h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Acción reservada para emergencias. Se registra para auditoría con tu nombre, hora y razón.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-muted rounded-xl p-3 text-xs">
+                <p className="font-semibold">Pedido #{overrideOrder.tracking_code}</p>
+                <p className="text-muted-foreground mt-1">{overrideOrder.customer_name} · ${overrideOrder.total?.toFixed(2)}</p>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold uppercase text-muted-foreground">Razón del override (mínimo 10 caracteres)</label>
+                <Textarea
+                  value={overrideReason}
+                  onChange={e => setOverrideReason(e.target.value)}
+                  placeholder="Ej: El repartidor no pudo abrir la app, el cliente confirmó por teléfono..."
+                  className="rounded-xl text-sm"
+                  rows={4}
+                  disabled={submittingOverride}
+                />
+              </div>
+
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-xs text-amber-800 dark:text-amber-300">
+                Esta acción quedará registrada con tu email (<b>{user.email}</b>) y será visible para auditorías. El cliente recibirá un aviso de que el pedido se cerró sin verificación.
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => { setOverrideOrder(null); setOverrideReason(''); }}
+                  disabled={submittingOverride}
+                  className="flex-1 rounded-xl"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleOverrideDelivered}
+                  disabled={submittingOverride || overrideReason.trim().length < 10}
+                  className="flex-1 bg-amber-600 hover:bg-amber-700 text-white rounded-xl"
+                >
+                  {submittingOverride ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirmar override'}
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

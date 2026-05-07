@@ -121,61 +121,39 @@ export default function Suscripciones() {
       const active = subs.find(s => s.status === 'active');
       setSubscription(active || null);
     }).finally(() => setLoading(false));
+
+    // Show success toast on return from Stripe Checkout
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === '1') {
+      toast.success('🎉 ¡Suscripción activada! Tu pago se procesó correctamente.');
+      window.history.replaceState({}, '', '/suscripciones');
+      // Refetch subscription after webhook processes (give it a moment)
+      setTimeout(() => {
+        base44.entities.Subscription.filter({ user_email: user.email }).then(subs => {
+          const active = subs.find(s => s.status === 'active');
+          setSubscription(active || null);
+        });
+      }, 2500);
+    } else if (params.get('cancelled') === '1') {
+      toast.info('Pago cancelado. Puedes intentarlo de nuevo cuando quieras.');
+      window.history.replaceState({}, '', '/suscripciones');
+    }
   }, [user]);
 
   const handleSubscribe = async (plan) => {
     if (!user) { base44.auth.redirectToLogin(); return; }
     setSubs(plan.id);
     try {
-      // Cancel any existing active subscription
-      if (subscription) {
-        await base44.entities.Subscription.update(subscription.id, { status: 'cancelled' });
+      // Real Stripe Checkout subscription flow
+      const result = await base44.functions.invoke('createStripeSubscription', { plan: plan.id });
+      if (result.data?.checkout_url) {
+        // Redirect to Stripe-hosted checkout (PCI-safe)
+        window.location.href = result.data.checkout_url;
+        return;
       }
-
-      const newSub = await base44.entities.Subscription.create({
-        user_email: user.email,
-        customer_name: user.full_name || user.email,
-        plan: plan.id,
-        status: 'active',
-        discount_percent: plan.discount_percent,
-        total_monthly: plan.price,
-        payment_method: 'pendiente',
-        notes: `Plan ${plan.name} — ${plan.discount_percent}% descuento, envío gratis: ${plan.free_delivery}`,
-      });
-
-      setSubscription(newSub);
-
-      // Notify user
-      await base44.entities.Notification.create({
-        user_email: user.email,
-        title_es: `🎉 ¡Bienvenido a ${plan.name}!`,
-        title_en: `🎉 Welcome to ${plan.nameEn}!`,
-        message_es: `Tu suscripción ${plan.name} está activa. Disfruta ${plan.discount_percent}% de descuento en cada pedido.`,
-        message_en: `Your ${plan.nameEn} subscription is active. Enjoy ${plan.discount_percent}% off every order.`,
-        type: 'loyalty',
-        is_read: false,
-      });
-
-      // Add loyalty bonus
-      await base44.entities.LoyaltyTransaction.create({
-        user_email: user.email,
-        points: 100,
-        type: 'bonus',
-        description: `Bono de bienvenida por suscripción ${plan.name}`,
-      });
-
-      // Update customer profile with bonus points
-      const profiles = await base44.entities.CustomerProfile.filter({ user_email: user.email });
-      if (profiles[0]) {
-        await base44.entities.CustomerProfile.update(profiles[0].id, {
-          loyalty_points: (profiles[0].loyalty_points || 0) + 100,
-        });
-      }
-
-      toast.success(`¡Suscripción ${plan.name} activada! +100 puntos de bienvenida 🎉`);
+      throw new Error(result.data?.error || 'No se pudo iniciar el pago');
     } catch (err) {
-      toast.error('Error al activar suscripción');
-    } finally {
+      toast.error('Error: ' + err.message);
       setSubs(null);
     }
   };
@@ -184,11 +162,12 @@ export default function Suscripciones() {
     if (!subscription) return;
     setCancelling(true);
     try {
-      await base44.entities.Subscription.update(subscription.id, { status: 'cancelled' });
+      const result = await base44.functions.invoke('cancelStripeSubscription', { subscription_id: subscription.id });
+      if (!result.data?.success) throw new Error(result.data?.error || 'Falló');
       setSubscription(null);
-      toast.success('Suscripción cancelada');
+      toast.success('Suscripción cancelada · benefits hasta fin de período');
     } catch (err) {
-      toast.error('Error al cancelar');
+      toast.error('Error al cancelar: ' + err.message);
     } finally {
       setCancelling(false);
     }

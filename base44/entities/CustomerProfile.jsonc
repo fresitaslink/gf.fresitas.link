@@ -5,6 +5,9 @@
     "user_email": {
       "type": "string"
     },
+    "customer_name": {
+      "type": "string"
+    },
     "display_name": {
       "type": "string"
     },
@@ -72,6 +75,10 @@
           }
         }
       }
+    },
+    "stripe_customer_id": {
+      "type": "string",
+      "description": "Stripe Customer ID for saved payment methods and subscriptions"
     }
   },
   "required": [

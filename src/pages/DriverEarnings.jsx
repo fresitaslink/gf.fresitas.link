@@ -64,13 +64,14 @@ export default function DriverEarnings() {
     }
   };
 
-  const handleWithdraw = async () => {
+  const handleWithdraw = async (instant = false) => {
     const amt = parseFloat(withdrawAmount);
     if (!amt || amt <= 0) { toast.error('Cantidad inválida'); return; }
 
     setWithdrawing(true);
     try {
-      const result = await base44.functions.invoke('requestDriverPayout', { amount: amt });
+      const fnName = instant ? 'requestInstantPayout' : 'requestDriverPayout';
+      const result = await base44.functions.invoke(fnName, { amount: amt });
       const data = result.data;
 
       if (data?.needs_onboarding) {
@@ -79,7 +80,8 @@ export default function DriverEarnings() {
       }
       if (!data?.success) throw new Error(data?.error || 'Falló el retiro');
 
-      toast.success(`✅ Retiro enviado · $${amt.toFixed(2)} en camino a tu banco`);
+      const arrival = data.arrival_estimate || (instant ? 'minutos' : '1-2 días hábiles');
+      toast.success(`✅ Retiro de $${amt.toFixed(2)} · llega en ${arrival}`);
       setWithdrawAmount('');
       await fetchData();
     } catch (e) {
@@ -196,17 +198,30 @@ export default function DriverEarnings() {
                 Mín: ${earnings.min_withdrawal || 50} · Disponible: ${(earnings.balance || 0).toFixed(2)}
               </p>
             </div>
-            <Button
-              onClick={handleWithdraw}
-              disabled={withdrawing || !withdrawAmount || !onboardingComplete || parseFloat(withdrawAmount) > (earnings.balance || 0) || parseFloat(withdrawAmount) < (earnings.min_withdrawal || 50)}
-              className="gap-2 bg-strawberry hover:bg-strawberry/90 text-white rounded-xl"
-            >
-              {withdrawing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
-              {withdrawing ? 'Procesando...' : 'Retirar a mi banco'}
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={() => handleWithdraw(true)}
+                disabled={withdrawing || !withdrawAmount || !onboardingComplete || parseFloat(withdrawAmount) > (earnings.balance || 0) || parseFloat(withdrawAmount) < (earnings.min_withdrawal || 50)}
+                className="gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-white rounded-xl whitespace-nowrap"
+              >
+                ⚡ {withdrawing ? 'Procesando...' : 'Retiro Instantáneo'}
+              </Button>
+              <Button
+                onClick={() => handleWithdraw(false)}
+                disabled={withdrawing || !withdrawAmount || !onboardingComplete || parseFloat(withdrawAmount) > (earnings.balance || 0) || parseFloat(withdrawAmount) < (earnings.min_withdrawal || 50)}
+                variant="outline"
+                className="gap-2 rounded-xl whitespace-nowrap"
+              >
+                {withdrawing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                Estándar (1-2 días)
+              </Button>
+            </div>
           </div>
           {!onboardingComplete && (
             <p className="text-xs text-amber-600 mt-3">⚠️ Completa el onboarding de Stripe para habilitar retiros</p>
+          )}
+          {onboardingComplete && (
+            <p className="text-xs text-muted-foreground mt-3">⚡ <strong>Instantáneo:</strong> tu dinero llega en minutos (1.5% fee de Stripe). <strong>Estándar:</strong> gratis, 1-2 días hábiles.</p>
           )}
         </Card>
 

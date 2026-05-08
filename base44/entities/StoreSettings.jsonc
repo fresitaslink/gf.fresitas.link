@@ -118,7 +118,7 @@
     },
     "surge_multiplier_high": {
       "type": "number",
-      "default": 2.0
+      "default": 2
     },
     "peak_hour_multiplier": {
       "type": "number",
@@ -126,5 +126,23 @@
       "description": "Multiplier during lunch (11-14) and dinner (18-20)"
     }
   },
-  "required": []
+  "required": [],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": null,
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

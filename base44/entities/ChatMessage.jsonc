@@ -44,8 +44,7 @@
     "message"
   ],
   "rls": {
-    "create": null,
-    "read": {
+    "create": {
       "$or": [
         {
           "data.user_email": "{{user.email}}"
@@ -57,12 +56,37 @@
         },
         {
           "user_condition": {
+            "role": "owner"
+          }
+        },
+        {
+          "user_condition": {
             "role": "manager"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "data.is_admin": true
+        },
+        {
+          "user_condition": {
+            "role": "admin"
           }
         },
         {
           "user_condition": {
             "role": "owner"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "manager"
           }
         }
       ]
@@ -75,6 +99,16 @@
         {
           "user_condition": {
             "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "owner"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "manager"
           }
         }
       ]

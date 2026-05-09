@@ -1,0 +1,63 @@
+{
+  "name": "Recipe",
+  "type": "object",
+  "description": "Maps a Product to the Ingredients it consumes, with per-unit quantities. Used to deduct stock on order and to auto-detect 'out of stock' products.",
+  "properties": {
+    "product_id": {
+      "type": "string",
+      "description": "Product ID consuming this ingredient"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Cached product name for admin UI"
+    },
+    "ingredient_id": {
+      "type": "string",
+      "description": "Ingredient ID being consumed"
+    },
+    "ingredient_name": {
+      "type": "string",
+      "description": "Cached ingredient name for admin UI"
+    },
+    "quantity_per_unit": {
+      "type": "number",
+      "default": 1,
+      "description": "How much of this ingredient (in its own unit) is consumed per ONE unit of the product"
+    },
+    "is_critical": {
+      "type": "boolean",
+      "default": true,
+      "description": "If true, this ingredient running out marks the product as out of stock. Set false for optional toppings."
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "product_id",
+    "ingredient_id",
+    "quantity_per_unit"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

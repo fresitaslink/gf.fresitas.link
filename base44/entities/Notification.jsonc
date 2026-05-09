@@ -37,5 +37,19 @@
   "required": [
     "user_email",
     "title_es"
-  ]
+  ],
+  "rls": {
+    "create": null,
+    "read": {
+      "data.user_email": "{{user.email}}"
+    },
+    "update": {
+      "data.user_email": "{{user.email}}"
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

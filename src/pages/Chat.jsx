@@ -294,7 +294,7 @@ Responde en español de forma cálida y útil. Si preguntan por productos, menci
         </div>
         <div className="flex items-center gap-1.5 bg-purple-50 dark:bg-purple-950/30 text-purple-600 px-2.5 py-1 rounded-full text-xs">
           <Bot className="w-3 h-3" />
-          <span>@willfy disponible</span>
+          <span>@willfy</span>
         </div>
       </div>
 

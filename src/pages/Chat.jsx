@@ -338,7 +338,7 @@ Responde en español de forma cálida y útil. Si preguntan por productos, menci
             value={newMessage}
             onChange={e => setNewMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Escribe tu mensaje o @willfy para IA... (Enter para enviar)"
+            placeholder="Escribe tu mensaje o @willfy para una respuesta de IA."
             rows={1}
             className="resize-none rounded-2xl flex-1 min-h-[42px] max-h-32 text-sm"
           />

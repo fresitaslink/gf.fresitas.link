@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, MapPin, Clock, CreditCard, FileText, Loader2, Zap, PartyPopper, MessageCircle, Package, Sparkles, CalendarClock } from 'lucide-react';
+import { Check, MapPin, Clock, CreditCard, FileText, Loader2, Zap, PartyPopper, MessageCircle, Package, Sparkles, CalendarClock, Star, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -359,10 +359,11 @@ export default function Checkout() {
                 <DeliveryMap
                    onLocationSelect={async (latlng) => {
                      setForm(p => ({ ...p, delivery_lat: latlng[0], delivery_lng: latlng[1] }));
-                     // Calculate surge pricing
                      const surge = await calculateSurgePrice(latlng[0], latlng[1], baseDeliveryFee);
                      setSurgePrice(surge);
                    }}
+                   onAddressResolved={(addr) => setForm(p => ({ ...p, customer_address: addr }))}
+                   savedAddresses={profile?.addresses?.filter(a => a.address) || []}
                  />
               </motion.div>
             )}
@@ -402,7 +403,7 @@ export default function Checkout() {
                       <div className="flex items-center gap-2">
                         <span className="text-lg">⭐</span>
                         <div>
-                          <p className="font-semibold text-sm">Tus Puntos: {availablePoints}</p>
+                          <p className="font-semibold text-sm flex items-center gap-1.5">Tus Puntos: {availablePoints}</p>
                           <p className="text-xs text-muted-foreground">100 pts = $10 de descuento</p>
                         </div>
                       </div>
@@ -421,7 +422,7 @@ export default function Checkout() {
                       <span className="text-sm font-bold text-amber-700 w-16 text-right">{pointsToRedeem} pts</span>
                     </div>
                     {pointsToRedeem > 0 && (
-                      <p className="text-xs text-green-700 dark:text-green-400 mt-1">✅ Ahorras ${pointsDiscount.toFixed(0)} en este pedido</p>
+                      <p className="text-xs text-green-700 dark:text-green-400 mt-1 flex items-center gap-1"><Check className="w-3 h-3" /> Ahorras ${pointsDiscount.toFixed(0)} en este pedido</p>
                     )}
                   </div>
                 )}
@@ -430,7 +431,7 @@ export default function Checkout() {
                   <div className="flex items-center gap-2 bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-xl p-3 text-sm">
                     <Zap className="w-4 h-4 text-green-600 flex-shrink-0" />
                     <span className="text-green-800 dark:text-green-300">
-                      Suscripción {subscription.plan?.toUpperCase()} activa — {subscription.discount_percent}% descuento aplicado 🎉
+                      Suscripción {subscription.plan?.toUpperCase()} activa — {subscription.discount_percent}% descuento aplicado
                     </span>
                   </div>
                 )}
@@ -483,7 +484,7 @@ export default function Checkout() {
                   {items.map(item => (
                     <div key={item.cartKey} className="flex gap-3 items-center">
                       <div className="w-12 h-12 rounded-xl bg-cream overflow-hidden flex-shrink-0">
-                        {item.image_url ? <img src={item.image_url} alt={item.name_es} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">🍓</div>}
+                        {item.image_url ? <img src={item.image_url} alt={item.name_es} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-strawberry/10 rounded-xl"><MapPin className="w-4 h-4 text-strawberry" /></div>}
                       </div>
                       <div className="flex-1 text-sm">
                         <p className="font-medium">{language === 'es' ? item.name_es : (item.name_en || item.name_es)} x{item.quantity}</p>
@@ -498,16 +499,16 @@ export default function Checkout() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">
                       {t.deliveryFee}
-                      {surgePrice?.is_surge && <span className="ml-1 text-orange-600 font-semibold">📈 +{(surgePrice.surge_amount).toFixed(0)}</span>}
+                      {surgePrice?.is_surge && <span className="ml-1 text-orange-600 font-semibold">+{(surgePrice.surge_amount).toFixed(0)}</span>}
                     </span>
                     <span>{actualDeliveryFee === 0 ? t.free : `$${actualDeliveryFee}`}</span>
                   </div>
                   {discount > 0 && <div className="flex justify-between text-green-600"><span>{t.discount} (promo)</span><span>-${discount.toFixed(2)}</span></div>}
                   {subDiscount > 0 && <div className="flex justify-between text-green-600"><span>Desc. suscripción ({subscription?.discount_percent}%)</span><span>-${subDiscount.toFixed(2)}</span></div>}
-                  {pointsDiscount > 0 && <div className="flex justify-between text-amber-600"><span>⭐ Puntos canjeados ({pointsToRedeem} pts)</span><span>-${pointsDiscount.toFixed(2)}</span></div>}
-                  {form.tip > 0 && <div className="flex justify-between text-red-600"><span>❤️ Propina para el repartidor</span><span>+${form.tip.toFixed(2)}</span></div>}
+                  {pointsDiscount > 0 && <div className="flex justify-between text-amber-600"><span>Puntos canjeados ({pointsToRedeem} pts)</span><span>-${pointsDiscount.toFixed(2)}</span></div>}
+                  {form.tip > 0 && <div className="flex justify-between text-red-600"><span>Propina para el repartidor</span><span>+${form.tip.toFixed(2)}</span></div>}
                   <div className="flex justify-between font-bold text-base border-t pt-2"><span>{t.total}</span><span className="text-strawberry">${totalWithTip.toFixed(2)}</span></div>
-                  <div className="flex justify-between text-xs text-amber-600 mt-1"><span>⭐ Puntos que ganarás</span><span>+{pointsEarned} pts</span></div>
+                  <div className="flex justify-between text-xs text-amber-600 mt-1"><span>Puntos que ganarás</span><span>+{pointsEarned} pts</span></div>
                 </div>
                 <div className="bg-muted rounded-xl p-3 text-sm space-y-1">
                   <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" /><span>{form.customer_address}</span></div>

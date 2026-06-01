@@ -13,7 +13,7 @@ const STATUS_CONFIG = {
   confirmed:  { icon: CheckCircle, label_es: 'Confirmado',      label_en: 'Confirmed',    color: 'text-blue-600',    bg: 'bg-blue-50 dark:bg-blue-900/20',      pulse: false },
   preparing:  { icon: ChefHat,     label_es: 'Preparando',      label_en: 'Preparing',    color: 'text-orange-600',  bg: 'bg-orange-50 dark:bg-orange-900/20',  pulse: true },
   ready:      { icon: CheckCircle, label_es: 'Listo p/ recoger',label_en: 'Ready',         color: 'text-green-600',   bg: 'bg-green-50 dark:bg-green-900/20',    pulse: true },
-  on_the_way: { icon: Truck,       label_es: 'En Camino 🚴',   label_en: 'On the Way 🚴', color: 'text-purple-600',  bg: 'bg-purple-50 dark:bg-purple-900/20',  pulse: true },
+  on_the_way: { icon: Truck,       label_es: 'En Camino',       label_en: 'On the Way',    color: 'text-purple-600',  bg: 'bg-purple-50 dark:bg-purple-900/20',  pulse: true },
 };
 
 const ACTIVE_STATUSES = ['pending', 'confirmed', 'preparing', 'ready', 'on_the_way'];

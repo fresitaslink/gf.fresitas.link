@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ConversionFunnel from '@/components/analytics/ConversionFunnel';
 import DeliveryAnalyticsDashboard from '@/components/admin/DeliveryAnalyticsDashboard';
+import SalesReport from '@/components/analytics/SalesReport';
 
 const COLORS = ['#E8294A', '#5C2D0E', '#F59E0B', '#10B981', '#8B5CF6', '#EC4899', '#3B82F6'];
 
@@ -211,6 +212,9 @@ export default function Analytics() {
           <Tabs defaultValue="metrics">
             <TabsList className="mb-6 rounded-xl bg-muted">
               <TabsTrigger value="metrics" className="rounded-lg text-xs">Métricas</TabsTrigger>
+              <TabsTrigger value="report" className="rounded-lg text-xs flex items-center gap-1.5">
+                <RefreshCw className="w-3.5 h-3.5" /> Reporte Ventas
+              </TabsTrigger>
               <TabsTrigger value="funnel" className="rounded-lg text-xs flex items-center gap-1.5">
                 <GitMerge className="w-3.5 h-3.5" /> Embudo de Conversión
               </TabsTrigger>
@@ -218,6 +222,10 @@ export default function Analytics() {
                 <Truck className="w-3.5 h-3.5" /> Entregas
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="report">
+              <SalesReport orders={orders} products={products} range={range} />
+            </TabsContent>
 
             <TabsContent value="funnel">
               <ConversionFunnel orders={orders} profiles={profiles} />

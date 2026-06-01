@@ -6,6 +6,7 @@ import LevelProgressBar from '@/components/loyalty/LevelProgressBar';
 import MyPerksList from '@/components/loyalty/MyPerksList';
 import ReferralLinkCard from '@/components/profile/ReferralLinkCard';
 import MisRecompensas from '@/components/loyalty/MisRecompensas';
+import LoyaltyDashboard from '@/components/loyalty/LoyaltyDashboard';
 import PushNotificationButton from '@/components/ui/PushNotificationButton';
 import AvatarUpload from '@/components/chat/AvatarUpload';
 import { Button } from '@/components/ui/button';
@@ -299,40 +300,11 @@ export default function Perfil() {
 
             {/* Loyalty Tab */}
             <TabsContent value="loyalty">
-              <div className="space-y-4">
-                <div className="bg-gradient-to-br from-strawberry to-pink-500 text-white rounded-2xl p-6 text-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                    <Star className="w-6 h-6 text-yellow-300 fill-yellow-300" />
-                  </div>
-                  <div className="font-poppins font-black text-5xl">{profile?.loyalty_points || 0}</div>
-                  <p className="text-pink-100 mt-1">{t.loyaltyPoints}</p>
-                  <p className="text-xs text-pink-200 mt-2">{language === 'es' ? `= $${((profile?.loyalty_points || 0) / 100 * 5).toFixed(2)} de descuento` : `= $${((profile?.loyalty_points || 0) / 100 * 5).toFixed(2)} discount`}</p>
-                </div>
-
-                <div className="bg-card rounded-2xl border border-border p-4">
-                  <h3 className="font-semibold mb-3">{language === 'es' ? 'Historial de Puntos' : 'Points History'}</h3>
-                  {loyaltyHistory.length > 0 ? (
-                    <div className="space-y-2">
-                      {loyaltyHistory.map(tx => (
-                        <div key={tx.id} className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${tx.type === 'earned' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                            {tx.type === 'earned' ? '+' : '-'}
-                          </div>
-                          <div className="flex-1 text-sm">
-                            <p className="font-medium">{tx.description}</p>
-                            <p className="text-xs text-muted-foreground">{new Date(tx.created_date).toLocaleDateString(language === 'es' ? 'es-MX' : 'en-US')}</p>
-                          </div>
-                          <span className={`font-bold text-sm ${tx.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
-                            {tx.type === 'earned' ? '+' : '-'}{tx.points}pts
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-sm text-center py-4">{language === 'es' ? 'Haz tu primer pedido para ganar puntos!' : 'Place your first order to earn points!'}</p>
-                  )}
-                </div>
-              </div>
+              <LoyaltyDashboard
+                profile={profile}
+                loyaltyHistory={loyaltyHistory}
+                language={language}
+              />
             </TabsContent>
 
             {/* Notifications Tab */}

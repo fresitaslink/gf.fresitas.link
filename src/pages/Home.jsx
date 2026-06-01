@@ -16,6 +16,7 @@ import LoyaltyClubSection from '@/components/home/LoyaltyClubSection';
 import HomeBlogSection from '@/components/home/HomeBlogSection';
 import DeliveryTrustSection from '@/components/home/DeliveryTrustSection';
 import { toast } from 'sonner';
+import ActiveOrderBanner from '@/components/orders/ActiveOrderBanner';
 
 export default function Home() {
   const { t, language } = useLanguage();
@@ -82,6 +83,15 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
+      {/* Active order tracker */}
+      {user && (
+        <div className="fixed top-16 left-0 right-0 z-40 px-4 pt-2 pointer-events-none">
+          <div className="max-w-2xl mx-auto pointer-events-auto">
+            <ActiveOrderBanner />
+          </div>
+        </div>
+      )}
+
       {/* Announcement Banner — only renders when text exists & store status changes/promo is active */}
       {settings?.announcement_es?.trim() && (
         <motion.div

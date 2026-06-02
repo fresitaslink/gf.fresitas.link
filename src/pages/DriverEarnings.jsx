@@ -93,6 +93,11 @@ export default function DriverEarnings() {
     return <div className="flex items-center justify-center min-h-screen pt-20"><Loader2 className="w-8 h-8 animate-spin text-strawberry" /></div>;
   }
 
+  const safeEarnings = earnings || {
+    balance: 0, total_earned: 0, total_withdrawn: 0, pending_balance: 0,
+    total_deliveries: 0, avg_earnings_per_delivery: 0, min_withdrawal: 50,
+  };
+
   const todayEarnings = transactions
     .filter(t => t.type === 'delivery' && new Date(t.created_date).toDateString() === new Date().toDateString())
     .reduce((sum, t) => sum + (t.amount || 0), 0);
@@ -148,14 +153,14 @@ export default function DriverEarnings() {
               <p className="text-xs text-muted-foreground">Disponible</p>
               <Wallet className="w-4 h-4 text-strawberry opacity-60" />
             </div>
-            <p className="text-2xl font-bold text-strawberry">${(earnings.balance || 0).toFixed(2)}</p>
+            <p className="text-2xl font-bold text-strawberry">${(safeEarnings.balance || 0).toFixed(2)}</p>
           </Card>
           <Card className="p-4">
             <div className="flex items-center justify-between mb-1">
               <p className="text-xs text-muted-foreground">Pendiente</p>
               <Clock className="w-4 h-4 text-amber-500 opacity-60" />
             </div>
-            <p className="text-2xl font-bold text-amber-600">${(earnings.pending_balance || 0).toFixed(2)}</p>
+            <p className="text-2xl font-bold text-amber-600">${(safeEarnings.pending_balance || 0).toFixed(2)}</p>
             <p className="text-xs text-muted-foreground">Liquida en 24h</p>
           </Card>
           <Card className="p-4">
@@ -170,8 +175,8 @@ export default function DriverEarnings() {
               <p className="text-xs text-muted-foreground">Total ganado</p>
               <DollarSign className="w-4 h-4 opacity-60" />
             </div>
-            <p className="text-2xl font-bold">${(earnings.total_earned || 0).toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground">{earnings.total_deliveries || 0} entregas</p>
+            <p className="text-2xl font-bold">${(safeEarnings.total_earned || 0).toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">{safeEarnings.total_deliveries || 0} entregas</p>
           </Card>
         </div>
 
@@ -188,27 +193,27 @@ export default function DriverEarnings() {
                 type="number"
                 value={withdrawAmount}
                 onChange={(e) => setWithdrawAmount(e.target.value)}
-                placeholder={String(earnings.min_withdrawal || 50)}
-                min={earnings.min_withdrawal || 50}
-                max={earnings.balance || 0}
+                placeholder={String(safeEarnings.min_withdrawal || 50)}
+                min={safeEarnings.min_withdrawal || 50}
+                max={safeEarnings.balance || 0}
                 disabled={!onboardingComplete}
                 className="w-full px-4 py-2.5 border border-input rounded-xl bg-background disabled:opacity-50"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Mín: ${earnings.min_withdrawal || 50} · Disponible: ${(earnings.balance || 0).toFixed(2)}
+                Mín: ${safeEarnings.min_withdrawal || 50} · Disponible: ${(safeEarnings.balance || 0).toFixed(2)}
               </p>
             </div>
             <div className="flex flex-col gap-2">
               <Button
                 onClick={() => handleWithdraw(true)}
-                disabled={withdrawing || !withdrawAmount || !onboardingComplete || parseFloat(withdrawAmount) > (earnings.balance || 0) || parseFloat(withdrawAmount) < (earnings.min_withdrawal || 50)}
+                disabled={withdrawing || !withdrawAmount || !onboardingComplete || parseFloat(withdrawAmount) > (safeEarnings.balance || 0) || parseFloat(withdrawAmount) < (safeEarnings.min_withdrawal || 50)}
                 className="gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-white rounded-xl whitespace-nowrap"
               >
                 ⚡ {withdrawing ? 'Procesando...' : 'Retiro Instantáneo'}
               </Button>
               <Button
                 onClick={() => handleWithdraw(false)}
-                disabled={withdrawing || !withdrawAmount || !onboardingComplete || parseFloat(withdrawAmount) > (earnings.balance || 0) || parseFloat(withdrawAmount) < (earnings.min_withdrawal || 50)}
+                disabled={withdrawing || !withdrawAmount || !onboardingComplete || parseFloat(withdrawAmount) > (safeEarnings.balance || 0) || parseFloat(withdrawAmount) < (safeEarnings.min_withdrawal || 50)}
                 variant="outline"
                 className="gap-2 rounded-xl whitespace-nowrap"
               >

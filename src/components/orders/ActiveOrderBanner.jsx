@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Truck, ChefHat, CheckCircle, Clock, MapPin, ChevronRight, X, Navigation } from 'lucide-react';
+import { Truck, ChefHat, CheckCircle, Clock, MapPin, ChevronRight, X, Navigation, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -106,8 +106,26 @@ export default function ActiveOrderBanner() {
                 </p>
               )}
               {activeOrder.status === 'on_the_way' && activeOrder.assigned_driver_name && (
-                <p className="text-xs text-purple-600 dark:text-purple-400 flex items-center gap-1 mt-0.5 font-medium">
-                  <Navigation className="w-3 h-3" /> {activeOrder.assigned_driver_name} en camino
+                <div className="flex items-center gap-2 mt-1">
+                  {activeOrder.assigned_driver_photo ? (
+                    <img src={activeOrder.assigned_driver_photo} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0 border border-purple-300" />
+                  ) : (
+                    <div className="w-5 h-5 rounded-full bg-purple-200 flex items-center justify-center flex-shrink-0">
+                      <Navigation className="w-2.5 h-2.5 text-purple-600" />
+                    </div>
+                  )}
+                  <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">
+                    {activeOrder.assigned_driver_name} en camino
+                    {activeOrder.assigned_driver_rating && (
+                      <span className="ml-1 text-amber-500">★ {activeOrder.assigned_driver_rating.toFixed(1)}</span>
+                    )}
+                  </p>
+                </div>
+              )}
+              {activeOrder.estimated_delivery && !['delivered','cancelled'].includes(activeOrder.status) && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                  <Clock className="w-3 h-3 flex-shrink-0" />
+                  {language === 'es' ? 'Entrega estimada:' : 'Est. delivery:'} {activeOrder.estimated_delivery}
                 </p>
               )}
             </div>

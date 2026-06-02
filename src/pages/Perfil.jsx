@@ -48,7 +48,7 @@ export default function Perfil() {
     Promise.all([
       base44.entities.CustomerProfile.filter({ user_email: user.email }),
       base44.entities.Notification.filter({ user_email: user.email }, '-created_date', 20),
-      base44.entities.LoyaltyTransaction.filter({ user_email: user.email }, '-created_date', 20),
+      base44.entities.LoyaltyTransaction.filter({ user_email: user.email }, '-created_date', 50),
       base44.entities.StoreSettings.list(),
       base44.entities.ReferralRecord.filter({ referrer_email: user.email, status: 'completed' }),
     ]).then(([profiles, notifs, loyalty, settings, refs]) => {

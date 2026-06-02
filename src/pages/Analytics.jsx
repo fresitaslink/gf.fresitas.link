@@ -57,7 +57,7 @@ export default function Analytics() {
   const [range, setRange] = useState('30');
 
   useEffect(() => {
-    if (!user || !['admin', 'owner'].includes(user.role)) { navigate('/'); return; }
+    if (!user || !['admin', 'owner', 'manager'].includes(user.role)) { navigate('/'); return; }
     Promise.all([
       base44.entities.Order.list('-created_date', 1000),
       base44.entities.Product.list(),
@@ -181,7 +181,7 @@ export default function Analytics() {
     );
   }
 
-  if (!user || !['admin', 'owner'].includes(user.role)) return null;
+  if (!user || !['admin', 'owner', 'manager'].includes(user.role)) return null;
 
   return (
     <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
@@ -243,7 +243,7 @@ export default function Analytics() {
             <KPI label="Pedidos" value={filteredOrders.length} icon={ShoppingBag} color="text-blue-600" bg="bg-blue-50 dark:bg-blue-900/20" />
             <KPI label="Ticket Promedio" value={`$${avgOrderValue.toFixed(0)}`} icon={TrendingUp} color="text-purple-600" bg="bg-purple-50 dark:bg-purple-900/20" />
             <KPI label="Completados" value={completedOrders} icon={Package} color="text-emerald-600" bg="bg-emerald-50 dark:bg-emerald-900/20" />
-            <KPI label="Clientes" value={profiles.length} icon={Users} color="text-strawberry" bg="bg-strawberry/10" />
+            <KPI label="Cancelados" value={cancelledOrders} sub={filteredOrders.length > 0 ? `${Math.round((cancelledOrders/filteredOrders.length)*100)}% tasa` : ''} icon={TrendingDown} color="text-red-500" bg="bg-red-50 dark:bg-red-900/20" />
             <KPI label="Suscripciones" value={activeSubscriptions} icon={Zap} color="text-amber-600" bg="bg-amber-50 dark:bg-amber-900/20" />
           </div>
 

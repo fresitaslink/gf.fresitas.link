@@ -6,18 +6,14 @@
       "entity_name": "Product",
       "allowed_operations": [
         "read",
-        "update",
-        "create",
-        "delete"
+        "update"
       ]
     },
     {
       "entity_name": "Order",
       "allowed_operations": [
         "read",
-        "update",
-        "create",
-        "delete"
+        "update"
       ]
     },
     {
@@ -25,8 +21,7 @@
       "allowed_operations": [
         "read",
         "update",
-        "create",
-        "delete"
+        "create"
       ]
     },
     {
@@ -34,8 +29,7 @@
       "allowed_operations": [
         "read",
         "create",
-        "update",
-        "delete"
+        "update"
       ]
     },
     {
@@ -43,26 +37,21 @@
       "allowed_operations": [
         "read",
         "create",
-        "update",
-        "delete"
+        "update"
       ]
     },
     {
       "entity_name": "StoreSettings",
       "allowed_operations": [
         "read",
-        "update",
-        "delete",
-        "create"
+        "update"
       ]
     },
     {
       "entity_name": "LoyaltyTransaction",
       "allowed_operations": [
         "read",
-        "create",
-        "delete",
-        "update"
+        "create"
       ]
     },
     {
@@ -70,8 +59,7 @@
       "allowed_operations": [
         "read",
         "create",
-        "update",
-        "delete"
+        "update"
       ]
     },
     {
@@ -79,17 +67,14 @@
       "allowed_operations": [
         "read",
         "update",
-        "create",
-        "delete"
+        "create"
       ]
     },
     {
       "entity_name": "ChatMessage",
       "allowed_operations": [
         "read",
-        "create",
-        "delete",
-        "update"
+        "create"
       ]
     },
     {
@@ -97,8 +82,7 @@
       "allowed_operations": [
         "read",
         "create",
-        "delete",
-        "update"
+        "delete"
       ]
     },
     {
@@ -106,8 +90,7 @@
       "allowed_operations": [
         "read",
         "create",
-        "update",
-        "delete"
+        "update"
       ]
     },
     {
@@ -126,21 +109,15 @@
   "context_files": [],
   "app_user_connector_configs": [],
   "selected_skill_names": [],
-  "selected_workspace_skill_ids": [
-    "69d94c8fa8c9811c201a2c77",
-    "69d94c98cac152f684e0a42a",
-    "69d94c9e8725531b72f62258",
-    "69d94c9a3d761fdc0af0690b",
-    "69d94ca11a7d292748036222"
-  ],
+  "selected_workspace_skill_ids": [],
   "model": "claude_sonnet_4_6",
-  "whatsapp_greeting": "",
-  "telegram_greeting": "",
-  "line_greeting": "",
+  "whatsapp_greeting": null,
+  "telegram_greeting": null,
+  "line_greeting": null,
   "memory_config": {
     "enabled": true,
     "scope": "both",
-    "instructions": "Remember: customer name, favorite products, dietary restrictions and allergens, preferred delivery day, past complaints and resolutions, loyalty level milestones, whether they have an active subscription, birthday (for surprise greetings), and communication style (formal vs casual). For owners/managers: remember their preferred reporting format, most common queries, and store-specific context they've shared. And much more, using everything to train yourself, other models, the app and to provide an enrich answer and information to customer. Make sure you always aim to reply with visual contents, customers hate reading, they like visual images, containers, graphs and more! "
+    "instructions": "Remember: customer name, favorite products, dietary restrictions and allergens, preferred delivery day, past complaints and resolutions, loyalty level milestones, whether they have an active subscription, birthday (for surprise greetings), and communication style (formal vs casual). For owners/managers: remember their preferred reporting format, most common queries, and store-specific context they've shared."
   },
   "name": "willfy"
 }

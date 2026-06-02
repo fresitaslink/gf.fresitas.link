@@ -255,16 +255,18 @@ export default function LoyaltyDashboard({ profile, loyaltyHistory = [], languag
             {loyaltyHistory.map(tx => (
               <div key={tx.id} className="flex items-center gap-3 p-3 hover:bg-muted/40 transition-colors">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                  tx.type === 'earned' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                  tx.type === 'earned' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                  : tx.type === 'bonus' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                  : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                 }`}>
-                  {tx.type === 'earned' ? '+' : '-'}
+                  {tx.type === 'redeemed' ? '-' : '+'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{tx.description || (tx.type === 'earned' ? 'Puntos ganados' : 'Puntos canjeados')}</p>
                   <p className="text-xs text-muted-foreground">{new Date(tx.created_date).toLocaleDateString(language === 'es' ? 'es-MX' : 'en-US')}</p>
                 </div>
-                <span className={`font-bold text-sm flex-shrink-0 ${tx.type === 'earned' ? 'text-green-600' : 'text-red-500'}`}>
-                  {tx.type === 'earned' ? '+' : '-'}{tx.points}
+                <span className={`font-bold text-sm flex-shrink-0 ${tx.type === 'redeemed' ? 'text-red-500' : tx.type === 'bonus' ? 'text-amber-600' : 'text-green-600'}`}>
+                  {tx.type === 'redeemed' ? '-' : '+'}{tx.points}
                 </span>
               </div>
             ))}

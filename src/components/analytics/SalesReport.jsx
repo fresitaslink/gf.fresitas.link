@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, AreaChart, Area
 } from 'recharts';
-import { DollarSign, TrendingUp, ShoppingBag, Clock, Award, Star, Download, ArrowUp, ArrowDown } from 'lucide-react';
+import { DollarSign, TrendingUp, ShoppingBag, Clock, Award, Star, Download, ArrowUp, ArrowDown, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { jsPDF } from 'jspdf';
@@ -42,10 +42,14 @@ function SummaryCard({ label, value, sub, icon: Icon, color, bg, trend }) {
 export default function SalesReport({ orders = [], products = [], range = '30' }) {
   const days = parseInt(range);
 
-  const filteredOrders = useMemo(() =>
-    orders.filter(o => o.status !== 'cancelled' &&
-      new Date(o.created_date) > new Date(Date.now() - days * 86400000)),
+  const allPeriodOrders = useMemo(() =>
+    orders.filter(o => new Date(o.created_date) > new Date(Date.now() - days * 86400000)),
     [orders, days]
+  );
+
+  const filteredOrders = useMemo(() =>
+    allPeriodOrders.filter(o => o.status !== 'cancelled'),
+    [allPeriodOrders]
   );
 
   const prevOrders = useMemo(() =>
@@ -67,6 +71,8 @@ export default function SalesReport({ orders = [], products = [], range = '30' }
   const totalTips = filteredOrders.reduce((s, o) => s + (o.tip_amount || 0), 0);
   const deliveredCount = filteredOrders.filter(o => o.status === 'delivered').length;
   const completionRate = filteredOrders.length ? Math.round((deliveredCount / filteredOrders.length) * 100) : 0;
+  const cancelledCount = allPeriodOrders.filter(o => o.status === 'cancelled').length;
+  const cancellationRate = allPeriodOrders.length ? Math.round((cancelledCount / allPeriodOrders.length) * 100) : 0;
 
   // Top products by quantity
   const topProducts = useMemo(() => {
@@ -157,6 +163,7 @@ export default function SalesReport({ orders = [], products = [], range = '30' }
       `Ticket promedio: $${avgTicket.toFixed(2)}`,
       `Tasa de completación: ${completionRate}%`,
       `Total de propinas: $${totalTips.toFixed(2)}`,
+      `Tasa de cancelación: ${cancellationRate}% (${cancelledCount} pedidos)`,
       `Hora pico: ${peakHour.hora} (${peakHour.pedidos} pedidos)`,
     ];
     kpis.forEach((line, i) => doc.text(line, 15, 52 + i * 8));
@@ -188,11 +195,12 @@ export default function SalesReport({ orders = [], products = [], range = '30' }
       </div>
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <SummaryCard label="Ingresos Totales" value={`$${totalRevenue.toFixed(0)}`} sub={revTrend !== null ? `vs período anterior` : ''} icon={DollarSign} color="text-green-600" bg="bg-green-50 dark:bg-green-900/20" trend={revTrend} />
         <SummaryCard label="Pedidos Completados" value={deliveredCount} sub={`${completionRate}% tasa completación`} icon={ShoppingBag} color="text-blue-600" bg="bg-blue-50 dark:bg-blue-900/20" />
         <SummaryCard label="Ticket Promedio" value={`$${avgTicket.toFixed(0)}`} sub="por pedido" icon={TrendingUp} color="text-purple-600" bg="bg-purple-50 dark:bg-purple-900/20" trend={ticketTrend} />
         <SummaryCard label="Propinas Totales" value={`$${totalTips.toFixed(0)}`} sub={`${filteredOrders.filter(o=>o.tip_amount>0).length} pedidos con propina`} icon={Award} color="text-amber-600" bg="bg-amber-50 dark:bg-amber-900/20" />
+        <SummaryCard label="Cancelados" value={cancelledCount} sub={`${cancellationRate}% tasa cancelación`} icon={XCircle} color="text-red-500" bg="bg-red-50 dark:bg-red-900/20" />
       </div>
 
       {/* Revenue Trend */}

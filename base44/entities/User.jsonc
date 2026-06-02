@@ -13,5 +13,6 @@
       ],
       "default": "user"
     }
-  }
+  },
+  "required": []
 }

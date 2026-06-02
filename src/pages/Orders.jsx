@@ -10,6 +10,7 @@ import DriverRatingComponent from '@/components/orders/DriverRatingComponent';
 import LiveCustomerTracking from '@/components/orders/LiveCustomerTracking';
 import CustomerLiveTracker from '@/components/orders/CustomerLiveTracker';
 import ETABadge from '@/components/orders/ETABadge';
+import OrderStatusTimeline from '@/components/notifications/OrderStatusTimeline';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -207,8 +208,10 @@ export default function Orders() {
                       className="overflow-hidden"
                     >
                       <div className="px-4 pb-4 border-t border-border pt-4 space-y-4">
-                        {/* Tracker */}
-                         <OrderTracker status={order.status} />
+                        {/* Status Timeline */}
+                        <OrderStatusTimeline order={order} />
+                        {/* Legacy Tracker - hidden, replaced by timeline above */}
+                        <div className="hidden"><OrderTracker status={order.status} /></div>
 
                          {/* Live customer tracking map (full live map for on_the_way) */}
                          {order.status === 'on_the_way' && (

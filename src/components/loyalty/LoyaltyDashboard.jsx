@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import LevelProgressBar from '@/components/loyalty/LevelProgressBar';
+import LoyaltyLevelBadge from '@/components/loyalty/LoyaltyLevelBadge';
+import PointsStreakCard from '@/components/loyalty/PointsStreakCard';
 import { getUserLevel, LEVELS } from '@/lib/levels';
 
 // Discount thresholds for the "next reward" progress
@@ -75,7 +77,7 @@ function RewardMilestone({ milestone, currentPoints }) {
   );
 }
 
-export default function LoyaltyDashboard({ profile, loyaltyHistory = [], language = 'es', onRedeem }) {
+export default function LoyaltyDashboard({ profile, loyaltyHistory = [], orders = [], language = 'es', onRedeem }) {
   const points = profile?.loyalty_points || 0;
   const lifetimePoints = profile?.lifetime_points || profile?.loyalty_points || 0;
   const { current, next, progressPct, pointsToNext } = getUserLevel(lifetimePoints);
@@ -163,12 +165,18 @@ export default function LoyaltyDashboard({ profile, loyaltyHistory = [], languag
         </Link>
       </div>
 
+      {/* Streak card */}
+      <PointsStreakCard orders={orders} language={language} />
+
       {/* Level Progress */}
       <div>
-        <h3 className="font-poppins font-semibold text-sm mb-3 flex items-center gap-2">
-          <Award className="w-4 h-4 text-amber-500" />
-          {language === 'es' ? 'Tu Nivel' : 'Your Level'}
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-poppins font-semibold text-sm flex items-center gap-2">
+            <Award className="w-4 h-4 text-amber-500" />
+            {language === 'es' ? 'Tu Nivel' : 'Your Level'}
+          </h3>
+          <LoyaltyLevelBadge lifetimePoints={lifetimePoints} />
+        </div>
         <LevelProgressBar lifetimePoints={lifetimePoints} language={language} />
       </div>
 

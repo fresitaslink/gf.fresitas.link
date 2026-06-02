@@ -16,6 +16,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ConversionFunnel from '@/components/analytics/ConversionFunnel';
 import DeliveryAnalyticsDashboard from '@/components/admin/DeliveryAnalyticsDashboard';
 import SalesReport from '@/components/analytics/SalesReport';
+import RevenueByProduct from '@/components/analytics/RevenueByProduct';
+import CustomerRetentionChart from '@/components/analytics/CustomerRetentionChart';
+import LoyaltyAnalytics from '@/components/analytics/LoyaltyAnalytics';
 
 const COLORS = ['#E8294A', '#5C2D0E', '#F59E0B', '#10B981', '#8B5CF6', '#EC4899', '#3B82F6'];
 
@@ -53,6 +56,7 @@ export default function Analytics() {
   const [products, setProducts] = useState([]);
   const [profiles, setProfiles] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
+  const [loyaltyTransactions, setLoyaltyTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState('30');
 
@@ -63,11 +67,13 @@ export default function Analytics() {
       base44.entities.Product.list(),
       base44.entities.CustomerProfile.list('-created_date', 1000),
       base44.entities.Subscription.list('-created_date', 200),
-    ]).then(([ord, prods, prof, subs]) => {
+      base44.entities.LoyaltyTransaction.list('-created_date', 500),
+    ]).then(([ord, prods, prof, subs, loyalty]) => {
       setOrders(ord);
       setProducts(prods);
       setProfiles(prof);
       setSubscriptions(subs);
+      setLoyaltyTransactions(loyalty);
     }).finally(() => setLoading(false));
   }, [user]);
 
@@ -210,13 +216,19 @@ export default function Analytics() {
           </div>
 
           <Tabs defaultValue="metrics">
-            <TabsList className="mb-6 rounded-xl bg-muted">
+            <TabsList className="mb-6 rounded-xl bg-muted flex-wrap h-auto gap-1 p-1">
               <TabsTrigger value="metrics" className="rounded-lg text-xs">Métricas</TabsTrigger>
               <TabsTrigger value="report" className="rounded-lg text-xs flex items-center gap-1.5">
                 <RefreshCw className="w-3.5 h-3.5" /> Reporte Ventas
               </TabsTrigger>
+              <TabsTrigger value="products" className="rounded-lg text-xs flex items-center gap-1.5">
+                <Star className="w-3.5 h-3.5" /> Productos
+              </TabsTrigger>
+              <TabsTrigger value="loyalty" className="rounded-lg text-xs flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5" /> Lealtad
+              </TabsTrigger>
               <TabsTrigger value="funnel" className="rounded-lg text-xs flex items-center gap-1.5">
-                <GitMerge className="w-3.5 h-3.5" /> Embudo de Conversión
+                <GitMerge className="w-3.5 h-3.5" /> Embudo
               </TabsTrigger>
               <TabsTrigger value="delivery" className="rounded-lg text-xs flex items-center gap-1.5">
                 <Truck className="w-3.5 h-3.5" /> Entregas
@@ -225,6 +237,17 @@ export default function Analytics() {
 
             <TabsContent value="report">
               <SalesReport orders={orders} products={products} range={range} />
+            </TabsContent>
+
+            <TabsContent value="products">
+              <div className="space-y-6">
+                <RevenueByProduct orders={filteredOrders} />
+                <CustomerRetentionChart orders={orders} />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="loyalty">
+              <LoyaltyAnalytics profiles={profiles} loyaltyTransactions={loyaltyTransactions} />
             </TabsContent>
 
             <TabsContent value="funnel">

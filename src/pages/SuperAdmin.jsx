@@ -17,6 +17,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { base44 } from '@/api/base44Client';
+import NotificationStatusCard from '@/components/notifications/NotificationStatusCard';
 import { useAuth } from '@/lib/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -1073,37 +1074,15 @@ function GallerySection() {
 function EmailsSection() {
   return (
     <div className="space-y-4">
+      <NotificationStatusCard />
       <div className="bg-muted rounded-2xl p-5">
         <h4 className="font-semibold flex items-center gap-2 mb-3"><Mail className="w-4 h-4 text-strawberry" /> Templates de Email</h4>
-        <p className="text-sm text-muted-foreground mb-4">Los templates de email de estado de pedido están disponibles en el Admin Panel → Emails.</p>
+        <p className="text-sm text-muted-foreground mb-4">Personaliza los templates de email en el Admin Panel.</p>
         <Link to="/admin">
           <Button variant="outline" className="rounded-xl gap-2">
             <ExternalLink className="w-4 h-4" /> Ir al Admin Panel → Emails
           </Button>
         </Link>
-      </div>
-      <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
-        <h4 className="font-semibold text-sm flex items-center gap-2">
-          <FileText className="w-4 h-4 text-strawberry" /> Emails automáticos configurados
-        </h4>
-        {[
-          { Icon: Package, color: 'text-blue-500', label: 'Confirmación de pedido', desc: 'Se envía cuando el pedido pasa a "Confirmado"' },
-          { Icon: Clock, color: 'text-orange-500', label: 'En preparación', desc: 'Se envía cuando el pedido pasa a "Preparando"' },
-          { Icon: Map, color: 'text-purple-500', label: 'En camino', desc: 'Se envía cuando el pedido pasa a "En Camino"' },
-          { Icon: CheckCircle2, color: 'text-green-500', label: 'Pedido entregado', desc: 'Se envía cuando el pedido se marca "Entregado"' },
-          { Icon: Gift, color: 'text-pink-500', label: 'Referido completado', desc: 'Se envía a ambas partes cuando se completa un referido' },
-          { Icon: AlertTriangle, color: 'text-amber-500', label: 'Alerta de stock bajo', desc: 'Se envía al admin cuando ingredientes están bajos' },
-          { Icon: Star, color: 'text-amber-400', label: 'Solicitud de reseña', desc: 'Se envía automáticamente 1 día después de entrega' },
-        ].map(e => (
-          <div key={e.label} className="flex items-start gap-3 p-3 bg-muted rounded-xl">
-            <e.Icon className={`w-5 h-5 ${e.color} flex-shrink-0 mt-0.5`} />
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm">{e.label}</p>
-              <p className="text-xs text-muted-foreground">{e.desc}</p>
-            </div>
-            <Badge className="text-xs bg-green-100 text-green-700 flex-shrink-0">Activo</Badge>
-          </div>
-        ))}
       </div>
     </div>
   );

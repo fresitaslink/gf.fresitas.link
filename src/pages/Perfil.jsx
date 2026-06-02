@@ -31,6 +31,7 @@ export default function Perfil() {
   const [saving, setSaving] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [loyaltyHistory, setLoyaltyHistory] = useState([]);
+  const [userOrders, setUserOrders] = useState([]);
   const [storeSettings, setStoreSettings] = useState({});
   const [completedReferrals, setCompletedReferrals] = useState(0);
   const [newAddress, setNewAddress] = useState({ label: '', address: '', is_default: false });
@@ -51,7 +52,8 @@ export default function Perfil() {
       base44.entities.LoyaltyTransaction.filter({ user_email: user.email }, '-created_date', 50),
       base44.entities.StoreSettings.list(),
       base44.entities.ReferralRecord.filter({ referrer_email: user.email, status: 'completed' }),
-    ]).then(([profiles, notifs, loyalty, settings, refs]) => {
+      base44.entities.Order.filter({ user_email: user.email }, '-created_date', 100),
+    ]).then(([profiles, notifs, loyalty, settings, refs, orders]) => {
       if (profiles[0]) {
         setProfile(profiles[0]);
         setForm({
@@ -63,6 +65,7 @@ export default function Perfil() {
       }
       setNotifications(notifs);
       setLoyaltyHistory(loyalty);
+      setUserOrders(orders);
       setStoreSettings(settings[0] || {});
       setCompletedReferrals(refs.length);
     }).finally(() => setLoading(false));
@@ -303,6 +306,7 @@ export default function Perfil() {
               <LoyaltyDashboard
                 profile={profile}
                 loyaltyHistory={loyaltyHistory}
+                orders={userOrders}
                 language={language}
               />
             </TabsContent>

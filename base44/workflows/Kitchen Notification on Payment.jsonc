@@ -1,0 +1,37 @@
+{
+  "name": "Kitchen Notification on Payment",
+  "description": "Sends kitchen notification email when order payment is confirmed",
+  "trigger": {
+    "condition": "${ ((.trigger.changed_fields | index(\"payment_status\") != null) and (.trigger.data.payment_status == \"paid\")) }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "Order"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "kitchen_notification_on_payment",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "onPaymentConfirmed",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "onPaymentConfirmed"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "name": "Alerta de Stock en Pedido Nuevo",
+  "description": "Revisa autom\u00e1ticamente el stock de ingredientes cuando se crea un nuevo pedido y env\u00eda alerta por email si hay stock bajo o agotado",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "Order"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "alerta_de_stock_en_pedido_nuevo",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "checkStockOnOrder",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "checkStockOnOrder"
+  }
+}

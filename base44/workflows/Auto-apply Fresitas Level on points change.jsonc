@@ -1,0 +1,37 @@
+{
+  "name": "Auto-apply Fresitas Level on points change",
+  "description": "When a user's lifetime_points increase, recalculate their tier and award level-up bonuses",
+  "trigger": {
+    "condition": "${ (.trigger.changed_fields | index(\"lifetime_points\") != null) }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "CustomerProfile"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "auto_apply_fresitas_level_on_points_change",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "applyLevelPerks",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "applyLevelPerks"
+  }
+}

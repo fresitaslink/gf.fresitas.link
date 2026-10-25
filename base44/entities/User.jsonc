@@ -8,6 +8,7 @@
         "admin",
         "owner",
         "manager",
+        "kitchen",
         "delivery",
         "user"
       ],

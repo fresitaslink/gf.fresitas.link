@@ -31,21 +31,23 @@ export default function RealStats() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+    // Server-side counting/aggregation — avoids downloading thousands of records
     Promise.all([
-      base44.entities.CustomerProfile.list('-created_date', 1000),
-      base44.entities.Order.filter({ status: 'delivered' }, '-created_date', 500),
-    ]).then(([profiles, orders]) => {
-      const ratedOrders = orders.filter(o => o.rating);
-      const avgRating = ratedOrders.length > 0
-        ? ratedOrders.reduce((s, o) => s + o.rating, 0) / ratedOrders.length
-        : 0;
+      base44.entities.CustomerProfile.count(),
+      base44.entities.Order.count({ status: 'delivered' }),
+      base44.entities.Order.aggregate({ query: { status: 'delivered', rating: { $exists: true } }, avg: ['rating'] }),
+    ]).then(([customers, orders, rated]) => {
+      if (cancelled) return;
+      const row = rated?.rows?.[0];
       setStats({
-        customers: profiles.length,
-        orders: orders.length,
-        avgRating,
-        ratingCount: ratedOrders.length,
+        customers: customers || 0,
+        orders: orders || 0,
+        avgRating: row?.avg_rating || 0,
+        ratingCount: row?.count || 0,
       });
-    }).finally(() => setLoading(false));
+    }).catch(() => {}).finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
   const items = [

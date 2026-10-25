@@ -7,6 +7,7 @@ import { base44 } from '@/api/base44Client';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useCart } from '@/lib/CartContext';
 import { useAuth } from '@/lib/AuthContext';
+import { useStore } from '@/lib/StoreContext';
 import ProductCard from '@/components/products/ProductCard';
 import ProductModal from '@/components/products/ProductModal';
 import SkeletonCard from '@/components/ui/SkeletonCard';
@@ -25,7 +26,7 @@ export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [seasonalProducts, setSeasonalProducts] = useState([]);
   const [reviews, setReviews] = useState([]);
-  const [settings, setSettings] = useState(null);
+  const { storeSettings: settings } = useStore();
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [favorites, setFavorites] = useState([]);
@@ -39,17 +40,15 @@ export default function Home() {
       localStorage.setItem('fresitas_ref', refCode);
     }
 
-    Promise.all([
-      base44.entities.Product.filter({ is_featured: true, is_available: true }),
-      base44.entities.Product.filter({ category: 'temporada', is_available: true }),
-      base44.entities.Review.list('-created_date', 10),
-      base44.entities.StoreSettings.list(),
-    ]).then(([featured, seasonal, revs, settingsList]) => {
-      setFeaturedProducts(featured);
-      setSeasonalProducts(seasonal);
-      setReviews(revs);
-      setSettings(settingsList[0] || null);
-    }).finally(() => setLoading(false));
+    // One product fetch for both sections; settings come from the shared StoreContext
+    base44.entities.Product.filter({ is_available: true })
+      .then(products => {
+        setFeaturedProducts(products.filter(p => p.is_featured));
+        setSeasonalProducts(products.filter(p => p.category === 'temporada'));
+      })
+      .finally(() => setLoading(false));
+
+    base44.entities.Review.list('-created_date', 10).then(setReviews).catch(() => {});
 
     if (user) {
       base44.entities.Favorite.filter({ user_email: user.email })

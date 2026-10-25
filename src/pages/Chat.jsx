@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/AuthContext';
+import { useStore } from '@/lib/StoreContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const WILLFY_KEYWORDS = ['@willfy', 'willfy'];
@@ -113,7 +114,7 @@ export default function Chat() {
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [settings, setSettings] = useState(null);
+  const { storeSettings: settings } = useStore();
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -123,11 +124,9 @@ export default function Chat() {
     Promise.all([
       base44.entities.ChatMessage.filter({ user_email: user.email }, 'created_date', 100),
       base44.entities.CustomerProfile.filter({ user_email: user.email }),
-      base44.entities.StoreSettings.list(),
-    ]).then(([msgs, profiles, settingsList]) => {
+    ]).then(([msgs, profiles]) => {
       setMessages(msgs);
       setProfile(profiles[0] || null);
-      setSettings(settingsList[0] || null);
 
       // Auto-greeting if no messages yet
       if (msgs.length === 0) {

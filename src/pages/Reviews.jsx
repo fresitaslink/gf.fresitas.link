@@ -139,14 +139,20 @@ export default function Reviews() {
           photos: review.photos || [],
         });
         // Update product's average rating
-        const product = await base44.entities.Product.filter({ id: productId }).then(r => r[0]).catch(() => null);
-        if (product) {
-          const allReviews = await base44.entities.Review.filter({ product_id: productId });
-          const avg = allReviews.reduce((s, r) => s + (r.rating || 0), 0) / allReviews.length;
-          await base44.entities.Product.update(productId, {
-            rating: Math.round(avg * 10) / 10,
-            review_count: allReviews.length
-          });
+        // NOTE: product catalog fields are staff-write only; rating recalculation
+        // is deferred to the server. A failure here must not block the review itself.
+        try {
+          const product = await base44.entities.Product.filter({ id: productId }).then(r => r[0]).catch(() => null);
+          if (product) {
+            const allReviews = await base44.entities.Review.filter({ product_id: productId });
+            const avg = allReviews.reduce((s, r) => s + (r.rating || 0), 0) / allReviews.length;
+            await base44.entities.Product.update(productId, {
+              rating: Math.round(avg * 10) / 10,
+              review_count: allReviews.length
+            });
+          }
+        } catch (ratingErr) {
+          console.warn('Product rating recalculation deferred to server:', ratingErr);
         }
       }
       await base44.entities.Order.update(order.id, {

@@ -154,35 +154,45 @@ export default function Checkout() {
       // Tip is recorded in recordDeliveryEarnings (called when delivered) — no double-recording here
 
       // Update profile stats
+      // NOTE: loyalty balance fields are admin/backend-write only (server-verified accounting).
+      // This block records points opportunistically; if the platform rejects the client-side
+      // write, the order still completes and points are settled server-side.
       if (user) {
-        const profiles = await base44.entities.CustomerProfile.filter({ user_email: user.email });
-        if (profiles[0]) {
-          const newPoints = (profiles[0].loyalty_points || 0) + pointsEarned - pointsToRedeem;
-          // Lifetime points only increase by points earned (never decreases on redemption)
-          const newLifetime = (profiles[0].lifetime_points || profiles[0].loyalty_points || 0) + pointsEarned;
-          await base44.entities.CustomerProfile.update(profiles[0].id, {
-            loyalty_points: Math.max(0, newPoints),
-            lifetime_points: newLifetime,
-            total_orders: (profiles[0].total_orders || 0) + 1,
-          });
-          // Trigger level perks (auto-detect level-up & award bonus)
-          base44.functions.invoke('applyLevelPerks', { profile_id: profiles[0].id }).catch(() => {});
-          await base44.entities.LoyaltyTransaction.create({
-            user_email: user.email,
-            points: pointsEarned,
-            type: 'earned',
-            description: `Pedido #${trackingCode} — $${total.toFixed(0)} gastados`,
-            order_id: order.id,
-          });
-          if (pointsToRedeem > 0) {
+        try {
+          const profiles = await base44.entities.CustomerProfile.filter({ user_email: user.email });
+          if (profiles[0]) {
+            const newPoints = (profiles[0].loyalty_points || 0) + pointsEarned - pointsToRedeem;
+            // Lifetime points only increase by points earned (never decreases on redemption)
+            const newLifetime = (profiles[0].lifetime_points || profiles[0].loyalty_points || 0) + pointsEarned;
+            await base44.entities.CustomerProfile.update(profiles[0].id, {
+              loyalty_points: Math.max(0, newPoints),
+              lifetime_points: newLifetime,
+              total_orders: (profiles[0].total_orders || 0) + 1,
+            });
+            // Trigger level perks (auto-detect level-up & award bonus)
+            base44.functions.invoke('applyLevelPerks', { profile_id: profiles[0].id }).catch(() => {});
             await base44.entities.LoyaltyTransaction.create({
               user_email: user.email,
-              points: -pointsToRedeem,
-              type: 'redeemed',
-              description: `Canje de ${pointsToRedeem} puntos — $${pointsDiscount.toFixed(0)} de descuento`,
+              points: pointsEarned,
+              type: 'earned',
+              description: `Pedido #${trackingCode} — $${total.toFixed(0)} gastados`,
               order_id: order.id,
             });
+            if (pointsToRedeem > 0) {
+              await base44.entities.LoyaltyTransaction.create({
+                user_email: user.email,
+                points: -pointsToRedeem,
+                type: 'redeemed',
+                description: `Canje de ${pointsToRedeem} puntos — $${pointsDiscount.toFixed(0)} de descuento`,
+                order_id: order.id,
+              });
+            }
           }
+        } catch (pointsErr) {
+          console.warn('Points recording deferred to server verification:', pointsErr);
+          toast.info(language === 'es'
+            ? 'Tu pedido está confirmado. Los puntos se acreditan tras verificación del servidor.'
+            : 'Your order is confirmed. Points are credited after server verification.');
         }
 
         // Create notification

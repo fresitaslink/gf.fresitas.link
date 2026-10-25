@@ -164,7 +164,33 @@
     },
     "verification_pin": {
       "type": "string",
-      "description": "PIN for delivery verification"
+      "description": "PIN for delivery verification",
+      "rls": {
+        "write": {
+          "$or": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "owner"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "manager"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "delivery"
+              }
+            }
+          ]
+        }
+      }
     },
     "five_min_notified": {
       "type": "boolean",
@@ -214,13 +240,30 @@
           "user_condition": {
             "role": "manager"
           }
+        },
+        {
+          "user_condition": {
+            "role": "kitchen"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "delivery"
+          }
         }
       ]
     },
     "update": {
       "$or": [
         {
-          "data.user_email": "{{user.email}}"
+          "$and": [
+            {
+              "data.user_email": "{{user.email}}"
+            },
+            {
+              "data.status": "delivered"
+            }
+          ]
         },
         {
           "data.assigned_driver_email": "{{user.email}}"
@@ -238,6 +281,16 @@
         {
           "user_condition": {
             "role": "manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "kitchen"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "delivery"
           }
         }
       ]
